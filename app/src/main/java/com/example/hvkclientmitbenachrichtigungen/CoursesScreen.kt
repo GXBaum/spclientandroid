@@ -40,6 +40,8 @@ fun CoursesScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        CopyTokenButton()
+
         TextField(
             value = username,
             onValueChange = { username = it },

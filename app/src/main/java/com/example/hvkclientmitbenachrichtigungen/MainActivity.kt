@@ -38,7 +38,6 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
 
                     Column {
-                        CopyTokenButton()
                         CoursesScreen(Modifier.padding(innerPadding))
                     }
 

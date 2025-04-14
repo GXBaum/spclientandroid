@@ -7,6 +7,10 @@ plugins {
     id("com.google.gms.google-services")
     id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
+
+    // Navigation Compose
+    alias(libs.plugins.kotlin.serialization)
+
 }
 
 
@@ -76,7 +80,6 @@ dependencies {
     implementation(libs.converter.moshi)
 
 
-
     // ViewModel Compose
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
@@ -86,5 +89,10 @@ dependencies {
     kapt(libs.hilt.android.compiler)
     kapt(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+
+
+    // Navigation Compose
+    implementation(libs.navigation.compose)
+    implementation(libs.kotlinx.serialization.json)
 
 }
