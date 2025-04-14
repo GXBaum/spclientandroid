@@ -6,7 +6,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import android.Manifest
@@ -40,8 +39,7 @@ class MainActivity : ComponentActivity() {
 
                     Column {
                         CopyTokenButton()
-                        //CoursesScreen(Modifier.padding(innerPadding))
-                        CoursesScreen2(Modifier.padding(innerPadding))
+                        CoursesScreen(Modifier.padding(innerPadding))
                     }
 
                 }

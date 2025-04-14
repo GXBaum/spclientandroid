@@ -1,4 +1,4 @@
-package com.example
+package com.example.hvkclientmitbenachrichtigungen.data.model
 
 data class TokenUpdateRequest(
     val token: String,

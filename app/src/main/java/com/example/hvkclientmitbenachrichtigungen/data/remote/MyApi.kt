@@ -1,7 +1,7 @@
 package com.example.hvkclientmitbenachrichtigungen.data.remote
 
-import com.example.TokenUpdateRequest
-import com.example.UserCourses
+import com.example.hvkclientmitbenachrichtigungen.data.model.TokenUpdateRequest
+import com.example.hvkclientmitbenachrichtigungen.data.model.UserCourses
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

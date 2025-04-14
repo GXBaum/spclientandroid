@@ -2,8 +2,8 @@ package com.example.hvkclientmitbenachrichtigungen.data.repository
 
 import android.app.Application
 import android.util.Log
-import com.example.TokenUpdateRequest
-import com.example.UserCourse
+import com.example.hvkclientmitbenachrichtigungen.data.model.TokenUpdateRequest
+import com.example.hvkclientmitbenachrichtigungen.data.model.UserCourse
 import com.example.hvkclientmitbenachrichtigungen.R
 import com.example.hvkclientmitbenachrichtigungen.data.remote.MyApi
 import com.example.hvkclientmitbenachrichtigungen.domaIn.repository.MyRepository

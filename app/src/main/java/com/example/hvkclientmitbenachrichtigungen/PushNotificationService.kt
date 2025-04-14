@@ -4,7 +4,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 
 import android.util.Log
-import com.example.TokenUpdateRequest
+import com.example.hvkclientmitbenachrichtigungen.data.model.TokenUpdateRequest
 import com.example.hvkclientmitbenachrichtigungen.domaIn.repository.MyRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope

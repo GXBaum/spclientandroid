@@ -2,7 +2,7 @@ package com.example.hvkclientmitbenachrichtigungen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.UserCourse
+import com.example.hvkclientmitbenachrichtigungen.data.model.UserCourse
 import com.example.hvkclientmitbenachrichtigungen.domaIn.repository.MyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class CoursesViewModel2 @Inject constructor(
+class CoursesViewModel @Inject constructor(
     private val repository: MyRepository
 ): ViewModel() {
     // UI state

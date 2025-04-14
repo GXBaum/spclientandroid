@@ -1,7 +1,7 @@
 package com.example.hvkclientmitbenachrichtigungen.domaIn.repository
 
-import com.example.UserCourse
-import com.example.TokenUpdateRequest
+import com.example.hvkclientmitbenachrichtigungen.data.model.UserCourse
+import com.example.hvkclientmitbenachrichtigungen.data.model.TokenUpdateRequest
 import kotlinx.coroutines.flow.Flow
 
 /**
