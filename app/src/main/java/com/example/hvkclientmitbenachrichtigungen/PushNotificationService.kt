@@ -5,17 +5,19 @@ import com.google.firebase.messaging.RemoteMessage
 
 import android.util.Log
 import com.example.TokenUpdateRequest
+import com.example.hvkclientmitbenachrichtigungen.domaIn.repository.MyRepository
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class PushNotificationService: FirebaseMessagingService() {
 
-    /*override fun onNewToken(token: String) {
-        super.onNewToken(token)
-        // push new token to server
+    @Inject
+    lateinit var repository: MyRepository
 
-    }*/
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         // Store token locally (e.g., in SharedPreferences)
@@ -26,7 +28,6 @@ class PushNotificationService: FirebaseMessagingService() {
             .apply()
          */
 
-        // Log the token for debugging
         Log.d("PushNotificationService", "New token: $token")
 
         // Send the token to your server
@@ -35,10 +36,10 @@ class PushNotificationService: FirebaseMessagingService() {
             try {
                 // make TokenUpdateRequest object
                 val tokenUpdateRequest = TokenUpdateRequest(token, "Rafael.Beckmann")
-
+                
                 Log.d("PushNotificationService", "TokenUpdateRequest: $tokenUpdateRequest")
-
-                FcmApiClient.getApi().updateToken(tokenUpdateRequest)
+                
+                repository.updateToken(tokenUpdateRequest)
             } catch (e: Exception) {
                 Log.e("PushNotificationService", "Failed to send token to server", e)
             }

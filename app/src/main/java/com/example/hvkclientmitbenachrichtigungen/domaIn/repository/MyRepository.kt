@@ -1,6 +1,7 @@
 package com.example.hvkclientmitbenachrichtigungen.domaIn.repository
 
 import com.example.UserCourse
+import com.example.TokenUpdateRequest
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -11,12 +12,17 @@ import kotlinx.coroutines.flow.Flow
  * 2. Keep our ViewModel decoupled from specific implementation details
  */
 interface MyRepository {
-    suspend fun doNetworkCall()
-    
+
     /**
      * Fetches user courses from the API
      * @param username The username to fetch courses for
      * @return Flow emitting either a success with list of courses or an error
      */
     fun getUserCourses(username: String): Flow<Result<List<UserCourse>>>
+    
+    /**
+     * Updates the FCM token for a user on the server
+     * @param tokenUpdateRequest The request containing the token and username
+     */
+    suspend fun updateToken(tokenUpdateRequest: TokenUpdateRequest)
 }

@@ -1,6 +1,8 @@
 package com.example.hvkclientmitbenachrichtigungen.data.repository
 
 import android.app.Application
+import android.util.Log
+import com.example.TokenUpdateRequest
 import com.example.UserCourse
 import com.example.hvkclientmitbenachrichtigungen.R
 import com.example.hvkclientmitbenachrichtigungen.data.remote.MyApi
@@ -22,14 +24,7 @@ class MyRepositoryImpl(
         val appName = appContext.getString(R.string.app_name)
         println("App name: $appName")
     }
-    
-    /**
-     * Implementation of the doNetworkCall method defined in MyRepository interface.
-     * Currently it's a TODO, but this is where you would make API calls using the api property.
-     */
-    override suspend fun doNetworkCall() {
-        TODO("Not yet implemented")
-    }
+
     
     /**
      * Implementation of getUserCourses that properly handles network errors and responses
@@ -46,6 +41,20 @@ class MyRepositoryImpl(
             }
         } catch (e: Exception) {
             emit(Result.failure(e))
+        }
+    }
+    
+    /**
+     * Implementation of updateToken that sends the FCM token to the server
+     */
+    override suspend fun updateToken(tokenUpdateRequest: TokenUpdateRequest) {
+        try {
+            val response = api.updateToken(tokenUpdateRequest)
+            if (!response.isSuccessful) {
+                Log.e("MyRepositoryImpl", "Failed to update token: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Log.e("MyRepositoryImpl", "Exception while updating token", e)
         }
     }
 }
