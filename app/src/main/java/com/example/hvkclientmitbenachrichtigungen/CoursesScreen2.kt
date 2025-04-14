@@ -1,0 +1,83 @@
+package com.example.hvkclientmitbenachrichtigungen
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+
+@Composable
+fun CoursesScreen2(
+    modifier: Modifier = Modifier,
+    viewModel: CoursesViewModel2 = hiltViewModel(),
+) {
+    val courses by viewModel.courses.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+    var username by remember { mutableStateOf("Rafael.Beckmann") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        TextField(
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("Username") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        
+        Button(
+            onClick = { viewModel.fetchCourses(username) },
+            modifier = Modifier.padding(vertical = 8.dp)
+        ) {
+            Text("Fetch Courses")
+        }
+        
+        when {
+            isLoading -> {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            error != null -> {
+                Text(
+                    text = "Error: $error",
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+            courses.isNotEmpty() -> {
+                LazyColumn {
+                    items(courses) { course ->
+                        Text(
+                            text = course.name,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

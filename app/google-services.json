@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1098625942224",
+    "project_id": "hvk-client",
+    "storage_bucket": "hvk-client.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1098625942224:android:964a126abfec4d185dd4d5",
+        "android_client_info": {
+          "package_name": "com.example.hvkclientmitbenachrichtigungen"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3i2t5_p5LSScvcmYG01aR_K2-xlkp1AU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
