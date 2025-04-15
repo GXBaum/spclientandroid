@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
@@ -17,6 +19,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +39,8 @@ fun CourseDetailScreen(
     modifier: Modifier = Modifier,
     viewModel: CourseDetailViewModel = hiltViewModel(),
     courseId: Int,
+    onNavigateToRevealMark: (String) -> Unit = {}
+
 ) {
     val marks by viewModel.marks.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -47,14 +52,16 @@ fun CourseDetailScreen(
     }
 
     Box(
-        modifier = modifier.fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         when {
             isLoading -> CircularProgressIndicator()
             error != null -> ErrorContent(errorMessage = error ?: "Unknown error occurred")
-            marks.isNotEmpty() -> MarksList(marks = marks)
+            marks.isNotEmpty() -> MarksList(marks = marks, onMarkClick = { mark ->
+                onNavigateToRevealMark(mark.grade)
+            })
+
             else -> Text(
                 text = "No marks available for this course",
                 modifier = Modifier.padding(16.dp),
@@ -65,27 +72,9 @@ fun CourseDetailScreen(
 }
 
 @Composable
-fun ErrorContent(errorMessage: String) {
-    Column(
-        modifier = Modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Error",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.error
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = errorMessage,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.error
-        )
-    }
-}
-
-@Composable
-fun MarksList(marks: List<UserMark>) {
+fun MarksList(marks: List<UserMark>,
+              onMarkClick: (UserMark) -> Unit
+) {
     LazyColumn(
         modifier = Modifier.padding(16.dp)
     ) {
@@ -98,17 +87,21 @@ fun MarksList(marks: List<UserMark>) {
         }
 
         items(marks) { mark ->
-            MarkItem(mark = mark)
+            MarkItem(mark = mark, onMarkClick = onMarkClick)
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
 
 @Composable
-fun MarkItem(mark: UserMark) {
+fun MarkItem(
+    mark: UserMark,
+    onMarkClick: (UserMark) -> Unit = {}
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        onClick = { onMarkClick(mark) }
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -134,7 +127,7 @@ fun MarkItem(mark: UserMark) {
             }
 
             Spacer(modifier = Modifier.height(4.dp))
-            Divider()
+            HorizontalDivider()
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(text = "Half Year: ${mark.half_year}")

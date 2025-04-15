@@ -12,6 +12,7 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -26,8 +27,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
@@ -83,6 +86,11 @@ class MainActivity: ComponentActivity() {
                         },
                         popExitTransition = {
                            fadeOut() + slideOutHorizontally(targetOffsetX = { it * 1/3 })
+
+                            /*scaleOut(
+                                targetScale = 0.9f,
+                                transformOrigin = TransformOrigin(pivotFractionX = 0.5f, pivotFractionY = 0.5f)
+                            )*/
                         }
                     ) {
 
@@ -101,24 +109,28 @@ class MainActivity: ComponentActivity() {
                         }
 
                         composable<CourseDetailsScreen> {
-                            Text("Screen B")
                             val args = it.toRoute<CourseDetailsScreen>()
 
                             CourseDetailScreen(
                                 modifier = Modifier
+                                    .fillMaxSize(),
+                                courseId = args.courseId,
+                                onNavigateToRevealMark = { grade ->
+                                    navController.navigate(
+                                        RevealMarkScreen(grade)
+                                    )
+                                }
+                            )
+                        }
+
+                        composable<RevealMarkScreen> {
+                            val args = it.toRoute<RevealMarkScreen>()
+                            RevealMarkScreen(
+                                modifier = Modifier
                                     .fillMaxSize()
                                     .background(Color.White),
-                                courseId = args.courseId,
+                                grade = args.grade
                             )
-
-                            /*Button(
-                                onClick = {
-                                    navController.navigate(CoursesScreen)
-                                },
-                                modifier = Modifier.padding(20.dp)
-                            ) {
-                                Text("Go to Screen A with mark: ${args.name}")
-                            }*/
                         }
                     }
 
@@ -160,5 +172,8 @@ data class CourseDetailsScreen(
     val courseId: Int
 )
 
-
+@Serializable
+data class RevealMarkScreen(
+    val grade: String
+)
 

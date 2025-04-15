@@ -42,6 +42,12 @@ fun CoursesScreen(
     val error by viewModel.error.collectAsState()
     var username by remember { mutableStateOf("Rafael.Beckmann") }
 
+    // Use LaunchedEffect to fetch data only once when the screen is composed
+    androidx.compose.runtime.LaunchedEffect(username) {
+        viewModel.fetchCourses(username)
+    }
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -55,13 +61,6 @@ fun CoursesScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Button(
-            onClick = { viewModel.fetchCourses(username) },
-            modifier = Modifier.padding(vertical = 8.dp)
-        ) {
-            Text("Fetch Courses")
-        }
-
         when {
             isLoading -> {
                 Box(
@@ -72,9 +71,8 @@ fun CoursesScreen(
                 }
             }
             error != null -> {
-                Text(
-                    text = "Error: $error",
-                    modifier = Modifier.padding(vertical = 8.dp)
+                ErrorContent(
+                    errorMessage = error ?: "Unknown error occurred",
                 )
             }
 
