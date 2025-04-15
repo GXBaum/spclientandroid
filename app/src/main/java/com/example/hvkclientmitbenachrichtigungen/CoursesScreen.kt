@@ -93,7 +93,7 @@ fun CoursesScreen(
                                     .clickable { onCourseClick(course) }
                             ) {
                                 Text(
-                                    text = course.name,
+                                    text = course.name + " (${course.courseId})" ,
                                     modifier = Modifier.padding(16.dp)
                                 )
                             }

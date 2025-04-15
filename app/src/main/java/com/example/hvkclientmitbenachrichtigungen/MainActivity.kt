@@ -8,6 +8,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import android.Manifest
 import android.util.Log
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +32,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -33,10 +41,13 @@ import androidx.navigation.toRoute
 import com.example.hvkclientmitbenachrichtigungen.data.model.UserCourse
 import com.example.hvkclientmitbenachrichtigungen.ui.theme.HvKClientMitBenachrichtigungenTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlin.div
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity: ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,46 +57,46 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             HvKClientMitBenachrichtigungenTheme {
-                /*Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    containerColor = MaterialTheme.colorScheme.background,
-                    contentColor = MaterialTheme.colorScheme.onBackground,
-                    topBar = { },
-                    bottomBar = { }
-                ) { innerPadding ->
-                    Column {
-                        CoursesScreen(Modifier.padding(innerPadding))
-                    }
-                }*/
 
                 val navController = rememberNavController()
                 Scaffold(
                     contentWindowInsets = WindowInsets(0.dp),
                     modifier = Modifier.fillMaxSize(),
+                    topBar = { },
+                    bottomBar = { }
                 ) { innerPadding ->
 
                     NavHost(
                         navController = navController,
                         startDestination = CoursesScreen,
                         modifier = Modifier.fillMaxSize()
-                            .padding(innerPadding)
+                            .padding(innerPadding),
+
+                        enterTransition = {
+                            fadeIn() + slideInHorizontally(initialOffsetX = { it * 1/3 })
+                        },
+                        exitTransition = {
+                            fadeOut() + slideOutHorizontally(targetOffsetX = { -it * 1/3 })
+                        },
+                        popEnterTransition = {
+                            fadeIn() + slideInHorizontally(initialOffsetX = { -it * 1/3 })
+                        },
+                        popExitTransition = {
+                           fadeOut() + slideOutHorizontally(targetOffsetX = { it * 1/3 })
+                        }
                     ) {
 
                         composable<CoursesScreen> {
-                            Column {
-                                Text("Screen A")
-
-                                CoursesScreen(
-                                    onCourseClick = { course ->
-                                        navController.navigate(
-                                            CourseDetailsScreen(
-                                                name = course.name
-                                            )
+                            CoursesScreen(
+                                onCourseClick = { course ->
+                                    navController.navigate(
+                                        CourseDetailsScreen(
+                                            name = course.name,
+                                            courseId = course.courseId
                                         )
-                                    }
-
-                                )
-                            }
+                                    )
+                                }
+                            )
 
                         }
 
@@ -93,15 +104,21 @@ class MainActivity : ComponentActivity() {
                             Text("Screen B")
                             val args = it.toRoute<CourseDetailsScreen>()
 
+                            CourseDetailScreen(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.White),
+                                courseId = args.courseId,
+                            )
 
-                            Button(
+                            /*Button(
                                 onClick = {
                                     navController.navigate(CoursesScreen)
                                 },
                                 modifier = Modifier.padding(20.dp)
                             ) {
                                 Text("Go to Screen A with mark: ${args.name}")
-                            }
+                            }*/
                         }
                     }
 
@@ -139,5 +156,9 @@ object CoursesScreen
 
 @Serializable
 data class CourseDetailsScreen(
-    val name: String
+    val name: String,
+    val courseId: Int
 )
+
+
+

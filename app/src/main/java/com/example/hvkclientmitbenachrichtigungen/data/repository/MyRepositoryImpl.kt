@@ -5,6 +5,8 @@ import android.util.Log
 import com.example.hvkclientmitbenachrichtigungen.data.model.TokenUpdateRequest
 import com.example.hvkclientmitbenachrichtigungen.data.model.UserCourse
 import com.example.hvkclientmitbenachrichtigungen.R
+import com.example.hvkclientmitbenachrichtigungen.data.model.UserMark
+import com.example.hvkclientmitbenachrichtigungen.data.model.UserMarks
 import com.example.hvkclientmitbenachrichtigungen.data.remote.MyApi
 import com.example.hvkclientmitbenachrichtigungen.domaIn.repository.MyRepository
 import kotlinx.coroutines.flow.Flow
@@ -57,4 +59,22 @@ class MyRepositoryImpl(
             Log.e("MyRepositoryImpl", "Exception while updating token", e)
         }
     }
+
+
+
+    override fun getUserMarksForCourse(courseId: Int): Flow<Result<List<UserMark>>> = flow {
+        try {
+            val response = api.getUserMarksForCourse(courseId)
+            if (response.isSuccessful) {
+                response.body()?.let { userMarks ->
+                    emit(Result.success(userMarks.marks))
+                } ?: emit(Result.failure(IOException("Response body is null")))
+            } else {
+                emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+
 }

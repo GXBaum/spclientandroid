@@ -2,6 +2,8 @@ package com.example.hvkclientmitbenachrichtigungen.domaIn.repository
 
 import com.example.hvkclientmitbenachrichtigungen.data.model.UserCourse
 import com.example.hvkclientmitbenachrichtigungen.data.model.TokenUpdateRequest
+import com.example.hvkclientmitbenachrichtigungen.data.model.UserMark
+import com.example.hvkclientmitbenachrichtigungen.data.model.UserMarks
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -19,10 +21,12 @@ interface MyRepository {
      * @return Flow emitting either a success with list of courses or an error
      */
     fun getUserCourses(username: String): Flow<Result<List<UserCourse>>>
-    
+
+    fun getUserMarksForCourse(courseId: Int): Flow<Result<List<UserMark>>>
     /**
      * Updates the FCM token for a user on the server
      * @param tokenUpdateRequest The request containing the token and username
      */
     suspend fun updateToken(tokenUpdateRequest: TokenUpdateRequest)
+
 }
