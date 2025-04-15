@@ -12,23 +12,23 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class CoursesViewModel @Inject constructor(
+open class CoursesViewModel @Inject constructor(
     private val repository: MyRepository
 ): ViewModel() {
     // UI state
     private val _courses = MutableStateFlow<List<UserCourse>>(emptyList())
-    val courses: StateFlow<List<UserCourse>> = _courses
+    open val courses: StateFlow<List<UserCourse>> = _courses
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    open val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+    open val error: StateFlow<String?> = _error
 
     /**
      * Fetches courses for the given username
      */
-    fun fetchCourses(username: String) {
+    open fun fetchCourses(username: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null

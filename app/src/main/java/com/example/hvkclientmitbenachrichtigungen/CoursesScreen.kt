@@ -1,5 +1,6 @@
 package com.example.hvkclientmitbenachrichtigungen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -21,14 +23,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.hvkclientmitbenachrichtigungen.data.model.UserCourse
+import com.example.hvkclientmitbenachrichtigungen.domaIn.repository.MyRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CoursesScreen(
     modifier: Modifier = Modifier,
     viewModel: CoursesViewModel = hiltViewModel(),
+    onCourseClick: (UserCourse) -> Unit = {},
 ) {
     val courses by viewModel.courses.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -38,7 +45,6 @@ fun CoursesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
     ) {
         CopyTokenButton()
 
@@ -80,12 +86,17 @@ fun CoursesScreen(
                 ) {
                     LazyColumn {
                         items(courses) { course ->
-                            Text(
-                                text = course.name,
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 8.dp)
-                            )
+                                    .padding(vertical = 4.dp)
+                                    .clickable { onCourseClick(course) }
+                            ) {
+                                Text(
+                                    text = course.name,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
                         }
                     }
                 }

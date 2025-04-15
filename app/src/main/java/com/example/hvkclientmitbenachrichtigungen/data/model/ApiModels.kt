@@ -1,5 +1,7 @@
 package com.example.hvkclientmitbenachrichtigungen.data.model
 
+import kotlinx.serialization.Serializable
+
 data class TokenUpdateRequest(
     val token: String,
     val spUsername: String
