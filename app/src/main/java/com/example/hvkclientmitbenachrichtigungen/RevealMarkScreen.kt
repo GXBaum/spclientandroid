@@ -1,7 +1,7 @@
 package com.example.hvkclientmitbenachrichtigungen
 
-import android.graphics.RuntimeShader
 import android.graphics.Shader
+import android.media.MediaPlayer
 import android.os.Build
 import android.os.Vibrator
 import android.view.HapticFeedbackConstants
@@ -11,7 +11,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,11 +45,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.LinkAnnotation
+import com.example.hvkclientmitbenachrichtigungen.playback.AndroidAudioPlayer
 import kotlinx.coroutines.delay
 import org.intellij.lang.annotations.Language
-import kotlin.compareTo
-import kotlin.div
-import kotlin.times
+import java.io.File
 
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -59,6 +59,11 @@ fun RevealMarkScreen(
     modifier: Modifier = Modifier,
     grade: String
 ) {
+
+    val context = LocalContext.current
+    val player = remember { AndroidAudioPlayer(context) }
+
+
     // Try to parse the grade as an integer
     val gradeAsInt = grade.toIntOrNull()
 
@@ -76,46 +81,40 @@ fun RevealMarkScreen(
         var isAnimating by remember { mutableStateOf(false) }
 
         // Animation states for gradient
-        var showGradient by remember { mutableStateOf(false) }
-        var gradientCenterX by remember { mutableStateOf(0f) }
-        var gradientCenterY by remember { mutableStateOf(0f) }
+        var gradientAlpha by remember { mutableStateOf(0f) }
 
 
 
 
-        val gradientSize by animateFloatAsState(
-            targetValue = if (showGradient) 1f else 0f,
+        /*val gradientSize by animateFloatAsState(
+            targetValue = showGradientAlpha
             /*animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
                 stiffness = Spring.StiffnessMediumLow
             ),*/
             animationSpec = tween(
-                durationMillis = 300,
+                durationMillis = 200,
                 delayMillis = 0,
                 easing = LinearEasing
             ),
             label = "gradientSize"
-        )
+        )*/
+        val gradientSize = 1f
 
-        val gradientAlpha by animateFloatAsState(
-            targetValue = if (showGradient) 1f else 0f,
+        val animatedAlpha by animateFloatAsState(
+            targetValue = gradientAlpha,
             animationSpec = tween(
-                durationMillis = 300,
+                durationMillis = 400,
                 delayMillis = 0,
                 easing = LinearEasing
             ),
-            finishedListener = {
-                if (showGradient) {
-                    // Start fade out after showing fully
-                    showGradient = false
-                }
-            },
             label = "gradientAlpha"
         )
 
+        var trueFontSize by remember { mutableFloatStateOf(96f) }
         //var textSize by remember { mutableStateOf(96.sp) }
         val fontSize by animateFloatAsState(
-            targetValue = if (isAnimating) 120f else 96f,
+            targetValue = if (isAnimating) (trueFontSize * 1.2f) else trueFontSize,
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
                 stiffness = Spring.StiffnessMediumLow
@@ -127,6 +126,11 @@ fun RevealMarkScreen(
                 delay(300)
                 isAnimating = false
             }
+        }
+
+        LaunchedEffect(gradientAlpha == 1f) {
+            delay(500)
+            gradientAlpha = 0f
         }
 
 
@@ -166,17 +170,15 @@ fun RevealMarkScreen(
         Box (
             modifier = Modifier
                 .fillMaxSize()
-                //.background(MaterialTheme.colorScheme.surface)
-                //.background(largeRadialGradient)
                 .drawWithCache {
-                    val isGradientVisible = gradientAlpha > 0.01f
+                    val isGradientVisible = animatedAlpha > 0.01f
 
                     val brush = object : ShaderBrush() {
                         override fun createShader(size: Size): Shader {
                             val biggerDimension = maxOf(size.height, size.width)
 
-                            val alphaAdjustedCoral = Coral.copy(alpha = Coral.alpha * gradientAlpha)
-                            val alphaAdjustedYellow = LightYellow.copy(alpha = LightYellow.alpha * gradientAlpha)
+                            val alphaAdjustedCoral = Coral.copy(alpha = Coral.alpha * animatedAlpha)
+                            val alphaAdjustedYellow = LightYellow.copy(alpha = LightYellow.alpha * animatedAlpha)
 
                             /*
                             return RadialGradientShader(
@@ -189,10 +191,13 @@ fun RevealMarkScreen(
                             return if (isGradientVisible) {
                                 RadialGradientShader(
                                     //colors = listOf(Coral, LightYellow),
-                                    //radius = biggerDimension / 2f,
                                     colors = listOf(alphaAdjustedCoral, alphaAdjustedYellow),
+
+                                    //radius = biggerDimension / 2f,
+                                    //radius = biggerDimension * gradientSize,
+                                    radius = (biggerDimension * gradientSize).coerceAtLeast(0.1f),
+
                                     center = size.center,
-                                    radius = biggerDimension * gradientSize,
                                     colorStops = listOf(0f, 0.95f)
                                 )
                             } else {
@@ -214,34 +219,6 @@ fun RevealMarkScreen(
 
 
 
-                /*.drawWithCache {
-                    val shader = RuntimeShader(CUSTOM_SHADER)
-                    val shaderBrush = ShaderBrush(shader)
-                    shader.setFloatUniform("resolution", size.width, size.height)
-                    onDrawBehind {
-                        shader.setColorUniform(
-                            "color",
-                            android.graphics.Color.valueOf(
-                                LightYellow.red, LightYellow.green,
-                                LightYellow
-                                    .blue,
-                                LightYellow.alpha
-                            )
-                        )
-                        shader.setColorUniform(
-                            "color2",
-                            android.graphics.Color.valueOf(
-                                Coral.red,
-                                Coral.green,
-                                Coral.blue,
-                                Coral.alpha
-                            )
-                        )
-                        drawRect(shaderBrush)
-                    }
-                }*/
-
-
 
                 /*.clickable {
                     if (randomIndices.contains(clickCount)) {
@@ -259,6 +236,8 @@ fun RevealMarkScreen(
                     val context = LocalContext.current
                     val vibrator = context.getSystemService(Vibrator::class.java)
 
+                    //val mp: MediaPlayer = MediaPlayer.create(context, R.raw.audio)
+
 
                     it.clickable {
 
@@ -269,11 +248,23 @@ fun RevealMarkScreen(
                             view.performHapticFeedback(HapticFeedbackConstants.DRAG_START)
 
                             // Trigger gradient animation on successful tap
-                            gradientCenterX = 0.5f // Position at center for simplicity
-                            gradientCenterY = 0.5f // (could use clickEvent.position if needed)
-                            showGradient = true
+                            gradientAlpha = 1f
 
                             //textSize = (textSize.value + 10).sp
+                            trueFontSize = (trueFontSize + 10)
+
+                            // play audio
+                            val assetFileDescriptor = context.resources.openRawResourceFd(R.raw.millionencoup)
+                            val tempFile = File.createTempFile("audio", ".mp3", context.cacheDir)
+                            assetFileDescriptor.createInputStream().use { input ->
+                                tempFile.outputStream().use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+                            player.playFile(tempFile)
+
+
+
                         } else {
                             //vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
                             view.performHapticFeedback(HapticFeedbackConstants.REJECT)
@@ -285,7 +276,7 @@ fun RevealMarkScreen(
                 },
             contentAlignment = Alignment.Center
         ) {
-            Row(
+            /*Row(
                 //modifier = Modifier.padding(horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -302,7 +293,7 @@ fun RevealMarkScreen(
                         modifier = Modifier.padding(horizontal = 2.dp)
                     )
                 }
-            }
+            }*/
 
             Column (
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -310,8 +301,6 @@ fun RevealMarkScreen(
             ){
                 Text(
                     text = "$currentGrade",
-                    //fontSize = 96.sp,
-                    //fontSize = textSize,
                     fontSize = fontSize.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
@@ -321,27 +310,22 @@ fun RevealMarkScreen(
                 )
             }
 
-
         }
 
-
-
     } else {
-        // It's a text-based grade (like "mit gutem erfolg")
+        // If it's a text-based grade
         Text(
-            text = grade,
-            fontSize = 24.sp,
+            text = "Note: $grade",
+            fontSize = 96.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(16.dp)
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Herzlichen Glückwunsch!",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
+            text = "Das ist keine Zahl",
+            fontSize = 24.sp,
+            textAlign = TextAlign.Center,
         )
     }
+
 }

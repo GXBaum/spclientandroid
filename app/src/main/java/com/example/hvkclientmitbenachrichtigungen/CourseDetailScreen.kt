@@ -76,7 +76,6 @@ fun MarksList(marks: List<UserMark>,
               onMarkClick: (UserMark) -> Unit
 ) {
     LazyColumn(
-        modifier = Modifier.padding(16.dp)
     ) {
         item {
             Text(

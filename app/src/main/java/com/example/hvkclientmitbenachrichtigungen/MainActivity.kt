@@ -42,15 +42,20 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.hvkclientmitbenachrichtigungen.data.model.UserCourse
+import com.example.hvkclientmitbenachrichtigungen.playback.AndroidAudioPlayer
 import com.example.hvkclientmitbenachrichtigungen.ui.theme.HvKClientMitBenachrichtigungenTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import java.io.File
 import kotlin.div
 
 @AndroidEntryPoint
 class MainActivity: ComponentActivity() {
+    private val player by lazy {
+        AndroidAudioPlayer(applicationContext)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,6 +100,21 @@ class MainActivity: ComponentActivity() {
                     ) {
 
                         composable<CoursesScreen> {
+                            Button(
+                                onClick = {
+                                    // Create a temporary file from the raw resource
+                                    val assetFileDescriptor = resources.openRawResourceFd(R.raw.millionencoup)
+                                    val tempFile = File.createTempFile("audio", ".mp3", cacheDir)
+                                    assetFileDescriptor.createInputStream().use { input ->
+                                        tempFile.outputStream().use { output ->
+                                            input.copyTo(output)
+                                        }
+                                    }
+                                    player.playFile(tempFile)                                }
+                            ) {
+                                Text(text = "Play")
+                            }
+
                             CoursesScreen(
                                 onCourseClick = { course ->
                                     navController.navigate(
