@@ -1,7 +1,10 @@
 package com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.courses
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -46,30 +50,31 @@ fun CoursesScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     var username by remember { mutableStateOf("") }
+    var isDeveloper by remember { mutableStateOf(false) }
+
 
 
     // Fetch the username from SharedPreferences
-    LaunchedEffect(Unit) {
-        val savedUsername = prefUtils.getString("username")
-        username = savedUsername.orEmpty()
-    }
-
 
     // Use LaunchedEffect to fetch data when username changes
     // Use LaunchedEffect to fetch data only once when the screen is composed
-    LaunchedEffect(username) {
+    LaunchedEffect(Unit) {
+        val savedUsername = prefUtils.getString("username")
+        username = savedUsername.orEmpty()
         if (username.isNotEmpty()) {
             viewModel.fetchCourses(username)
         }
+
+        val savedIsDeveloper = prefUtils.getString("isDeveloper")
+        isDeveloper = savedIsDeveloper == "true"
     }
+
 
 
     Column(
         modifier = Modifier
             .fillMaxSize(),
     ) {
-        CopyTokenButton()
-
         when {
             isLoading -> {
                 LoadingScreen()
@@ -94,10 +99,23 @@ fun CoursesScreen(
                                     .padding(vertical = 4.dp)
                                     .clickable { onCourseClick(course) }
                             ) {
-                                Text(
-                                    text = course.name + " (${course.courseId})" ,
-                                    modifier = Modifier.padding(16.dp)
-                                )
+                                Row {
+                                    Text(
+                                        text = course.name,
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+                                    if (isDeveloper){
+                                        Spacer(
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Text(
+                                            text = "${course.courseId}",
+                                            modifier = Modifier
+                                                .padding(16.dp)
+                                        )
+                                    }
+                                }
+
                             }
                         }
                     }

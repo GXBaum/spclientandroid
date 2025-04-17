@@ -7,6 +7,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import android.Manifest
+import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -18,13 +20,15 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -38,14 +42,16 @@ import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.courses.CoursesScree
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.revealmark.RevealMarkScreen
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.theme.HvKClientMitBenachrichtigungenTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity: ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
-    private val prefUtils by lazy {
-        PrefUtils(this)
-    }
+    @Inject
+    lateinit var prefUtils: PrefUtils
+
     @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,18 +60,67 @@ class MainActivity: ComponentActivity() {
         requestNotificationPermission()
         enableEdgeToEdge()
 
+        val navigateToRevealMark = intent.getBooleanExtra("navigate_to_reveal_mark", false)
+        val grade = intent.getStringExtra("grade")
+
+
         setContent {
             HvKClientMitBenachrichtigungenTheme {
+                val scope = rememberCoroutineScope()
+                val context = LocalContext.current
 
                 val navController = rememberNavController()
+
+                // Handle deep link from notification
+                LaunchedEffect(Unit) {
+                    Log.d("test123", "Received navigateToRevealMark: $navigateToRevealMark, grade: $grade")
+
+                    if (navigateToRevealMark && grade != null) {
+                        Log.d("test123", "Navigating to grade reveal screen with grade: $grade")
+
+                        // Reset the flags to prevent re-navigation on config changes
+                        intent.removeExtra("navigate_to_reveal_mark")
+
+                        // Navigate to RevealMarkScreen with the grade
+                        navController.navigate(
+                            RevealMarkScreen(grade)
+                        )
+                    }
+                }
+
                 Scaffold(
                     //contentWindowInsets = WindowInsets(0.dp),
                     contentWindowInsets = WindowInsets.safeDrawing,
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-
                         TopAppBar(
-                            title = { Text("HvK Client") },
+                            title = {
+                                Text(
+                                    text = "HvK Client",
+                                    Modifier.clickable(
+                                        onClick = {
+                                            scope.launch {
+                                                val saved = prefUtils.getString("isDeveloper")
+                                                 if (saved == "true") {
+                                                    prefUtils.saveString("isDeveloper", "false")
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Du bist jetzt wieder im normalen Modus",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                } else {
+                                                     prefUtils.saveString("isDeveloper", "true")
+                                                     Toast.makeText(
+                                                         context,
+                                                         "Du bist jetzt im Debug Modus (No Diddy)",
+                                                         Toast.LENGTH_LONG
+                                                     ).show()
+                                                 }
+                                            }
+                                        }
+                                    )
+                                )
+                            },
                             actions = {
                                 Text(
                                     text = "Settings",
@@ -80,24 +135,24 @@ class MainActivity: ComponentActivity() {
                     },
                     bottomBar = { }
                 ) { innerPadding ->
-
                     NavHost(
                         navController = navController,
                         startDestination = CoursesScreen,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
                             .padding(innerPadding),
 
                         enterTransition = {
-                            fadeIn() + slideInHorizontally(initialOffsetX = { it * 1/3 })
+                            fadeIn() + slideInHorizontally(initialOffsetX = { it * 1 / 3 })
                         },
                         exitTransition = {
-                            fadeOut() + slideOutHorizontally(targetOffsetX = { -it * 1/3 })
+                            fadeOut() + slideOutHorizontally(targetOffsetX = { -it * 1 / 3 })
                         },
                         popEnterTransition = {
-                            fadeIn() + slideInHorizontally(initialOffsetX = { -it * 1/3 })
+                            fadeIn() + slideInHorizontally(initialOffsetX = { -it * 1 / 3 })
                         },
                         popExitTransition = {
-                           fadeOut() + slideOutHorizontally(targetOffsetX = { it * 1/3 })
+                           fadeOut() + slideOutHorizontally(targetOffsetX = { it * 1 / 3 })
 
                             /*scaleOut(
                                 targetScale = 0.9f,
@@ -109,7 +164,6 @@ class MainActivity: ComponentActivity() {
                         composable<CoursesScreen> {
                             CoursesScreen(
                                 prefUtils = prefUtils,
-
                                 onCourseClick = { course ->
                                     navController.navigate(
                                         CourseDetailsScreen(
@@ -119,7 +173,6 @@ class MainActivity: ComponentActivity() {
                                     )
                                 }
                             )
-
                         }
 
                         composable<CourseDetailsScreen> {
@@ -156,15 +209,10 @@ class MainActivity: ComponentActivity() {
                             )
                         }
                     }
-
                 }
-
-
-
             }
         }
     }
-
 
     private fun requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

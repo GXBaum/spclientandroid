@@ -256,7 +256,7 @@ fun RevealMarkScreen(
                                     input.copyTo(output)
                                 }
                             }
-                            player.playFile(tempFile)
+                            //player.playFile(tempFile)
 
 
 
