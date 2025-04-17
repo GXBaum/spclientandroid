@@ -95,4 +95,10 @@ dependencies {
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
 
+    //data store
+    implementation(libs.androidx.datastore.preferences)
+    //implementation(libs.datastore.pref)
+
+
+
 }

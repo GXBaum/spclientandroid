@@ -32,6 +32,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.SettingsScreen
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.coursedetail.CourseDetailScreen
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.courses.CoursesScreen
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.revealmark.RevealMarkScreen
@@ -42,6 +43,9 @@ import kotlinx.serialization.Serializable
 @AndroidEntryPoint
 class MainActivity: ComponentActivity() {
 
+    private val prefUtils by lazy {
+        PrefUtils(this)
+    }
     @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,11 +108,13 @@ class MainActivity: ComponentActivity() {
 
                         composable<CoursesScreen> {
                             CoursesScreen(
+                                prefUtils = prefUtils,
+
                                 onCourseClick = { course ->
                                     navController.navigate(
                                         CourseDetailsScreen(
                                             name = course.name,
-                                            courseId = course.courseId
+                                            courseId = course.courseId,
                                         )
                                     )
                                 }
@@ -142,11 +148,11 @@ class MainActivity: ComponentActivity() {
                         }
 
                         composable<SettingsScreen> {
-                            Text(
-                                text = "Settings",
+                            SettingsScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(16.dp)
+                                    .background(Color.White),
+                                prefUtils = prefUtils,
                             )
                         }
                     }
