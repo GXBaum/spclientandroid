@@ -13,10 +13,16 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -36,6 +42,7 @@ import kotlinx.serialization.Serializable
 @AndroidEntryPoint
 class MainActivity: ComponentActivity() {
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,9 +55,25 @@ class MainActivity: ComponentActivity() {
 
                 val navController = rememberNavController()
                 Scaffold(
-                    contentWindowInsets = WindowInsets(0.dp),
+                    //contentWindowInsets = WindowInsets(0.dp),
+                    contentWindowInsets = WindowInsets.safeDrawing,
                     modifier = Modifier.fillMaxSize(),
-                    topBar = { },
+                    topBar = {
+
+                        TopAppBar(
+                            title = { Text("HvK Client") },
+                            actions = {
+                                Text(
+                                    text = "Settings",
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .clickable {
+                                            navController.navigate(SettingsScreen)
+                                        }
+                                )
+                            },
+                        )
+                    },
                     bottomBar = { }
                 ) { innerPadding ->
 
@@ -117,6 +140,15 @@ class MainActivity: ComponentActivity() {
                                 grade = args.grade
                             )
                         }
+
+                        composable<SettingsScreen> {
+                            Text(
+                                text = "Settings",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp)
+                            )
+                        }
                     }
 
                 }
@@ -162,3 +194,5 @@ data class RevealMarkScreen(
     val grade: String
 )
 
+@Serializable
+object SettingsScreen
