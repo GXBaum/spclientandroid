@@ -26,6 +26,6 @@ interface MyRepository {
      * Updates the FCM token for a user on the server
      * @param tokenUpdateRequest The request containing the token and username
      */
-    suspend fun updateToken(tokenUpdateRequest: TokenUpdateRequest)
+    suspend fun updateToken(username: String, tokenUpdateRequest: TokenUpdateRequest)
 
 }

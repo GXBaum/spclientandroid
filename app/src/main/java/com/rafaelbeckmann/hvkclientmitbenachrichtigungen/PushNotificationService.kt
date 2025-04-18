@@ -52,7 +52,7 @@ class PushNotificationService: FirebaseMessagingService() {
                 
                 Log.d("PushNotificationService", "TokenUpdateRequest: $tokenUpdateRequest")
                 
-                repository.updateToken(tokenUpdateRequest)
+                repository.updateToken(username, tokenUpdateRequest)
             } catch (e: Exception) {
                 Log.e("PushNotificationService", "Failed to send token to server", e)
             }

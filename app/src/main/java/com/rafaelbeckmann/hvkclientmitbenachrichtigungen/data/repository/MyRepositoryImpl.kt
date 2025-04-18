@@ -48,9 +48,9 @@ class MyRepositoryImpl(
     /**
      * Implementation of updateToken that sends the FCM token to the server
      */
-    override suspend fun updateToken(tokenUpdateRequest: TokenUpdateRequest) {
+    override suspend fun updateToken( username: String, tokenUpdateRequest: TokenUpdateRequest) {
         try {
-            val response = api.updateToken(tokenUpdateRequest)
+            val response = api.updateToken(username, tokenUpdateRequest)
             if (!response.isSuccessful) {
                 Log.e("MyRepositoryImpl", "Failed to update token: ${response.code()} - ${response.message()}")
             }
