@@ -6,7 +6,6 @@ import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMarks
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
-import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -18,18 +17,14 @@ interface MyApi {
         @Body tokenUpdate: TokenUpdateRequest
     ): Response<Any>
 
-
-    @GET("api/getUserCourses")
+    @GET("api/users/{username}/courses")
     suspend fun getUserCourses(
-        @Query("spUsername") spUsername: String
+        @Path("username") username: String
     ): Response<UserCourses>
 
-
-    //v2 of that with rest
     @GET("api/users/{username}/{courseId}/marks")
     suspend fun getUserMarksForCourse(
         @Path("username") username: String,
         @Path("courseId") courseId: Int
     ): Response<UserMarks>
-
 }

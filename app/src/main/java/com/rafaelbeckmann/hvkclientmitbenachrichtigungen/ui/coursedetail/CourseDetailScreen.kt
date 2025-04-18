@@ -21,6 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -30,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMark
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.common.ErrorContent
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.common.LoadingScreen
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,16 +42,20 @@ fun CourseDetailScreen(
     viewModel: CourseDetailViewModel = hiltViewModel(),
     courseId: Int,
     onNavigateToRevealMark: (String) -> Unit = {}
-
 ) {
     val marks by viewModel.marks.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
+    var username by remember { mutableStateOf("") }
+    val prefUtils = viewModel.prefUtils
+
+
     // Use LaunchedEffect to fetch data only once when the screen is composed
-    // TODO: remove hardcoded username
     LaunchedEffect(courseId) {
-        viewModel.fetchUserMarks(courseId, "Rafael.Beckmann")
+        val savedUsername = prefUtils.getString("username")
+        username = savedUsername ?: ""
+        viewModel.fetchUserMarks(courseId, username)
     }
 
     Box(

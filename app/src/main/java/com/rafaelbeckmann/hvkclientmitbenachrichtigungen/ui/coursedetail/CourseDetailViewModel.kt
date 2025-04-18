@@ -2,6 +2,7 @@ package com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.coursedetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.PrefUtils
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMark
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.domaIn.repository.MyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 open class CourseDetailViewModel @Inject constructor(
-    private val repository: MyRepository
+    private val repository: MyRepository,
+    open val prefUtils: PrefUtils
 ): ViewModel() {
     // UI state
     private val _marks = MutableStateFlow<List<UserMark>>(emptyList())

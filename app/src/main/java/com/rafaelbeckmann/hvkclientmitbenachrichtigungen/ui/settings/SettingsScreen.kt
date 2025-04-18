@@ -1,6 +1,7 @@
 package com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -45,6 +46,7 @@ fun SettingsScreen(
     Column (
         modifier = modifier
             .padding(horizontal = 8.dp)
+            .fillMaxSize()
     ) {
         OutlinedTextField(
             value = username,

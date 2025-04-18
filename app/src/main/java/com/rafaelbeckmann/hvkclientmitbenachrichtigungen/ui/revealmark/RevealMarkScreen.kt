@@ -246,6 +246,7 @@ fun RevealMarkScreen(
                             trueFontSize = (trueFontSize + 10)
 
                             // play audio
+                            //TODO: fix this, dass kann so kein guter code sein
                             val assetFileDescriptor = context.resources.openRawResourceFd(R.raw.bing)
                             val tempFile = File.createTempFile("audio", ".mp3", context.cacheDir)
                             assetFileDescriptor.createInputStream().use { input ->
@@ -260,6 +261,17 @@ fun RevealMarkScreen(
                         } else {
                             //vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
                             view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+
+
+                            //TODO: fix this, dass kann so kein guter code sein
+                            val assetFileDescriptor = context.resources.openRawResourceFd(R.raw.errorsound)
+                            val tempFile = File.createTempFile("audio", ".mp3", context.cacheDir)
+                            assetFileDescriptor.createInputStream().use { input ->
+                                tempFile.outputStream().use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+                            player.playFile(tempFile)
 
                         }
                         isAnimating = true
