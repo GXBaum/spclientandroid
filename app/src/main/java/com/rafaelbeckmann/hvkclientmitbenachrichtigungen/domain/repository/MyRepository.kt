@@ -21,7 +21,6 @@ interface MyRepository {
      */
     fun getUserCourses(username: String): Flow<Result<List<UserCourse>>>
 
-    //fun getUserMarksForCourse(courseId: Int): Flow<Result<List<UserMark>>>
     fun getUserMarksForCourse(username: String, courseId: Int): Flow<Result<List<UserMark>>>
 
     /**

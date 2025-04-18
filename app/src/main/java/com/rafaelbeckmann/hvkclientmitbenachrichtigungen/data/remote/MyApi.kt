@@ -24,12 +24,6 @@ interface MyApi {
         @Query("spUsername") spUsername: String
     ): Response<UserCourses>
 
-    /*
-    @GET("api/getUserMarksForCourse")
-    suspend fun getUserMarksForCourse(
-        @Query("courseId") courseId: Int
-    ): Response<UserMarks>
-    */
 
     //v2 of that with rest
     @GET("api/users/{username}/{courseId}/marks")

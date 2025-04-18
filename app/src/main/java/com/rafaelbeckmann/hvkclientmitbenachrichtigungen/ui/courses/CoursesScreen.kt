@@ -70,6 +70,7 @@ fun CoursesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(horizontal = 8.dp)
         ) {
         when {
             isLoading -> {

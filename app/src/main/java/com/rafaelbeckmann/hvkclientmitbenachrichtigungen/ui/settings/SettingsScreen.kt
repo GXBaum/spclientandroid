@@ -2,6 +2,7 @@ package com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -13,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.common.CopyTokenButton
 import kotlinx.coroutines.launch
@@ -40,7 +42,10 @@ fun SettingsScreen(
         }
     }
 
-    Column {
+    Column (
+        modifier = modifier
+            .padding(horizontal = 8.dp)
+    ) {
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },

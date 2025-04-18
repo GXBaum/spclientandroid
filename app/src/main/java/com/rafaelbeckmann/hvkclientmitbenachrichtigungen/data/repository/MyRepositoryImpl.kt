@@ -59,24 +59,6 @@ class MyRepositoryImpl(
         }
     }
 
-
-
-    /*
-    override fun getUserMarksForCourse(courseId: Int): Flow<Result<List<UserMark>>> = flow {
-        try {
-            val response = api.getUserMarksForCourse(courseId)
-            if (response.isSuccessful) {
-                response.body()?.let { userMarks ->
-                    emit(Result.success(userMarks.marks))
-                } ?: emit(Result.failure(IOException("Response body is null")))
-            } else {
-                emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))
-            }
-        } catch (e: Exception) {
-            emit(Result.failure(e))
-        }
-    }
-    */
     override fun getUserMarksForCourse(username: String, courseId: Int): Flow<Result<List<UserMark>>> = flow {
         try {
             val response = api.getUserMarksForCourse(username, courseId)

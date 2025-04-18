@@ -51,7 +51,8 @@ fun CourseDetailScreen(
     }
 
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize()
+            .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center
     ) {
         when {
