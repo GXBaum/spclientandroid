@@ -45,8 +45,9 @@ fun CourseDetailScreen(
     val error by viewModel.error.collectAsState()
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
+    // TODO: remove hardcoded username
     LaunchedEffect(courseId) {
-        viewModel.fetchUserMarks(courseId)
+        viewModel.fetchUserMarks(courseId, "Rafael.Beckmann")
     }
 
     Box(

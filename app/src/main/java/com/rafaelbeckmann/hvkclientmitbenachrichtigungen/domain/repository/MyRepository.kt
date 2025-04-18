@@ -21,7 +21,9 @@ interface MyRepository {
      */
     fun getUserCourses(username: String): Flow<Result<List<UserCourse>>>
 
-    fun getUserMarksForCourse(courseId: Int): Flow<Result<List<UserMark>>>
+    //fun getUserMarksForCourse(courseId: Int): Flow<Result<List<UserMark>>>
+    fun getUserMarksForCourse(username: String, courseId: Int): Flow<Result<List<UserMark>>>
+
     /**
      * Updates the FCM token for a user on the server
      * @param tokenUpdateRequest The request containing the token and username

@@ -12,14 +12,6 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface MyApi {
-
-    /*
-    @POST("api/updateToken")
-    suspend fun updateToken(
-        @Body tokenUpdate: TokenUpdateRequest
-    ): Response<Any>
-    */
-
     @PUT("api/users/{username}/notification-token")
     suspend fun updateToken(
         @Path("username") username: String,
@@ -32,8 +24,18 @@ interface MyApi {
         @Query("spUsername") spUsername: String
     ): Response<UserCourses>
 
+    /*
     @GET("api/getUserMarksForCourse")
     suspend fun getUserMarksForCourse(
         @Query("courseId") courseId: Int
     ): Response<UserMarks>
+    */
+
+    //v2 of that with rest
+    @GET("api/users/{username}/{courseId}/marks")
+    suspend fun getUserMarksForCourse(
+        @Path("username") username: String,
+        @Path("courseId") courseId: Int
+    ): Response<UserMarks>
+
 }

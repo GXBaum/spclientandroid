@@ -28,12 +28,12 @@ open class CourseDetailViewModel @Inject constructor(
     /**
      * Fetches courses for the given username
      */
-    open fun fetchUserMarks(courseId: Int) {
+    open fun fetchUserMarks(courseId: Int, username: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
 
-            repository.getUserMarksForCourse(courseId)
+            repository.getUserMarksForCourse(username, courseId)
                 .catch { exception ->
                     _error.value = exception.message
                 }
