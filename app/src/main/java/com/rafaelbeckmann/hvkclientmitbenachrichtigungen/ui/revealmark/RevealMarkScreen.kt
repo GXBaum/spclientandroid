@@ -36,11 +36,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RadialGradientShader
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalView
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.R
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.playback.AndroidAudioPlayer
 import kotlinx.coroutines.delay
@@ -231,9 +231,6 @@ fun RevealMarkScreen(
                     val context = LocalContext.current
                     val vibrator = context.getSystemService(Vibrator::class.java)
 
-                    //val mp: MediaPlayer = MediaPlayer.create(context, R.raw.audio)
-
-
                     it.clickable {
 
                         if (randomIndices.contains(clickCount)) {
@@ -249,14 +246,14 @@ fun RevealMarkScreen(
                             trueFontSize = (trueFontSize + 10)
 
                             // play audio
-                            val assetFileDescriptor = context.resources.openRawResourceFd(R.raw.millionencoup)
+                            val assetFileDescriptor = context.resources.openRawResourceFd(R.raw.bing)
                             val tempFile = File.createTempFile("audio", ".mp3", context.cacheDir)
                             assetFileDescriptor.createInputStream().use { input ->
                                 tempFile.outputStream().use { output ->
                                     input.copyTo(output)
                                 }
                             }
-                            //player.playFile(tempFile)
+                            player.playFile(tempFile)
 
 
 

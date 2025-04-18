@@ -2,9 +2,9 @@ package com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.repository
 
 import android.app.Application
 import android.util.Log
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.R
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.TokenUpdateRequest
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserCourse
-import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.R
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMark
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.remote.MyApi
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.domaIn.repository.MyRepository

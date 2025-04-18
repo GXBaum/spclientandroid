@@ -1,7 +1,7 @@
 package com.rafaelbeckmann.hvkclientmitbenachrichtigungen.domaIn.repository
 
-import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserCourse
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.TokenUpdateRequest
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserCourse
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMark
 import kotlinx.coroutines.flow.Flow
 

@@ -27,9 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMark
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.common.ErrorContent
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.common.LoadingScreen
-import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMark
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

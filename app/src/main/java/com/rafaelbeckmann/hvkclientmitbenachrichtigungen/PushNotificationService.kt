@@ -3,15 +3,12 @@ package com.rafaelbeckmann.hvkclientmitbenachrichtigungen
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import com.google.firebase.messaging.FirebaseMessagingService
-import com.google.firebase.messaging.RemoteMessage
-
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.google.firebase.messaging.FirebaseMessagingService
+import com.google.firebase.messaging.RemoteMessage
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.TokenUpdateRequest
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.domaIn.repository.MyRepository
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,14 +16,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.or
-import kotlin.text.get
 
 @AndroidEntryPoint
 class PushNotificationService: FirebaseMessagingService() {
 
     @Inject
     lateinit var repository: MyRepository
+
+    @Inject
+    lateinit var prefUtils: PrefUtils
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
@@ -44,8 +42,13 @@ class PushNotificationService: FirebaseMessagingService() {
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             try {
+                //val username = prefUtils.getString("username").toString()
+                val username = "Rafael.Beckmann" // TODO: entfernen, ist aber glaube noch nötig, da das token gesendet wird, bevor der Name existiert
+
+                Log.d("PushNotificationService", "Username: $username")
+
                 // make TokenUpdateRequest object
-                val tokenUpdateRequest = TokenUpdateRequest(token, "Rafael.Beckmann")
+                val tokenUpdateRequest = TokenUpdateRequest(token, username)
                 
                 Log.d("PushNotificationService", "TokenUpdateRequest: $tokenUpdateRequest")
                 

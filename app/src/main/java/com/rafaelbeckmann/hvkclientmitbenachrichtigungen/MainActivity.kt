@@ -1,17 +1,21 @@
 package com.rafaelbeckmann.hvkclientmitbenachrichtigungen
 
+import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import android.Manifest
-import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -36,10 +40,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.SettingsScreen
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.coursedetail.CourseDetailScreen
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.courses.CoursesScreen
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.revealmark.RevealMarkScreen
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.settings.SettingsScreen
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.theme.HvKClientMitBenachrichtigungenTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -142,6 +146,7 @@ class MainActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding),
 
+                        /*
                         enterTransition = {
                             fadeIn() + slideInHorizontally(initialOffsetX = { it * 1 / 3 })
                         },
@@ -159,11 +164,44 @@ class MainActivity : ComponentActivity() {
                                 transformOrigin = TransformOrigin(pivotFractionX = 0.5f, pivotFractionY = 0.5f)
                             )*/
                         }
+                        */
+
+                        enterTransition = {
+                            fadeIn(animationSpec = tween(durationMillis = 200)) +
+                                    slideInHorizontally(
+                                        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                                        initialOffsetX = { fullWidth -> fullWidth / 3 }
+                                    ) +
+                                    scaleIn(animationSpec = tween(durationMillis = 200), initialScale = 0.95f)
+                        },
+                        exitTransition = {
+                            fadeOut(animationSpec = tween(durationMillis = 200)) +
+                                    slideOutHorizontally(
+                                        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                                        targetOffsetX = { fullWidth -> -fullWidth / 3 }
+                                    ) +
+                                    scaleOut(animationSpec = tween(durationMillis = 200), targetScale = 0.95f)
+                        },
+                        popEnterTransition = {
+                            fadeIn(animationSpec = tween(durationMillis = 200)) +
+                                    slideInHorizontally(
+                                        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                                        initialOffsetX = { fullWidth -> -fullWidth / 3 }
+                                    ) +
+                                    scaleIn(animationSpec = tween(durationMillis = 200), initialScale = 0.95f)
+                        },
+                        popExitTransition = {
+                            fadeOut(animationSpec = tween(durationMillis = 200)) +
+                                    slideOutHorizontally(
+                                        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                                        targetOffsetX = { fullWidth -> fullWidth / 3 }
+                                    ) +
+                                    scaleOut(animationSpec = tween(durationMillis = 200), targetScale = 0.95f)
+                        }
                     ) {
 
                         composable<CoursesScreen> {
                             CoursesScreen(
-                                prefUtils = prefUtils,
                                 onCourseClick = { course ->
                                     navController.navigate(
                                         CourseDetailsScreen(
@@ -205,7 +243,6 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .background(Color.White),
-                                prefUtils = prefUtils,
                             )
                         }
                     }
