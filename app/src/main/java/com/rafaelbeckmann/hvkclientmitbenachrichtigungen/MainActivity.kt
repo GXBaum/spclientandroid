@@ -23,13 +23,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -75,6 +79,16 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
 
+
+                var actionBarTitle by rememberSaveable { mutableStateOf("HvK Client") }
+
+                /*LaunchedEffect(navController) {
+                    navController.currentBackStackEntryFlow.collect { backStackEntry ->
+                        // You can map the title based on the route using:
+                        actionBarTitle = getTitleByRoute(context, backStackEntry.destination.route)
+                    }
+                }*/
+
                 // Handle deep link from notification
                 LaunchedEffect(Unit) {
                     Log.d("test123", "Received navigateToRevealMark: $navigateToRevealMark, grade: $grade")
@@ -94,13 +108,15 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     //contentWindowInsets = WindowInsets(0.dp),
-                    contentWindowInsets = WindowInsets.safeDrawing,
+                    //contentWindowInsets = WindowInsets.safeDrawing,
+                    contentWindowInsets = WindowInsets.statusBars,
+
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
                         TopAppBar(
                             title = {
                                 Text(
-                                    text = "HvK Client",
+                                    text = actionBarTitle,
                                     Modifier.clickable(
                                         onClick = {
                                             scope.launch {
@@ -127,7 +143,7 @@ class MainActivity : ComponentActivity() {
                             },
                             actions = {
                                 Text(
-                                    text = "Settings",
+                                    text = "Einstellungen",
                                     modifier = Modifier
                                         .padding(16.dp)
                                         .clickable {
@@ -242,7 +258,6 @@ class MainActivity : ComponentActivity() {
                             SettingsScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.White),
                             )
                         }
                     }

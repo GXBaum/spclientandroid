@@ -19,7 +19,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,8 +34,6 @@ fun CoursesScreen(
     viewModel: CoursesViewModel = hiltViewModel(),
     onCourseClick: (UserCourse) -> Unit = {},
 ) {
-    val scope = rememberCoroutineScope()
-
     val courses by viewModel.courses.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()

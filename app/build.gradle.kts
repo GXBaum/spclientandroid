@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.converter.moshi)
 
+    implementation(libs.logging.interceptor)
 
     // ViewModel Compose
     implementation(libs.androidx.lifecycle.viewmodel.compose)

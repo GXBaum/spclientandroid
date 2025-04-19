@@ -6,6 +6,7 @@ import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.R
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.TokenUpdateRequest
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserCourse
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMark
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.VpSelectedCourse
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.remote.MyApi
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.domaIn.repository.MyRepository
 import kotlinx.coroutines.flow.Flow
@@ -65,6 +66,33 @@ class MyRepositoryImpl(
             if (response.isSuccessful) {
                 response.body()?.let { userMarks ->
                     emit(Result.success(userMarks.marks))
+                } ?: emit(Result.failure(IOException("Response body is null")))
+            } else {
+                emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+
+
+    override suspend fun postVpSelectedCourses(username: String, courseName: VpSelectedCourse) {
+        try {
+            val response = api.postVpSelectedCourses(username, courseName)
+            if (!response.isSuccessful) {
+                Log.e("MyRepositoryImpl", "Failed to post VP selected courses: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Log.e("MyRepositoryImpl", "Exception while posting VP selected courses", e)
+        }
+    }
+
+    override fun getVpSelectedCourses(username: String): Flow<Result<VpSelectedCourse>> = flow {
+        try {
+            val response = api.getVpSelectedCourses(username)
+            if (response.isSuccessful) {
+                response.body()?.let { vpSelectedCourse ->
+                    emit(Result.success(vpSelectedCourse))
                 } ?: emit(Result.failure(IOException("Response body is null")))
             } else {
                 emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))

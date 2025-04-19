@@ -33,7 +33,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMark
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.common.ErrorContent
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.common.LoadingScreen
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

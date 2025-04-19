@@ -27,3 +27,9 @@ data class UserMark(
 )
 
 
+
+data class VpSelectedCourse(
+    val courseName: String
+)
+
+
