@@ -19,40 +19,42 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class PushNotificationService: FirebaseMessagingService() {
-
     @Inject
     lateinit var repository: MyRepository
-
     @Inject
     lateinit var prefUtils: PrefUtils
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // Store token locally (e.g., in SharedPreferences)
-        /*
-        getSharedPreferences("fcm_prefs", MODE_PRIVATE)
-            .edit()
-            .putString("fcm_token", token)
-            .apply()
-         */
 
         Log.d("PushNotificationService", "New token: $token")
 
-        // Send the token to your server
+        val scope = CoroutineScope(Dispatchers.IO)
+        scope.launch {
+            prefUtils.saveString("fcm_token", token)
+
+            // Only send token to server if user is already logged in
+            val username = "Rafael.Beckmann" // TODO: REMOVE, get username from shared preferences
+            //val username = prefUtils.getString("username")
+            if (!username.isNullOrEmpty()) {
+                sendTokenToServer(token, username)
+            } else {
+                Log.d("PushNotificationService", "Token stored locally, will send when user logs in")
+            }
+        }
+
+    }
+    private fun sendTokenToServer(token: String, username: String) {
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             try {
-                //val username = prefUtils.getString("username").toString()
-                val username = "Rafael.Beckmann" // TODO: entfernen, ist aber glaube noch nötig, da das token gesendet wird, bevor der Name existiert
-
-                Log.d("PushNotificationService", "Username: $username")
+                Log.d("PushNotificationService", "Sending token to server for user: $username")
 
                 // make TokenUpdateRequest object
                 val tokenUpdateRequest = TokenUpdateRequest(token, username)
-                
-                Log.d("PushNotificationService", "TokenUpdateRequest: $tokenUpdateRequest")
-                
                 repository.updateToken(username, tokenUpdateRequest)
+
+                Log.d("PushNotificationService", "Token sent successfully")
             } catch (e: Exception) {
                 Log.e("PushNotificationService", "Failed to send token to server", e)
             }
