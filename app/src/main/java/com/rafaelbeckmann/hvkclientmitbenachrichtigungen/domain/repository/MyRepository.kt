@@ -2,8 +2,12 @@ package com.rafaelbeckmann.hvkclientmitbenachrichtigungen.domaIn.repository
 
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.TokenUpdateRequest
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserCourse
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserCourses
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMark
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMarks
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.VpSelectedCourse
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.VpSubstitution
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.VpSubstitutions
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -44,5 +48,8 @@ interface MyRepository {
      * @return Flow emitting either a success or an error
      */
     suspend fun postVpSelectedCourses(username: String, courseName: VpSelectedCourse)
+
+
+    fun getVpSubstitutions(courseName: String): Flow<Result<List<VpSubstitution>>>
 
 }

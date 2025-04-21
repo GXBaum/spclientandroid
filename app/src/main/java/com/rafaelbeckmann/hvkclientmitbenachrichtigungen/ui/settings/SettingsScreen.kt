@@ -41,7 +41,7 @@ fun SettingsScreen(
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            label = { Text("Username") },
+            label = { Text("SP Benutzername") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -50,7 +50,7 @@ fun SettingsScreen(
                 viewModel.saveUsername(username)
             },
         ) {
-            Text("Save")
+            Text("Speichern")
         }
 
         Text(
@@ -67,12 +67,12 @@ fun SettingsScreen(
         OutlinedTextField(
             value = vpCoursenameInput,
             onValueChange = {vpCoursenameInput = it },
-            label = { Text("VP Selected Course") },
+            label = { Text("Vertetungsplankurs") },
             modifier = Modifier.fillMaxWidth()
         )
 
         Text(
-            text = "VP Selected Course: ${vpSelectedCourse.value}",
+            text = "Vertetungsplankurs: ${vpSelectedCourse.value}",
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -81,7 +81,7 @@ fun SettingsScreen(
                 viewModel.postVpSelectedCourse(vpCoursenameInput)
             },
         ) {
-            Text("Save")
+            Text("Speichern")
         }
 
 

@@ -29,12 +29,12 @@ fun CopyTokenButton() {
 
                 Toast.makeText(
                     context,
-                    "Copied token!",
+                    "Token kopiert!",
                     Toast.LENGTH_LONG
                 ).show()
             }
         }
     ) {
-        Text("Copy FCM token")
+        Text("FCM Token kopieren")
     }
 }

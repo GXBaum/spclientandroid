@@ -32,4 +32,15 @@ data class VpSelectedCourse(
     val courseName: String
 )
 
+data class VpSubstitutions(
+    val substitutions: List<VpSubstitution>
+)
+
+data class VpSubstitution(
+    val hour: String,
+    val original: String,
+    val replacement: String,
+    val description: String
+)
+
 

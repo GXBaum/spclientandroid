@@ -70,7 +70,7 @@ fun CourseDetailScreen(
             })
 
             else -> Text(
-                text = "No marks available for this course",
+                text = "Keine Noten für diesen Kurs gefunden",
                 modifier = Modifier.padding(16.dp),
                 textAlign = TextAlign.Center
             )
@@ -86,7 +86,7 @@ fun MarksList(marks: List<UserMark>,
     ) {
         item {
             Text(
-                text = "Course Marks",
+                text = "Kursnoten",
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -124,9 +124,9 @@ fun MarkItem(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Date: ${mark.date}")
+                Text(text = "Datum: ${mark.date}")
                 Text(
-                    text = "Grade: ${mark.grade}",
+                    text = "Note: ${mark.grade}",
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -136,7 +136,7 @@ fun MarkItem(
             HorizontalDivider()
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text(text = "Half Year: ${mark.half_year}")
+            Text(text = "Halbjahr: ${mark.half_year}")
         }
     }
 }

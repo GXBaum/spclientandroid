@@ -106,8 +106,11 @@ class PushNotificationService: FirebaseMessagingService() {
                 "Grade Notifications",
                 NotificationManager.IMPORTANCE_HIGH
             )
+
+            //random notification id
+            val notificationId = (System.currentTimeMillis() % 10000).toInt()
             notificationManager.createNotificationChannel(channel)
-            notificationManager.notify(0, notificationBuilder.build())
+            notificationManager.notify(notificationId, notificationBuilder.build())
 
         }
 

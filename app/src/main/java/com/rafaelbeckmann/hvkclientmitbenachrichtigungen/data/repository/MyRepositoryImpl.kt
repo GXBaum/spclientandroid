@@ -7,6 +7,8 @@ import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.TokenUpdateR
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserCourse
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMark
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.VpSelectedCourse
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.VpSubstitution
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.VpSubstitutions
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.remote.MyApi
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.domaIn.repository.MyRepository
 import kotlinx.coroutines.flow.Flow
@@ -93,6 +95,22 @@ class MyRepositoryImpl(
             if (response.isSuccessful) {
                 response.body()?.let { vpSelectedCourse ->
                     emit(Result.success(vpSelectedCourse))
+                } ?: emit(Result.failure(IOException("Response body is null")))
+            } else {
+                emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+
+
+    override fun getVpSubstitutions(courseName: String): Flow<Result<List<VpSubstitution>>> = flow {
+        try {
+            val response = api.getVpSubstitutions(courseName)
+            if (response.isSuccessful) {
+                response.body()?.let { vpSubstitutions ->
+                    emit(Result.success(vpSubstitutions.substitutions))
                 } ?: emit(Result.failure(IOException("Response body is null")))
             } else {
                 emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))

@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -49,6 +50,7 @@ import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.courses.CoursesScree
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.revealmark.RevealMarkScreen
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.settings.SettingsScreen
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.theme.HvKClientMitBenachrichtigungenTheme
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.ui.vp.VpScreen
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -140,6 +142,16 @@ class MainActivity : ComponentActivity() {
                                         }
                                     )
                                 )
+
+                                Button(
+                                    onClick = {
+                                        navController.navigate(
+                                            VpScreen
+                                        )
+                                    }
+                                ) {
+                                    Text("Vertretungsplan")
+                                }
                             },
                             actions = {
                                 Text(
@@ -260,6 +272,13 @@ class MainActivity : ComponentActivity() {
                                     .fillMaxSize()
                             )
                         }
+
+                        composable<VpScreen> {
+                            VpScreen(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            )
+                        }
                     }
                 }
             }
@@ -302,3 +321,6 @@ data class RevealMarkScreen(
 
 @Serializable
 object SettingsScreen
+
+@Serializable
+object VpScreen

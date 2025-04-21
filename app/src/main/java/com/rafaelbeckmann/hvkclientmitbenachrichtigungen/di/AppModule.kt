@@ -26,7 +26,7 @@ object AppModule {
     @Singleton
     fun provideMyApi(): MyApi {
         return Retrofit.Builder()
-            .baseUrl("https://rafaelbeckmann.de")
+            .baseUrl("https://rafaelbeckmann.de/api/dev/")
             .client(
                 OkHttpClient.Builder()
                     .addInterceptor(loggingInterceptor)

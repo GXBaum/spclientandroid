@@ -87,6 +87,8 @@ open class SettingsViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
+            prefUtils.saveString("vpSelectedCourseName", courseName)
+
             try {
                 val courseObject = com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.VpSelectedCourse(courseName)
 

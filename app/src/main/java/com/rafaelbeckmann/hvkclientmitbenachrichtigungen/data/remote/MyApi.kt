@@ -4,6 +4,8 @@ import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.TokenUpdateR
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserCourses
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.UserMarks
 import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.VpSelectedCourse
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.VpSubstitution
+import com.rafaelbeckmann.hvkclientmitbenachrichtigungen.data.model.VpSubstitutions
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -12,31 +14,36 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 interface MyApi {
-    @PUT("api/dev/users/{username}/notification-token")
+    @PUT("users/{username}/notification-token")
     suspend fun updateToken(
         @Path("username") username: String,
         @Body tokenUpdate: TokenUpdateRequest
     ): Response<Any>
 
-    @GET("api/dev/users/{username}/courses")
+    @GET("users/{username}/courses")
     suspend fun getUserCourses(
         @Path("username") username: String
     ): Response<UserCourses>
 
-    @GET("api/dev/users/{username}/{courseId}/marks")
+    @GET("users/{username}/{courseId}/marks")
     suspend fun getUserMarksForCourse(
         @Path("username") username: String,
         @Path("courseId") courseId: Int
     ): Response<UserMarks>
 
-    @POST("api/dev/users/{username}/vpSelectedCourses")
+    @POST("users/{username}/vpSelectedCourses")
     suspend fun postVpSelectedCourses(
         @Path("username") username: String,
         @Body courseName: VpSelectedCourse
     ): Response<Any>
 
-    @GET("api/dev/users/{username}/vpSelectedCourses")
+    @GET("users/{username}/vpSelectedCourses")
     suspend fun getVpSelectedCourses(
         @Path("username") username: String
     ): Response<VpSelectedCourse>
+
+    @GET("vpSubstitutions/{courseName}")
+    suspend fun getVpSubstitutions(
+        @Path("courseName") courseName: String
+    ): Response<VpSubstitutions>
 }
