@@ -1,0 +1,121 @@
+package de.rafaelbeckmann.hvkclient.data.repository
+
+import android.app.Application
+import android.util.Log
+import de.rafaelbeckmann.hvkclient.R
+import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
+import de.rafaelbeckmann.hvkclient.data.model.UserCourse
+import de.rafaelbeckmann.hvkclient.data.model.UserMark
+import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
+import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
+import de.rafaelbeckmann.hvkclient.data.remote.MyApi
+import de.rafaelbeckmann.hvkclient.domain.repository.MyRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import java.io.IOException
+
+/**
+ * This is the concrete implementation of the MyRepository interface.
+ * It implements HOW the repository operations are performed.
+ * Here we can use the API to make network calls and handle the data.
+ */
+class MyRepositoryImpl(
+    private val api: MyApi,
+    private val appContext: Application
+): MyRepository {
+    init {
+        val appName = appContext.getString(R.string.app_name)
+        println("App name: $appName")
+    }
+
+    
+    /**
+     * Implementation of getUserCourses that properly handles network errors and responses
+     */
+    override fun getUserCourses(username: String): Flow<Result<List<UserCourse>>> = flow {
+        try {
+            val response = api.getUserCourses(username)
+            if (response.isSuccessful) {
+                response.body()?.let { userCourses ->
+                    emit(Result.success(userCourses.courses))
+                } ?: emit(Result.failure(IOException("Response body is null")))
+            } else {
+                emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+    
+    /**
+     * Implementation of updateToken that sends the FCM token to the server
+     */
+    override suspend fun updateToken( username: String, tokenUpdateRequest: TokenUpdateRequest) {
+        try {
+            val response = api.updateToken(username, tokenUpdateRequest)
+            if (!response.isSuccessful) {
+                Log.e("MyRepositoryImpl", "Failed to update token: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Log.e("MyRepositoryImpl", "Exception while updating token", e)
+        }
+    }
+
+    override fun getUserMarksForCourse(username: String, courseId: Int): Flow<Result<List<UserMark>>> = flow {
+        try {
+            val response = api.getUserMarksForCourse(username, courseId)
+            if (response.isSuccessful) {
+                response.body()?.let { userMarks ->
+                    emit(Result.success(userMarks.marks))
+                } ?: emit(Result.failure(IOException("Response body is null")))
+            } else {
+                emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+
+
+    override suspend fun postVpSelectedCourses(username: String, courseName: VpSelectedCourse) {
+        try {
+            val response = api.postVpSelectedCourses(username, courseName)
+            if (!response.isSuccessful) {
+                Log.e("MyRepositoryImpl", "Failed to post VP selected courses: ${response.code()} - ${response.message()}")
+            }
+        } catch (e: Exception) {
+            Log.e("MyRepositoryImpl", "Exception while posting VP selected courses", e)
+        }
+    }
+
+    override fun getVpSelectedCourses(username: String): Flow<Result<VpSelectedCourse>> = flow {
+        try {
+            val response = api.getVpSelectedCourses(username)
+            if (response.isSuccessful) {
+                response.body()?.let { vpSelectedCourse ->
+                    emit(Result.success(vpSelectedCourse))
+                } ?: emit(Result.failure(IOException("Response body is null")))
+            } else {
+                emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+
+
+    override fun getVpSubstitutions(courseName: String, day: String): Flow<Result<List<VpSubstitution>>> = flow {
+        try {
+            val response = api.getVpSubstitutions(courseName, day)
+            if (response.isSuccessful) {
+                response.body()?.let { vpSubstitutions ->
+                    emit(Result.success(vpSubstitutions.substitutions))
+                } ?: emit(Result.failure(IOException("Response body is null")))
+            } else {
+                emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+}

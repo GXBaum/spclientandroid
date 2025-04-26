@@ -15,11 +15,11 @@ plugins {
 
 
 android {
-    namespace = "com.rafaelbeckmann.hvkclientmitbenachrichtigungen"
+    namespace = "de.rafaelbeckmann.hvkclient"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.rafaelbeckmann.hvkclientmitbenachrichtigungen"
+        applicationId = "de.rafaelbeckmann.hvkclient"
         minSdk = 31
         targetSdk = 35
         versionCode = 1
