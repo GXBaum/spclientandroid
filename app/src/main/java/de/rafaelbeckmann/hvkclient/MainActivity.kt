@@ -73,6 +73,8 @@ class MainActivity : ComponentActivity() {
         val navigateToRevealMark = intent.getBooleanExtra("navigate_to_reveal_mark", false)
         val grade = intent.getStringExtra("grade")
 
+        val navigateToVp = intent.getBooleanExtra("navigate_to_vp", false)
+
 
         setContent {
             HvKClientTheme {
@@ -105,6 +107,11 @@ class MainActivity : ComponentActivity() {
                         navController.navigate(
                             RevealMarkScreen(grade)
                         )
+                    }
+
+                    if (navigateToVp) {
+                        intent.removeExtra("navigate_to_vp")
+                        navController.navigate(VpScreen)
                     }
                 }
 

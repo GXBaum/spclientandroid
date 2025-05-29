@@ -23,10 +23,16 @@ class PushNotificationService: FirebaseMessagingService() {
     @Inject
     lateinit var prefUtils: PrefUtils
 
+    companion object {
+        private const val TAG = "PushNotificationService"
+        private const val CHANNEL_GRADES = "grade_notifications"
+        private const val CHANNEL_VP_UPDATES = "vp_updates"
+    }
+
     override fun onNewToken(token: String) {
         super.onNewToken(token)
 
-        Log.d("PushNotificationService", "New token: $token")
+        Log.d(TAG, "New token: $token")
 
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
@@ -38,84 +44,148 @@ class PushNotificationService: FirebaseMessagingService() {
             if (!username.isNullOrEmpty()) {
                 sendTokenToServer(token, username)
             } else {
-                Log.d("PushNotificationService", "Token stored locally, will send when user logs in")
+                Log.d(TAG, "Token stored locally, will send when user logs in")
             }
         }
-
     }
+
     private fun sendTokenToServer(token: String, username: String) {
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {
             try {
-                Log.d("PushNotificationService", "Sending token to server for user: $username")
+                Log.d(TAG, "Sending token to server for user: $username")
 
                 // make TokenUpdateRequest object
                 val tokenUpdateRequest = TokenUpdateRequest(token, username)
                 repository.updateToken(username, tokenUpdateRequest)
 
-                Log.d("PushNotificationService", "Token sent successfully")
+                Log.d(TAG, "Token sent successfully")
             } catch (e: Exception) {
-                Log.e("PushNotificationService", "Failed to send token to server", e)
+                Log.e(TAG, "Failed to send token to server", e)
             }
         }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        createNotificationChannels()
+    }
+
+    private fun createNotificationChannels() {
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+        // Grade notifications channel
+        val gradeChannel = NotificationChannel(
+            CHANNEL_GRADES,
+            "SP Noten",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Benachrichtigungen für neue Schulportal Noten"
+            enableVibration(true)
+        }
+
+        // VP updates channel
+        val vpChannel = NotificationChannel(
+            CHANNEL_VP_UPDATES,
+            "Vertretungsplan",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Benachrichtigungen für den Vertretungsplan"
+            enableVibration(true)
+        }
+
+        notificationManager.createNotificationChannels(listOf(gradeChannel, vpChannel))
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
-        Log.d("test123", "From: " + message.from);
-        if (message.getData().isNotEmpty()) {
-            Log.d("test123", "Message data payload: " + message.getData());
+        Log.d(TAG, "From: ${message.from}")
+        if (message.data.isNotEmpty()) {
+            Log.d(TAG, "Message data payload: ${message.data}")
         }
 
-        if(message.getNotification()!=null){
-            Log.d("test123","Message body : "+ message.getNotification()?.body);
+        if (message.notification != null) {
+            Log.d(TAG, "Message body: ${message.notification?.body}")
         }
 
-        if (message.data["reveal_mark"] != null) {
-            Log.d("test123", "Reveal mark notification received")
-
-            val grade = message.data["reveal_mark"]
-            Log.d("test123", "Grade: $grade")
-
-            // Create intent to launch MainActivity with grade information
-            val intent = Intent(this, MainActivity::class.java).apply {
-                putExtra("navigate_to_reveal_mark", true)
-                putExtra("grade", grade)
-                //addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                //addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        when {
+            message.data["mark"] != null -> {
+                handleGradeNotification(message)
             }
-            val pendingIntent = PendingIntent.getActivity(
-                this, 0, intent,
-                PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
-            )
-
-            // Build notification
-            val notificationBuilder = NotificationCompat.Builder(this, "grade_notifications")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle(message.data["title"] ?: "undefined")
-                .setContentText(message.data["body"] ?: "undefined")
-                .setStyle(NotificationCompat.BigTextStyle().bigText(message.data["body"] ?: "undefined")) // to not truncate the text with \n linebreaks
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent)
-
-            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-            // Create notification channel for Android O and above
-            val channel = NotificationChannel(
-                "grade_notifications",
-                "Grade Notifications",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-
-            //random notification id
-            val notificationId = (System.currentTimeMillis() % 10000).toInt()
-            notificationManager.createNotificationChannel(channel)
-            notificationManager.notify(notificationId, notificationBuilder.build())
-
+            message.data["open_vp"] != null -> {
+                handleVpUpdateNotification(message)
+            }
+            else -> {
+                Log.d(TAG, "Received notification of unknown type")
+            }
         }
+    }
 
+    private fun handleGradeNotification(message: RemoteMessage) {
+        Log.d(TAG, "Reveal mark notification received")
 
+        Log.d(TAG, "Full data payload in handler: ${message.data}")
 
+        val grade = message.data["mark"]
+        Log.d(TAG, "Grade: $grade")
+
+        // Create intent to launch MainActivity with grade information
+        val intent = Intent(this, MainActivity::class.java).apply {
+            putExtra("navigate_to_reveal_mark", true)
+            putExtra("grade", grade)
+            // Add these flags to ensure proper navigation when app is closed
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Build notification
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_GRADES)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(message.data["title"] ?: "Neue Note")
+            .setContentText(message.data["body"] ?: "Eine neue Note ist verfügbar")
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message.data["body"] ?: "Eine neue Note ist verfügbar"))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+
+        showNotification(notificationBuilder)
+    }
+
+    private fun handleVpUpdateNotification(message: RemoteMessage) {
+        Log.d(TAG, "VP update notification received")
+
+        // Create intent to launch MainActivity with VP screen destination
+        val intent = Intent(this, MainActivity::class.java).apply {
+            putExtra("navigate_to_vp", true)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            this, 1, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Build notification
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_VP_UPDATES)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(message.data["title"] ?: "Vertretungsplan Update")
+            .setContentText(message.data["body"] ?: "Der Vertretungsplan wurde aktualisiert")
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message.data["body"] ?: "Der Vertretungsplan wurde aktualisiert"))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+
+        showNotification(notificationBuilder)
+    }
+
+    private fun showNotification(builder: NotificationCompat.Builder) {
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val notificationId = (System.currentTimeMillis() % 10000).toInt()
+        notificationManager.notify(notificationId, builder.build())
     }
 }
