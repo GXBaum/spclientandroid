@@ -13,29 +13,41 @@ import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.domain.repository.MyRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PushNotificationService: FirebaseMessagingService() {
+class PushNotificationService : FirebaseMessagingService() {
     @Inject
     lateinit var repository: MyRepository
+
     @Inject
     lateinit var prefUtils: PrefUtils
 
+    // Single coroutine scope for the service
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     companion object {
         private const val TAG = "PushNotificationService"
+
+        // Notification channels
         private const val CHANNEL_GRADES = "grade_notifications"
         private const val CHANNEL_VP_UPDATES = "vp_updates"
+        private const val CHANNEL_OTHER = "other_notifications"
+
+        //TODO: Implement
+        // Notification IDs
+        private const val NOTIFICATION_ID_GRADE = 1001
+        private const val NOTIFICATION_ID_VP = 2001
+        private const val NOTIFICATION_ID_OTHER = 3001
     }
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
+        Log.d(TAG, "New FCM token received: $token")
 
-        Log.d(TAG, "New token: $token")
-
-        val scope = CoroutineScope(Dispatchers.IO)
-        scope.launch {
+        serviceScope.launch {
             prefUtils.saveString("fcm_token", token)
 
             // Only send token to server if user is already logged in
@@ -50,8 +62,7 @@ class PushNotificationService: FirebaseMessagingService() {
     }
 
     private fun sendTokenToServer(token: String, username: String) {
-        val scope = CoroutineScope(Dispatchers.IO)
-        scope.launch {
+        serviceScope.launch {
             try {
                 Log.d(TAG, "Sending token to server for user: $username")
 
@@ -62,6 +73,7 @@ class PushNotificationService: FirebaseMessagingService() {
                 Log.d(TAG, "Token sent successfully")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to send token to server", e)
+                // TODO: Store the failed update to retry later
             }
         }
     }
@@ -94,13 +106,22 @@ class PushNotificationService: FirebaseMessagingService() {
             enableVibration(true)
         }
 
-        notificationManager.createNotificationChannels(listOf(gradeChannel, vpChannel))
+        val otherChannel = NotificationChannel(
+            CHANNEL_OTHER,
+            "Andere Benachrichtigungen",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Andere Benachrichtigungen"
+            enableVibration(false)
+        }
+
+        notificationManager.createNotificationChannels(listOf(gradeChannel, vpChannel, otherChannel))
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
-        Log.d(TAG, "From: ${message.from}")
+        Log.d(TAG, "Message received from: ${message.from}")
         if (message.data.isNotEmpty()) {
             Log.d(TAG, "Message data payload: ${message.data}")
         }
@@ -110,25 +131,20 @@ class PushNotificationService: FirebaseMessagingService() {
         }
 
         when {
-            message.data["mark"] != null -> {
-                handleGradeNotification(message)
-            }
-            message.data["open_vp"] != null -> {
-                handleVpUpdateNotification(message)
-            }
-            else -> {
-                Log.d(TAG, "Received notification of unknown type")
-            }
+            message.data["mark"] != null -> handleGradeNotification(message)
+            message.data["open_vp"] != null -> handleVpUpdateNotification(message)
+            else -> handleOtherNotification(message)
         }
     }
 
     private fun handleGradeNotification(message: RemoteMessage) {
-        Log.d(TAG, "Reveal mark notification received")
-
-        Log.d(TAG, "Full data payload in handler: ${message.data}")
+        Log.d(TAG, "Grade notification received: ${message.data}")
 
         val grade = message.data["mark"]
-        Log.d(TAG, "Grade: $grade")
+        Log.d(TAG, grade.toString())
+
+        val title = message.data["title"] ?: "Neue Note"
+        val body = message.data["body"] ?: "Eine neue Note ist verfügbar"
 
         // Create intent to launch MainActivity with grade information
         val intent = Intent(this, MainActivity::class.java).apply {
@@ -137,6 +153,7 @@ class PushNotificationService: FirebaseMessagingService() {
             // Add these flags to ensure proper navigation when app is closed
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
+
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -145,9 +162,9 @@ class PushNotificationService: FirebaseMessagingService() {
         // Build notification
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_GRADES)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(message.data["title"] ?: "Neue Note")
-            .setContentText(message.data["body"] ?: "Eine neue Note ist verfügbar")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(message.data["body"] ?: "Eine neue Note ist verfügbar"))
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setAutoCancel(true)
@@ -159,11 +176,15 @@ class PushNotificationService: FirebaseMessagingService() {
     private fun handleVpUpdateNotification(message: RemoteMessage) {
         Log.d(TAG, "VP update notification received")
 
+        val title = message.data["title"] ?: "Vertretungsplan Update"
+        val body = message.data["body"] ?: "Der Vertretungsplan wurde aktualisiert"
+
         // Create intent to launch MainActivity with VP screen destination
         val intent = Intent(this, MainActivity::class.java).apply {
             putExtra("navigate_to_vp", true)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
+
         val pendingIntent = PendingIntent.getActivity(
             this, 1, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -172,10 +193,40 @@ class PushNotificationService: FirebaseMessagingService() {
         // Build notification
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_VP_UPDATES)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(message.data["title"] ?: "Vertretungsplan Update")
-            .setContentText(message.data["body"] ?: "Der Vertretungsplan wurde aktualisiert")
-            .setStyle(NotificationCompat.BigTextStyle().bigText(message.data["body"] ?: "Der Vertretungsplan wurde aktualisiert"))
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+
+        showNotification(notificationBuilder)
+    }
+
+    private fun handleOtherNotification(message: RemoteMessage) {
+        Log.d(TAG, "Other notification received")
+
+        val title = message.data["title"] ?: "Benachrichtigung"
+        val body = message.data["body"] ?: "Eine neue Benachrichtigung ist eingegangen"
+
+        // Create intent to launch MainActivity
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            this, 2, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Build notification
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_OTHER)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
@@ -188,4 +239,4 @@ class PushNotificationService: FirebaseMessagingService() {
         val notificationId = (System.currentTimeMillis() % 10000).toInt()
         notificationManager.notify(notificationId, builder.build())
     }
-}
+} 

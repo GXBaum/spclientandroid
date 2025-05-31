@@ -44,3 +44,8 @@ data class VpSubstitution(
 )
 
 
+data class VpSubstitutionsAll(
+    val substitutions: List<List<VpSubstitution>>
+)
+
+

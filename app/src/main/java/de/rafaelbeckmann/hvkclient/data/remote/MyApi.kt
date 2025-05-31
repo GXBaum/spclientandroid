@@ -5,6 +5,7 @@ import de.rafaelbeckmann.hvkclient.data.model.UserCourses
 import de.rafaelbeckmann.hvkclient.data.model.UserMarks
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutions
+import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAll
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -41,9 +42,15 @@ interface MyApi {
         @Path("username") username: String
     ): Response<VpSelectedCourse>
 
+    // TODO: remove
     @GET("vpSubstitutions/{courseName}/{day}")
     suspend fun getVpSubstitutions(
         @Path("courseName") courseName: String,
         @Path("day") day: String
     ): Response<VpSubstitutions>
+
+    @GET("vpSubstitutions/{courseName}")
+    suspend fun getVpSubstitutionsAll(
+        @Path("courseName") courseName: String,
+    ): Response<VpSubstitutionsAll>
 }

@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
+import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAll
 import de.rafaelbeckmann.hvkclient.domain.repository.MyRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,8 +30,7 @@ class VpViewModel @Inject constructor(
 
     val vpSelectedCourseName = mutableStateOf("")
 
-    val vpSubstitutions = mutableStateOf(emptyList<VpSubstitution>())
-    val tommorowSubstitutions = mutableStateOf(emptyList<VpSubstitution>())
+    val vpSubstitutionsAll = mutableStateOf(emptyList<VpSubstitutionsAll>())
 
 
     init {
@@ -40,15 +40,14 @@ class VpViewModel @Inject constructor(
 
             vpSelectedCourseName.value = prefUtils.getString("vpSelectedCourseName") ?: ""
 
-            fetchVpSubstitutions(vpSelectedCourseName.value, "today")
-            fetchVpSubstitutions(vpSelectedCourseName.value, "tomorrow")
+            fetchVpSubstitutionsAll(vpSelectedCourseName.value)
         }
 
     }
 
-    fun fetchVpSubstitutions(courseName: String, day: String) {
+    fun fetchVpSubstitutionsAll(courseName: String) {
         viewModelScope.launch {
-            Log.d("VpViewModel", "Fetching substitutions for course: $courseName")
+            Log.d("VpViewModel", "Fetching all substitutions for course: $courseName")
 
             // URL encoding
             val encodedCourseName = URLEncoder.encode(courseName, "UTF-8")
@@ -56,21 +55,17 @@ class VpViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
-            repository.getVpSubstitutions(encodedCourseName, day)
+            repository.getVpSubstitutionsAll(encodedCourseName)
                 .catch { exception ->
                     _error.value = exception.message
                 }
                 .collect { result ->
                     _isLoading.value = false
-                    Log.d("VpViewModel", "Result: $result")
+                    Log.d("VpViewModel", "Result ALL: $result")
                     result.fold(
                         onSuccess = { substitutions ->
-                            Log.d("VpViewModel", "Substitutions: ${substitutions}")
-                            if (day == "today") {
-                                vpSubstitutions.value = substitutions.map { it }
-                            } else {
-                                tommorowSubstitutions.value = substitutions.map { it }
-                            }
+                            Log.d("VpViewModel", "Substitutions ALL: ${substitutions}")
+                            vpSubstitutionsAll.value = listOf(substitutions)
                         },
                         onFailure = { exception ->
                             Log.e("VpViewModel", "Error fetching substitutions: ${exception.message}")

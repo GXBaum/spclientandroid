@@ -5,6 +5,7 @@ import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
+import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAll
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -48,5 +49,9 @@ interface MyRepository {
 
 
     fun getVpSubstitutions(courseName: String, day: String): Flow<Result<List<VpSubstitution>>>
+
+
+    fun getVpSubstitutionsAll(courseName: String): Flow<Result<VpSubstitutionsAll>>
+
 
 }

@@ -8,6 +8,7 @@ import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
+import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAll
 import de.rafaelbeckmann.hvkclient.data.remote.MyApi
 import de.rafaelbeckmann.hvkclient.domain.repository.MyRepository
 import kotlinx.coroutines.flow.Flow
@@ -110,6 +111,22 @@ class MyRepositoryImpl(
             if (response.isSuccessful) {
                 response.body()?.let { vpSubstitutions ->
                     emit(Result.success(vpSubstitutions.substitutions))
+                } ?: emit(Result.failure(IOException("Response body is null")))
+            } else {
+                emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))
+            }
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+
+
+    override fun getVpSubstitutionsAll(courseName: String): Flow<Result<VpSubstitutionsAll>> = flow {
+        try {
+            val response = api.getVpSubstitutionsAll(courseName)
+            if (response.isSuccessful) {
+                response.body()?.let { vpSubstitutions ->
+                    emit(Result.success(vpSubstitutions))
                 } ?: emit(Result.failure(IOException("Response body is null")))
             } else {
                 emit(Result.failure(IOException("Error ${response.code()}: ${response.message()}")))
