@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -19,30 +18,38 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Grade
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import dagger.hilt.android.AndroidEntryPoint
@@ -52,7 +59,6 @@ import de.rafaelbeckmann.hvkclient.ui.revealmark.RevealMarkScreen
 import de.rafaelbeckmann.hvkclient.ui.settings.SettingsScreen
 import de.rafaelbeckmann.hvkclient.ui.theme.HvKClientTheme
 import de.rafaelbeckmann.hvkclient.ui.vp.VpScreen
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import javax.inject.Inject
 
@@ -83,16 +89,6 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
 
-
-                var actionBarTitle by rememberSaveable { mutableStateOf("HvK Client") }
-
-                /*LaunchedEffect(navController) {
-                    navController.currentBackStackEntryFlow.collect { backStackEntry ->
-                        // You can map the title based on the route using:
-                        actionBarTitle = getTitleByRoute(context, backStackEntry.destination.route)
-                    }
-                }*/
-
                 // Handle deep link from notification
                 LaunchedEffect(Unit) {
                     Log.d("test123", "Received navigateToRevealMark: $navigateToRevealMark, grade: $grade")
@@ -121,62 +117,55 @@ class MainActivity : ComponentActivity() {
                     contentWindowInsets = WindowInsets.statusBars,
 
                     modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        TopAppBar(
-                            title = {
-                                Text(
-                                    text = actionBarTitle,
-                                    Modifier.clickable(
-                                        onClick = {
-                                            scope.launch {
-                                                val saved = prefUtils.getString("isDeveloper")
-                                                 if (saved == "true") {
-                                                    prefUtils.saveString("isDeveloper", "false")
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Du bist jetzt wieder im normalen Modus",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
-                                                } else {
-                                                     prefUtils.saveString("isDeveloper", "true")
-                                                     Toast.makeText(
-                                                         context,
-                                                         "Du bist jetzt im Debug Modus (No Diddy)",
-                                                         Toast.LENGTH_LONG
-                                                     ).show()
-                                                 }
-                                            }
-                                        }
-                                    )
-                                )
+                    bottomBar = {
+                        val navBackStackEntry by navController.currentBackStackEntryAsState()
+                        val currentDestination = navBackStackEntry?.destination
 
-                                Button(
-                                    onClick = {
-                                        navController.navigate(
-                                            VpScreen
-                                        )
-                                    }
-                                ) {
-                                    Text("Vertretungsplan")
-                                }
-                            },
-                            actions = {
-                                Text(
-                                    text = "Einstellungen",
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .clickable {
-                                            navController.navigate(SettingsScreen)
-                                        }
-                                )
-                            },
+                        val navItemList = listOf(
+                            navItem("Vertretungsplan", Icons.Default.Home, 69, VpGraph),
+                            navItem("SP Noten", Icons.Default.Grade, 0, CoursesGraph),
+                            navItem("Einstellungen", Icons.Default.Settings, 0, SettingsGraph)
                         )
-                    },
-                    bottomBar = { }
+
+                        NavigationBar {
+                            navItemList.forEach { navItem ->
+                                val isSelected = currentDestination?.hierarchy?.any {
+                                    it.route == navItem.screenObject::class.qualifiedName
+                                } == true
+
+                                NavigationBarItem(
+                                    icon = {
+                                        BadgedBox(badge = {
+                                            if (navItem.badgeCount > 0) {
+                                                Badge(
+                                                    containerColor = MaterialTheme.colorScheme.primary
+                                                ) {
+                                                    Text(text = navItem.badgeCount.toString())
+                                                }
+                                            }
+                                        }) {
+                                            Icon(navItem.icon, contentDescription = navItem.label)
+                                        }
+                                    },
+                                    label = { Text(navItem.label) },
+                                    selected = isSelected,
+                                    onClick = {
+                                        navController.navigate(navItem.screenObject) {
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
-                        startDestination = CoursesScreen,
+                        startDestination = VpGraph,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding),
@@ -234,57 +223,68 @@ class MainActivity : ComponentActivity() {
                                     scaleOut(animationSpec = tween(durationMillis = 200), targetScale = 0.95f)
                         }
                     ) {
+                        navigation<VpGraph>(
+                            startDestination = VpScreen
+                        ) {
+                            composable<VpScreen> {
+                                VpScreen(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                )
+                            }
+                        }
 
-                        composable<CoursesScreen> {
-                            CoursesScreen(
-                                onCourseClick = { course ->
-                                    navController.navigate(
-                                        CourseDetailsScreen(
-                                            name = course.name,
-                                            courseId = course.courseId,
+                        navigation<CoursesGraph>(
+                            startDestination = CoursesScreen
+                        ) {
+                            composable<CoursesScreen> {
+                                CoursesScreen(
+                                    onCourseClick = { course ->
+                                        navController.navigate(
+                                            CourseDetailsScreen(
+                                                name = course.name,
+                                                courseId = course.courseId,
+                                            )
                                         )
-                                    )
-                                }
-                            )
+                                    }
+                                )
+                            }
+
+                            composable<CourseDetailsScreen> {
+                                val args = it.toRoute<CourseDetailsScreen>()
+
+                                CourseDetailScreen(
+                                    modifier = Modifier
+                                        .fillMaxSize(),
+                                    courseId = args.courseId,
+                                    onNavigateToRevealMark = { grade ->
+                                        navController.navigate(
+                                            RevealMarkScreen(grade)
+                                        )
+                                    }
+                                )
+                            }
+
+                            composable<RevealMarkScreen> {
+                                val args = it.toRoute<RevealMarkScreen>()
+                                RevealMarkScreen(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.White),
+                                    grade = args.grade
+                                )
+                            }
                         }
 
-                        composable<CourseDetailsScreen> {
-                            val args = it.toRoute<CourseDetailsScreen>()
-
-                            CourseDetailScreen(
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                                courseId = args.courseId,
-                                onNavigateToRevealMark = { grade ->
-                                    navController.navigate(
-                                        RevealMarkScreen(grade)
-                                    )
-                                }
-                            )
-                        }
-
-                        composable<RevealMarkScreen> {
-                            val args = it.toRoute<RevealMarkScreen>()
-                            RevealMarkScreen(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.White),
-                                grade = args.grade
-                            )
-                        }
-
-                        composable<SettingsScreen> {
-                            SettingsScreen(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                            )
-                        }
-
-                        composable<VpScreen> {
-                            VpScreen(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                            )
+                        navigation<SettingsGraph>(
+                            startDestination = SettingsScreen
+                        ) {
+                            composable<SettingsScreen> {
+                                SettingsScreen(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                )
+                            }
                         }
                     }
                 }
@@ -311,6 +311,14 @@ class MainActivity : ComponentActivity() {
 }
 
 
+@Serializable
+object VpGraph
+
+@Serializable
+object CoursesGraph
+
+@Serializable
+object SettingsGraph
 
 @Serializable
 object CoursesScreen
@@ -331,3 +339,11 @@ object SettingsScreen
 
 @Serializable
 object VpScreen
+
+
+data class navItem(
+    val label: String,
+    val icon: ImageVector,
+    val badgeCount: Int,
+    val screenObject: Any
+)

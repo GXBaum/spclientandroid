@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -110,6 +111,7 @@ fun MarksList(marks: List<UserMark>,
             )
         }
 
+        // TODO: manchmal falsche Reihenfolge
         groupedMarks.forEach { (halfYear, marksInGroup) ->
             item {
                 Text(
@@ -150,11 +152,19 @@ fun MarksList(marks: List<UserMark>,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = mark.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
+
+                            if (mark.name.isNotEmpty()){
+                                Text(
+                                    text = mark.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            } else {
+                                Text(
+                                    text = "kein Titel",
+                                    fontStyle = FontStyle.Italic
+                                )
+                            }
 
                             Spacer(modifier = Modifier.height(8.dp))
 

@@ -1,6 +1,7 @@
 package de.rafaelbeckmann.hvkclient.ui.settings
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -101,6 +102,35 @@ open class SettingsViewModel @Inject constructor(
                 _error.value = exception.message
                 _isLoading.value = false
             }
+        }
+    }
+
+
+    fun toggleDeveloperMode(context: android.content.Context) {
+        viewModelScope.launch {
+            isDeveloper.value = !isDeveloper.value
+            prefUtils.saveString("isDeveloper", isDeveloper.value.toString())
+
+            if (isDeveloper.value) {
+                Log.d("SettingsViewModel", "Developer mode enabled")
+
+                prefUtils.saveString("isDeveloper", "true")
+                Toast.makeText(
+                    context,
+                    "Du bist jetzt im Debug Modus (No Diddy)",
+                    Toast.LENGTH_LONG
+                ).show()
+
+            } else {
+                Log.d("SettingsViewModel", "Developer mode disabled")
+
+                Toast.makeText(
+                    context,
+                    "Du bist jetzt wieder im normalen Modus",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+
         }
     }
 

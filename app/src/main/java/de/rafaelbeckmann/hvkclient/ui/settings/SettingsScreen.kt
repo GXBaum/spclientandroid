@@ -1,10 +1,12 @@
 package de.rafaelbeckmann.hvkclient.ui.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,12 +35,26 @@ fun SettingsScreen(
     val vpSelectedCourse = viewModel.vpSelectedCourse.collectAsState()
     var vpCoursenameInput by remember { mutableStateOf("") }
 
+    val context = LocalContext.current
+
+
 
     Column (
         modifier = modifier
             .padding(horizontal = 16.dp)
             .fillMaxSize()
     ) {
+        Text(
+            text = "Einstellungen",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(vertical = 8.dp)
+                .clickable(
+                    onClick = {
+                        viewModel.toggleDeveloperMode(context)
+                    }
+                ),
+        )
+
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
@@ -67,12 +84,12 @@ fun SettingsScreen(
         OutlinedTextField(
             value = vpCoursenameInput,
             onValueChange = {vpCoursenameInput = it },
-            label = { Text("Vertetungsplankurs") },
+            label = { Text("Vertretungsplankurs") },
             modifier = Modifier.fillMaxWidth()
         )
 
         Text(
-            text = "Vertetungsplankurs: ${vpSelectedCourse.value}",
+            text = "Vertretungsplankurs: ${vpSelectedCourse.value}",
             modifier = Modifier.fillMaxWidth()
         )
 

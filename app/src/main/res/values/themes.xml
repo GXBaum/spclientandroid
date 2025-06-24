@@ -3,3 +3,5 @@
 
     <style name="Theme.HvKClient" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>
+
+<!-- // TODO: splash screen ist immer weiß, auch im dark mode -->
