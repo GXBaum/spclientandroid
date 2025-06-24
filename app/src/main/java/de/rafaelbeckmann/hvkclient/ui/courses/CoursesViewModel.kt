@@ -38,6 +38,7 @@ open class CoursesViewModel @Inject constructor(
             repository.getUserCourses(username)
                 .catch { exception ->
                     _error.value = exception.message
+                    _isLoading.value = false
                 }
                 .collect { result ->
                     _isLoading.value = false
@@ -47,6 +48,7 @@ open class CoursesViewModel @Inject constructor(
                         },
                         onFailure = { error ->
                             _error.value = error.message
+                            _isLoading.value = false
                         }
                     )
                 }

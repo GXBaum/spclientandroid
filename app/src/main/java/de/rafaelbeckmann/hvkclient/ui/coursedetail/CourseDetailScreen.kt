@@ -1,5 +1,7 @@
 package de.rafaelbeckmann.hvkclient.ui.coursedetail
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,14 +11,22 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Today
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes.Companion.Cookie12Sided
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorContent
-import de.rafaelbeckmann.hvkclient.ui.common.LoadingScreen
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,31 +67,39 @@ fun CourseDetailScreen(
         viewModel.fetchUserMarks(courseId, username)
     }
 
-    Box(
-        modifier = modifier.fillMaxSize()
-            .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center
+    PullToRefreshBox(
+        isRefreshing = isLoading,
+        onRefresh = { viewModel.fetchUserMarks(courseId, username) },
+        modifier = Modifier.fillMaxSize()
     ) {
-        when {
-            isLoading -> LoadingScreen()
-            error != null -> ErrorContent(errorMessage = error ?: "Unknown error occurred")
-            marks.isNotEmpty() -> MarksList(marks = marks, onMarkClick = { mark ->
-                onNavigateToRevealMark(mark.grade)
-            })
+        Box(
+            modifier = modifier.fillMaxSize()
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                //isLoading -> LoadingScreen()
+                error != null -> ErrorContent(errorMessage = error ?: "Unknown error occurred")
+                marks.isNotEmpty() -> MarksList(marks = marks, onMarkClick = { mark ->
+                    onNavigateToRevealMark(mark.grade)
+                })
 
-            else -> Text(
-                text = "Keine Noten für diesen Kurs gefunden",
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center
-            )
+                else -> Text(
+                    text = "Keine Noten für diesen Kurs gefunden",
+                    modifier = Modifier.padding(16.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
-
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MarksList(marks: List<UserMark>,
               onMarkClick: (UserMark) -> Unit
 ) {
+    val groupedMarks = marks.groupBy { it.half_year }
+
     LazyColumn(
     ) {
         item {
@@ -92,51 +110,84 @@ fun MarksList(marks: List<UserMark>,
             )
         }
 
-        items(marks) { mark ->
-            MarkItem(mark = mark, onMarkClick = onMarkClick)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
-    }
-}
-
-@Composable
-fun MarkItem(
-    mark: UserMark,
-    onMarkClick: (UserMark) -> Unit = {}
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        onClick = { onMarkClick(mark) }
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = mark.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = "Datum: ${mark.date}")
+        groupedMarks.forEach { (halfYear, marksInGroup) ->
+            item {
                 Text(
-                    text = "Note: ${mark.grade}",
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    text = "Halbjahr: $halfYear",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
-            HorizontalDivider()
-            Spacer(modifier = Modifier.height(4.dp))
+            // TODO: vielleicht zu einem eigenen Composable machen
 
-            Text(text = "Halbjahr: ${mark.half_year}")
+            items(marksInGroup) { mark ->
+                val isFirst = marksInGroup.first() == mark
+                val isLast = marksInGroup.last() == mark
+                val shape = if (isFirst && isLast) {
+                    RoundedCornerShape(16.dp)
+                } else if (isFirst) {
+                    RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+                } else if (isLast) {
+                    RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+                } else {
+                    RoundedCornerShape(4.dp)
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 1.dp)
+                        .clickable { onMarkClick(mark) },
+                    shape = shape,
+                    color = MaterialTheme.colorScheme.surfaceContainer
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = mark.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Row {
+                                Icon(
+                                    imageVector = Icons.Rounded.Today,
+                                    contentDescription = null,
+                                )
+                                Text(text = mark.date)
+                            }
+
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    shape = Cookie12Sided.toShape()
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = mark.grade,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.headlineMedium
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

@@ -131,7 +131,7 @@ class PushNotificationService : FirebaseMessagingService() {
         }
 
         when {
-            message.data["mark"] != null -> handleGradeNotification(message)
+            message.data["grade"] != null -> handleGradeNotification(message)
             message.data["open_vp"] != null -> handleVpUpdateNotification(message)
             else -> handleOtherNotification(message)
         }
@@ -140,7 +140,7 @@ class PushNotificationService : FirebaseMessagingService() {
     private fun handleGradeNotification(message: RemoteMessage) {
         Log.d(TAG, "Grade notification received: ${message.data}")
 
-        val grade = message.data["mark"]
+        val grade = message.data["grade"]
         Log.d(TAG, grade.toString())
 
         val title = message.data["title"] ?: "Neue Note"

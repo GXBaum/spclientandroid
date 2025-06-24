@@ -35,7 +35,7 @@ fun SettingsScreen(
 
     Column (
         modifier = modifier
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 16.dp)
             .fillMaxSize()
     ) {
         OutlinedTextField(

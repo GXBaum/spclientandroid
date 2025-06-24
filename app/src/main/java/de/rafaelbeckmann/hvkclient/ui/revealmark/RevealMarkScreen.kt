@@ -318,18 +318,28 @@ fun RevealMarkScreen(
 
     } else {
         // If it's a text-based grade
-        Text(
-            text = "Note: $grade",
-            fontSize = 96.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Das ist keine Zahl",
-            fontSize = 24.sp,
-            textAlign = TextAlign.Center,
-        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Das ist keine Zahl",
+                fontSize = 24.sp,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Note: $grade",
+                fontSize = 64.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+            )
+
+        }
+
     }
 
 }

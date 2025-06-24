@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -25,9 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorContent
-import de.rafaelbeckmann.hvkclient.ui.common.LoadingScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun CoursesScreen(
     modifier: Modifier = Modifier,
@@ -62,58 +64,105 @@ fun CoursesScreen(
 
 
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 8.dp)
-        ) {
-        when {
-            isLoading -> {
-                LoadingScreen()
-            }
-            error != null -> {
-                ErrorContent(
-                    errorMessage = error ?: "Unknown error occurred",
-                )
-            }
+    Surface (
+        modifier = modifier.fillMaxSize(),
+        //color = MaterialTheme.colorScheme.surfaceContainer,
+    ) {
 
-            courses.isNotEmpty() -> {
-                PullToRefreshBox(
-                    isRefreshing = isLoading,
-                    onRefresh = { viewModel.fetchCourses(username) },
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    LazyColumn {
-                        items(courses) { course ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
-                                    .clickable { onCourseClick(course) }
-                            ) {
-                                Row {
-                                    Text(
-                                        text = course.name,
-                                        modifier = Modifier.padding(16.dp)
+
+
+        PullToRefreshBox(
+            isRefreshing = isLoading,
+            onRefresh = { viewModel.fetchCourses(username) },
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+            ) {
+                when {
+                    /*isLoading -> {
+                        LoadingScreen()
+                    }*/
+                    error != null -> {
+                        ErrorContent(
+                            errorMessage = error ?: "Unknown error occurred",
+                        )
+                    }
+
+                    courses.isNotEmpty() -> {
+
+                        // TODO: vielleicht zu einem eigenen Composable machen
+                        LazyColumn {
+                            items(courses) { course ->
+
+                                val isFirst = courses.first() == course
+                                val isLast = courses.last() == course
+                                val shape = if (isFirst && isLast) {
+                                    RoundedCornerShape(16.dp)
+                                } else if (isFirst) {
+                                    RoundedCornerShape(
+                                        topStart = 16.dp,
+                                        topEnd = 16.dp,
+                                        bottomStart = 4.dp,
+                                        bottomEnd = 4.dp
                                     )
-                                    if (isDeveloper){
-                                        Spacer(
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        Text(
-                                            text = "${course.courseId}",
-                                            modifier = Modifier
-                                                .padding(16.dp)
-                                        )
-                                    }
+                                } else if (isLast) {
+                                    RoundedCornerShape(
+                                        topStart = 4.dp,
+                                        topEnd = 4.dp,
+                                        bottomStart = 16.dp,
+                                        bottomEnd = 16.dp
+                                    )
+                                } else {
+                                    RoundedCornerShape(4.dp)
                                 }
 
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 1.dp)
+                                        .clickable { onCourseClick(course) },
+                                    shape = shape,
+                                    color = MaterialTheme.colorScheme.surfaceContainer,
+                                    //color = MaterialTheme.colorScheme.surface,
+                                    //shadowElevation = 1.dp
+
+                                ) {
+                                    /*
+                                }
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp)
+                                        .clickable { onCourseClick(course) }
+                                ) {*/
+                                    Row {
+                                        Text(
+                                            text = course.name,
+                                            modifier = Modifier.padding(16.dp)
+                                        )
+                                        if (isDeveloper) {
+                                            Spacer(
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            Text(
+                                                text = "${course.courseId}",
+                                                modifier = Modifier
+                                                    .padding(16.dp)
+                                            )
+                                        }
+                                    }
+
+                                }
                             }
                         }
+
                     }
                 }
-
             }
         }
     }
+
 }

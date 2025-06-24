@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAll
 import de.rafaelbeckmann.hvkclient.domain.repository.MyRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,13 +16,13 @@ import java.net.URLEncoder
 import javax.inject.Inject
 
 @HiltViewModel
-class VpViewModel @Inject constructor(
+open class VpViewModel @Inject constructor(
     private val repository: MyRepository,
     private val prefUtils: PrefUtils
 ): ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    open val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
@@ -58,6 +57,7 @@ class VpViewModel @Inject constructor(
             repository.getVpSubstitutionsAll(encodedCourseName)
                 .catch { exception ->
                     _error.value = exception.message
+                    _isLoading.value = false
                 }
                 .collect { result ->
                     _isLoading.value = false

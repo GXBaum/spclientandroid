@@ -1,25 +1,19 @@
 package de.rafaelbeckmann.hvkclient.ui.vp
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -30,80 +24,88 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorContent
-import de.rafaelbeckmann.hvkclient.ui.common.LoadingScreen
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VpScreen(
     modifier: Modifier = Modifier,
     viewModel: VpViewModel = hiltViewModel()
 ) {
-    val isLoading = viewModel.isLoading.collectAsState()
+    val isLoading = viewModel.isLoading.collectAsState().value
     val error = viewModel.error.collectAsState()
     val vpSelectedCourseName = viewModel.vpSelectedCourseName.value
 
     val vpSubstitutionsAll = viewModel.vpSubstitutionsAll.value
 
-    LazyColumn(
-        modifier = modifier
-            .padding(horizontal = 8.dp)
-            .fillMaxSize()
+    PullToRefreshBox(
+        isRefreshing = isLoading,
+        onRefresh = { viewModel.fetchVpSubstitutionsAll(vpSelectedCourseName) },
+        modifier = Modifier.fillMaxSize()
     ) {
-        when {
-            isLoading.value -> {
-                item(key = "loading") {
-                    LoadingScreen()
-                }
-            }
-            !error.value.isNullOrEmpty() -> {
-                item(key = "error") {
-                    ErrorContent(error.value!!)
-                }
-            }
-            else -> {
+        LazyColumn(
+            modifier = modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxSize()
+        ) {
+            when {
+                /*isLoading -> {
+                    item(key = "loading") {
+                        LoadingScreen()
+                    }
+                }*/
 
-                // No substitutions message
-                if (vpSubstitutionsAll.isEmpty()) {
-                    item(key = "no_substitutions") {
-                        Card(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Keine Vertretungen gefunden",
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .align(Alignment.CenterHorizontally)
-                            )
-                        }
+                !error.value.isNullOrEmpty() -> {
+                    item(key = "error") {
+                        ErrorContent(error.value!!)
                     }
                 }
 
-                // Selected course
-                item(key = "selected_course") {
-                    Text(
-                        text = "Ausgewählter Kurs: $vpSelectedCourseName",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
+                else -> {
 
-                // All substitutions header
-                if (vpSubstitutionsAll.isNotEmpty()) {
-                    item(key = "all_substitutions_header") {
+                    // No substitutions message
+                    if (vpSubstitutionsAll.isEmpty()) {
+                        item(key = "no_substitutions") {
+                            Card(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Keine Vertretungen gefunden",
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .align(Alignment.CenterHorizontally)
+                                )
+                            }
+                        }
+                    }
+
+                    // Selected course
+                    item(key = "selected_course") {
                         Text(
-                            text = "Vertretungen",
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(vertical = 8.dp)
+                            text = "Ausgewählter Kurs: $vpSelectedCourseName",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(top = 8.dp)
                         )
                     }
 
-                    // Use efficient lazy loading for all substitutions
-                    vpSubstitutionsAll.forEachIndexed { dayIndex, vpSubAll ->
-                        vpSubAll.substitutions.forEachIndexed { listIndex, substitutionList ->
-                            item(key = "all_day_${dayIndex}_list_${listIndex}") {
-                                VpTable(
-                                    modifier = Modifier.padding(bottom = 8.dp),
-                                    vpSubstitutions = substitutionList
-                                )
+                    // All substitutions header
+                    if (vpSubstitutionsAll.isNotEmpty()) {
+                        item(key = "all_substitutions_header") {
+                            Text(
+                                text = "Vertretungen",
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+
+                        // Use efficient lazy loading for all substitutions
+                        vpSubstitutionsAll.forEachIndexed { dayIndex, vpSubAll ->
+                            vpSubAll.substitutions.forEachIndexed { listIndex, substitutionList ->
+                                item(key = "all_day_${dayIndex}_list_${listIndex}") {
+                                    VpTable(
+                                        modifier = Modifier.padding(bottom = 8.dp),
+                                        vpSubstitutions = substitutionList
+                                    )
+                                }
                             }
                         }
                     }
@@ -135,17 +137,9 @@ fun VpTable(
                 TableCell(text = "Hinweis", weight = 0.35f, isHeader = true)
             }
 
-            // Table Content - use LazyColumn for larger tables
-            if (vpSubstitutions.size > 20) {
-                LazyColumn {
-                    itemsIndexed(vpSubstitutions) { index, substitution ->
-                        TableRow(index, substitution)
-                    }
-                }
-            } else {
-                vpSubstitutions.forEachIndexed { index, substitution ->
-                    TableRow(index, substitution)
-                }
+            // Table Content
+            vpSubstitutions.forEachIndexed { index, substitution ->
+                TableRow(index, substitution)
             }
         }
     }
