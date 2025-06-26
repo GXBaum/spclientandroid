@@ -64,20 +64,29 @@ fun AppNavHost(
         */
 
         enterTransition = {
+            fadeIn(animationSpec = tween(durationMillis = 200))
+
+            /*
             fadeIn(animationSpec = tween(durationMillis = 200)) +
                     slideInHorizontally(
                         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
                         initialOffsetX = { fullWidth -> fullWidth / 3 }
                     ) +
                     scaleIn(animationSpec = tween(durationMillis = 200), initialScale = 0.95f)
+             */
         },
         exitTransition = {
+            fadeOut(animationSpec = tween(durationMillis = 200))
+
+
+            /*
             fadeOut(animationSpec = tween(durationMillis = 200)) +
                     slideOutHorizontally(
                         animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
                         targetOffsetX = { fullWidth -> -fullWidth / 3 }
                     )// +
             //scaleOut(animationSpec = tween(durationMillis = 200), targetScale = 0.95f)
+            */
         },
         popEnterTransition = {
             fadeIn(animationSpec = tween(durationMillis = 200)) +

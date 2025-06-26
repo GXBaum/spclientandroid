@@ -23,9 +23,10 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FlexibleBottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -61,7 +62,7 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var prefUtils: PrefUtils
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -145,7 +146,8 @@ class MainActivity : ComponentActivity() {
                                 navItem("Einstellungen", Icons.Rounded.Settings, 0, SettingsGraph)
                             )
 
-                            NavigationBar {
+                            FlexibleBottomAppBar {//  }
+                            //NavigationBar {
                                 navItemList.forEach { navItem ->
                                     val isSelected = currentDestination?.hierarchy?.any {
                                         it.route == navItem.screenObject::class.qualifiedName
