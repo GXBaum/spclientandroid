@@ -48,7 +48,8 @@ import org.intellij.lang.annotations.Language
 import java.io.File
 
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+//@RequiresApi(Build.VERSION_CODES.TIRAMISU)
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RevealMarkScreen(

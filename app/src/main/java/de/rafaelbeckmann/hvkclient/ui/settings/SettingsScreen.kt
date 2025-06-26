@@ -2,11 +2,13 @@ package de.rafaelbeckmann.hvkclient.ui.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -69,6 +71,22 @@ fun SettingsScreen(
         ) {
             Text("Speichern")
         }
+
+        if (isDeveloper){
+            OutlinedButton(
+                onClick = {
+                    viewModel.resetOnboardingCompleted()
+                },
+            ) {
+                Text(
+                    text = "Onboarding Completed zurücksetzen",
+                )
+            }
+        }
+
+        Spacer(
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
 
         Text(
             text = "Server Einstellungen",

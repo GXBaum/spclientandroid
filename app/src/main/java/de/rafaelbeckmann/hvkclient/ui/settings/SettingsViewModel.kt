@@ -134,4 +134,11 @@ open class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun resetOnboardingCompleted() {
+        viewModelScope.launch {
+            prefUtils.saveString("onboarding_completed", "false")
+            Log.d("SettingsViewModel", "Onboarding completed reset")
+        }
+    }
+
 }
