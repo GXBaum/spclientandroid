@@ -5,11 +5,13 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.gms.google-services")
-    id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
 
     // Navigation Compose
     alias(libs.plugins.kotlin.serialization)
+
+
+    id("com.google.devtools.ksp")
 
 }
 
@@ -98,8 +100,8 @@ dependencies {
 
     //Dagger - Hilt
     implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
-    kapt(libs.androidx.hilt.compiler)
+    ksp(libs.hilt.android.compiler)
+    ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
 

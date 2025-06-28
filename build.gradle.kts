@@ -13,4 +13,6 @@ plugins {
 
 
     //id("com.google.dagger.hilt.android") version "2.48"
+
+    alias(libs.plugins.ksp) apply false
 }

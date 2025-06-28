@@ -2,14 +2,14 @@
 agp = "8.10.1"
 converterMoshi = "2.9.0"
 datastorePreferences = "1.1.7"
-firebaseBom = "33.15.0"
+firebaseBom = "33.16.0"
 hiltAndroid = "2.49"
 hiltAndroidCompiler = "2.49"
 hiltAndroidGradlePlugin = "2.49"
 hiltLifecycleViewmodel = "1.0.0-alpha03"
 hiltNavigationCompose = "1.2.0"
 hiltNavigationComposeVersion = "1.2.0"
-kotlin = "2.0.0"
+kotlin = "2.0.21"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -71,3 +71,5 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
+ksp = { id = "com.google.devtools.ksp", version = "2.0.21-1.0.27" }
