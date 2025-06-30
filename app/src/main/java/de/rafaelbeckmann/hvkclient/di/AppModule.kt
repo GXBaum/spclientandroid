@@ -1,6 +1,8 @@
 package de.rafaelbeckmann.hvkclient.di
 
 import android.app.Application
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,7 +27,16 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMyApi(): HvkClientApi {
+    fun provideMoshi(): Moshi {
+        return Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+    }
+
+    // TODO: rename this function
+    @Provides
+    @Singleton
+    fun provideMyApi(moshi: Moshi): HvkClientApi {
         return Retrofit.Builder()
             .baseUrl("https://rafaelbeckmann.de/api/dev/")
             .client(
@@ -33,20 +44,20 @@ object AppModule {
                     .addInterceptor(loggingInterceptor)
                     .build()
             )
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(HvkClientApi::class.java)
     }
 
     /**
      * This function is crucial for understanding how interfaces and implementations work together.
-     * 
+     *
      * It tells Hilt (dependency injection framework):
      * "Whenever something needs a HvkRepository, give it an instance of MyRepositoryImpl"
-     * 
+     *
      * The return type is HvkRepository (interface) but we're actually returning
      * MyRepositoryImpl (the concrete implementation of that interface).
-     * 
+     *
      * This is key to dependency injection - classes depend on interfaces, not concrete implementations.
      */
     @Provides

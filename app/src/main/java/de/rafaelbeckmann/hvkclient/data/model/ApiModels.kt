@@ -6,6 +6,7 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 
 // TODO: split into multiple files
 
@@ -72,7 +73,9 @@ data class VpSubstitutionsAllCache(
 
 // TODO: ist es goofy dass das mit JSON gespeichert wird?
 class VpSubstitutionsAllConverter {
-    private val moshi = Moshi.Builder().build()
+    private val moshi = Moshi.Builder()
+    .add(KotlinJsonAdapterFactory())
+    .build()
     private val listMyData = Types.newParameterizedType(List::class.java, VpSubstitution::class.java)
     private val listListMyData = Types.newParameterizedType(List::class.java, listMyData)
     private val jsonAdapter = moshi.adapter<List<List<VpSubstitution>>>(listListMyData)

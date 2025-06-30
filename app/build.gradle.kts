@@ -68,7 +68,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
 
     //implementation(libs.androidx.material3)
-    //implementation(libs.androidx.material3)
     implementation(libs.material3)
 
 
@@ -91,6 +90,8 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.okhttp)
     implementation(libs.converter.moshi)
+
+    implementation(libs.moshi.kotlin)
 
     implementation(libs.logging.interceptor)
 
