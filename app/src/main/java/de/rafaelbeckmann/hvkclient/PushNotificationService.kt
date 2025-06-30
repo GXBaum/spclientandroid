@@ -10,7 +10,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
-import de.rafaelbeckmann.hvkclient.domain.repository.MyRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,7 +20,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class PushNotificationService : FirebaseMessagingService() {
     @Inject
-    lateinit var repository: MyRepository
+    lateinit var repository: HvkRepository
 
     @Inject
     lateinit var prefUtils: PrefUtils

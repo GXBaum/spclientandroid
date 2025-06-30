@@ -1,5 +1,6 @@
 package de.rafaelbeckmann.hvkclient.domain.repository
 
+import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
@@ -15,29 +16,29 @@ import kotlinx.coroutines.flow.Flow
  * 1. Easily swap implementations (e.g., for testing)
  * 2. Keep our ViewModel decoupled from specific implementation details
  */
-interface MyRepository {
+interface HvkRepository {
 
     /**
      * Fetches user courses from the API
      * @param username The username to fetch courses for
      * @return Flow emitting either a success with list of courses or an error
      */
-    fun getUserCourses(username: String): Flow<Result<List<UserCourse>>>
+    fun getUserCourses(username: String): Flow<Resource<List<UserCourse>>>
 
-    fun getUserMarksForCourse(username: String, courseId: Int): Flow<Result<List<UserMark>>>
+    fun getUserMarksForCourse(username: String, courseId: Int): Flow<Resource<List<UserMark>>>
 
     /**
      * Updates the FCM token for a user on the server
      * @param tokenUpdateRequest The request containing the token and username
      */
-    suspend fun updateToken(username: String, tokenUpdateRequest: TokenUpdateRequest)
+    suspend fun updateToken(username: String, tokenUpdateRequest: TokenUpdateRequest): Result<Unit>
 
     /**
      * Fetches the selected courses for a user
      * @param username The username to fetch selected courses for
      * @return Flow emitting either a success with list of selected courses or an error
      */
-    fun getVpSelectedCourses(username: String): Flow<Result<VpSelectedCourse>>
+    fun getVpSelectedCourses(username: String): Flow<Resource<VpSelectedCourse?>>
 
     /**
      * Posts the selected courses for a user
@@ -45,13 +46,16 @@ interface MyRepository {
      * @param courseName The name of the course to post
      * @return Flow emitting either a success or an error
      */
-    suspend fun postVpSelectedCourses(username: String, courseName: VpSelectedCourse)
+    suspend fun postVpSelectedCourses(username: String, courseName: VpSelectedCourse): Result<Unit>
 
 
-    fun getVpSubstitutions(courseName: String, day: String): Flow<Result<List<VpSubstitution>>>
+    fun getVpSubstitutions(courseName: String, day: String): Flow<Resource<List<VpSubstitution>>>
 
 
-    fun getVpSubstitutionsAll(courseName: String): Flow<Result<VpSubstitutionsAll>>
+    fun getVpSubstitutionsAll(courseName: String): Flow<Resource<VpSubstitutionsAll>>
 
-
+    /**
+     * Clears all cached data from the local database.
+     */
+    suspend fun clearCache()
 }

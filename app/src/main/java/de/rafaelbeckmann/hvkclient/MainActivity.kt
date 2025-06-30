@@ -37,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -66,42 +65,33 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        requestNotificationPermission()
         enableEdgeToEdge()
 
-        val navigateToRevealMark = intent.getBooleanExtra("navigate_to_reveal_mark", false)
-        val grade = intent.getStringExtra("grade")
-
-        val navigateToVp = intent.getBooleanExtra("navigate_to_vp", false)
-
+        requestNotificationPermission()
 
         setContent {
             HvKClientTheme {
                 val scope = rememberCoroutineScope()
-                val context = LocalContext.current
 
                 val navController = rememberNavController()
 
-                // Handle deep link from notification
+                // Handle navigation based on intent extras (Deep Links)
                 LaunchedEffect(Unit) {
-                    Log.d("test123", "Received navigateToRevealMark: $navigateToRevealMark, grade: $grade")
+                    val navigateToRevealMark = intent.getBooleanExtra("navigate_to_reveal_mark", false)
+                    val grade = intent.getStringExtra("grade")
+                    val navigateToVp = intent.getBooleanExtra("navigate_to_vp", false)
 
-                    if (navigateToRevealMark && grade != null) {
-                        Log.d("test123", "Navigating to grade reveal screen with grade: $grade")
-
-                        // Reset the flags to prevent re-navigation on config changes
-                        intent.removeExtra("navigate_to_reveal_mark")
-
-                        // Navigate to RevealMarkScreen with the grade
-                        navController.navigate(
-                            RevealMarkScreen(grade)
-                        )
-                    }
-
-                    if (navigateToVp) {
-                        intent.removeExtra("navigate_to_vp")
-                        navController.navigate(VpScreen)
+                    when {
+                        navigateToRevealMark && grade != null -> {
+                            Log.d("DeepLink", "Navigating to grade reveal screen with grade: $grade")
+                            intent.removeExtra("navigate_to_reveal_mark")
+                            navController.navigate(RevealMarkScreen(grade))
+                        }
+                        navigateToVp -> {
+                            Log.d("DeepLink", "Navigating to vp screen")
+                            intent.removeExtra("navigate_to_vp")
+                            navController.navigate(VpScreen)
+                        }
                     }
                 }
 
@@ -117,6 +107,7 @@ class MainActivity : ComponentActivity() {
 
 
                 Scaffold(
+                    // TODO: WindowInsets(0.dp) für fullscreen
                     //contentWindowInsets = WindowInsets(0.dp),
                     //contentWindowInsets = WindowInsets.safeDrawing,
                     contentWindowInsets = WindowInsets.statusBars,
@@ -127,11 +118,8 @@ class MainActivity : ComponentActivity() {
                         val currentDestination = navBackStackEntry?.destination
 
                         val showBottomBar = when {
-                            // Hide on any screen in the Onboarding graph
                             currentDestination?.hierarchy?.any { it.route == OnboardingGraph::class.qualifiedName } == true -> false
-                            // Hide on the RevealMarkScreen
                             currentDestination?.route?.startsWith(RevealMarkScreen::class.qualifiedName!!) == true -> false
-                            // Show on all other screens
                             else -> true
                         }
 
@@ -140,14 +128,14 @@ class MainActivity : ComponentActivity() {
                             enter = slideInVertically(initialOffsetY = { it }),
                             exit = slideOutVertically(targetOffsetY = { it })
                         ) {
-                            val navItemList = listOf(
-                                navItem("Vertretungsplan", Icons.Rounded.Home, 69, VpGraph),
-                                navItem("SP Noten", Icons.Rounded.Grade, 0, CoursesGraph),
-                                navItem("Einstellungen", Icons.Rounded.Settings, 0, SettingsGraph)
-                            )
+                            FlexibleBottomAppBar {
+                                // TODO: implement notification badge count
+                                val navItemList = listOf(
+                                    navItem("Vertretungsplan", Icons.Rounded.Home, 0, VpGraph),
+                                    navItem("SP Noten", Icons.Rounded.Grade, 0, CoursesGraph),
+                                    navItem("Einstellungen", Icons.Rounded.Settings, 0, SettingsGraph)
+                                )
 
-                            FlexibleBottomAppBar {//  }
-                            //NavigationBar {
                                 navItemList.forEach { navItem ->
                                     val isSelected = currentDestination?.hierarchy?.any {
                                         it.route == navItem.screenObject::class.qualifiedName
@@ -189,7 +177,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding),
-                        scope = scope,
+                    scope = scope,
                         prefUtils = prefUtils
                     )
                 }

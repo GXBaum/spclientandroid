@@ -117,4 +117,8 @@ dependencies {
     // icons
     implementation(libs.androidx.material.icons.extended)
 
+    // Room
+    implementation(libs.androidx.room)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.ksp)
 }

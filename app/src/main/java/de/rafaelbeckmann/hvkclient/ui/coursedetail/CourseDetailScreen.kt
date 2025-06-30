@@ -42,7 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
-import de.rafaelbeckmann.hvkclient.ui.common.ErrorContent
+import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,23 +73,30 @@ fun CourseDetailScreen(
         onRefresh = { viewModel.fetchUserMarks(courseId, username) },
         modifier = Modifier.fillMaxSize()
     ) {
-        Box(
-            modifier = modifier.fillMaxSize()
-                .padding(horizontal = 16.dp),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
-            when {
-                //isLoading -> LoadingScreen()
-                error != null -> ErrorContent(errorMessage = error ?: "Unknown error occurred")
-                marks.isNotEmpty() -> MarksList(marks = marks, onMarkClick = { mark ->
+            if (error != null) {
+                ErrorCard(error = error!!)
+            }
+
+            if (marks.isNotEmpty()) {
+                MarksList(marks = marks, onMarkClick = { mark ->
                     onNavigateToRevealMark(mark.grade)
                 })
-
-                else -> Text(
-                    text = "Keine Noten für diesen Kurs gefunden",
-                    modifier = Modifier.padding(16.dp),
-                    textAlign = TextAlign.Center
-                )
+            } else if (error == null && !isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Keine Noten für diesen Kurs gefunden",
+                        modifier = Modifier.padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }

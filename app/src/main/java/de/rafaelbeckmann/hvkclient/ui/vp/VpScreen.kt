@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -23,7 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
-import de.rafaelbeckmann.hvkclient.ui.common.ErrorContent
+import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,68 +48,54 @@ fun VpScreen(
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
         ) {
-            when {
-                /*isLoading -> {
-                    item(key = "loading") {
-                        LoadingScreen()
-                    }
-                }*/
-
-                !error.value.isNullOrEmpty() -> {
-                    item(key = "error") {
-                        ErrorContent(error.value!!)
-                    }
+            // TODO: change this for a snack bar or something
+            if (!error.value.isNullOrEmpty()) {
+                item(key = "error_message") {
+                    ErrorCard(error.value!!)
                 }
+            }
 
-                else -> {
-
-                    // No substitutions message
-                    if (vpSubstitutionsAll.isEmpty()) {
-                        item(key = "no_substitutions") {
-                            Card(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = "Keine Vertretungen gefunden",
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .align(Alignment.CenterHorizontally)
-                                )
-                            }
-                        }
-                    }
-
-                    // Selected course
-                    item(key = "selected_course") {
+            // No substitutions message
+            if (vpSubstitutionsAll?.substitutions.isNullOrEmpty()) {
+                item(key = "no_substitutions") {
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text(
-                            text = "Ausgewählter Kurs: $vpSelectedCourseName",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(top = 8.dp)
+                            text = "Keine Vertretungen gefunden",
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .align(Alignment.CenterHorizontally)
                         )
                     }
+                }
+            }
 
-                    // All substitutions header
-                    if (vpSubstitutionsAll.isNotEmpty()) {
-                        item(key = "all_substitutions_header") {
-                            Text(
-                                text = "Vertretungen",
-                                style = MaterialTheme.typography.titleLarge,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                        }
+            // Selected course
+            item(key = "selected_course") {
+                Text(
+                    text = "Ausgewählter Kurs: $vpSelectedCourseName",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
 
-                        // Use efficient lazy loading for all substitutions
-                        vpSubstitutionsAll.forEachIndexed { dayIndex, vpSubAll ->
-                            vpSubAll.substitutions.forEachIndexed { listIndex, substitutionList ->
-                                item(key = "all_day_${dayIndex}_list_${listIndex}") {
-                                    VpTable(
-                                        modifier = Modifier.padding(bottom = 8.dp),
-                                        vpSubstitutions = substitutionList
-                                    )
-                                }
-                            }
-                        }
-                    }
+            // All substitutions header
+            if (vpSubstitutionsAll?.substitutions?.isNotEmpty() == true) {
+                item(key = "all_substitutions_header") {
+                    Text(
+                        text = "Vertretungen",
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+
+                // Use efficient lazy loading for all substitutions
+                itemsIndexed(vpSubstitutionsAll.substitutions) { index, substitutionList ->
+                    VpTable(
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        vpSubstitutions = substitutionList
+                    )
                 }
             }
         }

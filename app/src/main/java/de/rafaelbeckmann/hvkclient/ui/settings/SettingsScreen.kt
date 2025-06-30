@@ -82,6 +82,16 @@ fun SettingsScreen(
                     text = "Onboarding Completed zurücksetzen",
                 )
             }
+
+            OutlinedButton(
+                onClick = {
+                    viewModel.clearCache(context)
+                },
+            ) {
+                Text(
+                    text = "Cache leeren",
+                )
+            }
         }
 
         Spacer(

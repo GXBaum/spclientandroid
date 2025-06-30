@@ -5,9 +5,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import de.rafaelbeckmann.hvkclient.data.remote.MyApi
-import de.rafaelbeckmann.hvkclient.data.repository.MyRepositoryImpl
-import de.rafaelbeckmann.hvkclient.domain.repository.MyRepository
+import de.rafaelbeckmann.hvkclient.data.local.CacheDao
+import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
+import de.rafaelbeckmann.hvkclient.data.repository.HvkRepositoryImpl
+import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -24,7 +25,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideMyApi(): MyApi {
+    fun provideMyApi(): HvkClientApi {
         return Retrofit.Builder()
             .baseUrl("https://rafaelbeckmann.de/api/dev/")
             .client(
@@ -34,23 +35,23 @@ object AppModule {
             )
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
-            .create(MyApi::class.java)
+            .create(HvkClientApi::class.java)
     }
 
     /**
      * This function is crucial for understanding how interfaces and implementations work together.
      * 
      * It tells Hilt (dependency injection framework):
-     * "Whenever something needs a MyRepository, give it an instance of MyRepositoryImpl"
+     * "Whenever something needs a HvkRepository, give it an instance of MyRepositoryImpl"
      * 
-     * The return type is MyRepository (interface) but we're actually returning 
+     * The return type is HvkRepository (interface) but we're actually returning
      * MyRepositoryImpl (the concrete implementation of that interface).
      * 
      * This is key to dependency injection - classes depend on interfaces, not concrete implementations.
      */
     @Provides
     @Singleton
-    fun provideMyRepository(api: MyApi, app: Application): MyRepository {
-        return MyRepositoryImpl(api, app)
+    fun provideMyRepository(api: HvkClientApi, cacheDao: CacheDao, app: Application): HvkRepository {
+        return HvkRepositoryImpl(api, cacheDao, app)
     }
 }

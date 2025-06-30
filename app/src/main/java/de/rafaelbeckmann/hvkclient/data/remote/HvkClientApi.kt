@@ -13,7 +13,7 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 
-interface MyApi {
+interface HvkClientApi {
     @PUT("users/{username}/notification-token")
     suspend fun updateToken(
         @Path("username") username: String,

@@ -3,9 +3,9 @@ agp = "8.10.1"
 converterMoshi = "2.9.0"
 datastorePreferences = "1.1.7"
 firebaseBom = "33.16.0"
-hiltAndroid = "2.49"
-hiltAndroidCompiler = "2.49"
-hiltAndroidGradlePlugin = "2.49"
+hiltAndroid = "2.51.1"
+hiltAndroidCompiler = "2.51.1"
+hiltAndroidGradlePlugin = "2.51.1"
 hiltLifecycleViewmodel = "1.0.0-alpha03"
 hiltNavigationCompose = "1.2.0"
 hiltNavigationComposeVersion = "1.2.0"
@@ -30,6 +30,8 @@ okhttpVersion = "4.9.0"
 retrofit = "2.11.0"
 composeNavigation = "2.9.0"
 serialization = "1.7.3"
+
+room = "2.7.2"
 
 
 [libraries]
@@ -65,6 +67,11 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "composeNavigation" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization"}
+
+androidx-room = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ksp = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

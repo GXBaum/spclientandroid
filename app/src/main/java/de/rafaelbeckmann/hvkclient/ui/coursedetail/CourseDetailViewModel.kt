@@ -4,17 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
+import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
-import de.rafaelbeckmann.hvkclient.domain.repository.MyRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
 
 @HiltViewModel
 open class CourseDetailViewModel @Inject constructor(
-    private val repository: MyRepository,
+    private val repository: HvkRepository,
     open val prefUtils: PrefUtils
 ): ViewModel() {
     // UI state
@@ -31,25 +32,29 @@ open class CourseDetailViewModel @Inject constructor(
      * Fetches courses for the given username
      */
     open fun fetchUserMarks(courseId: Int, username: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
-
-            repository.getUserMarksForCourse(username, courseId)
-                .catch { exception ->
-                    _error.value = exception.message
+        repository.getUserMarksForCourse(username, courseId).onEach { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    _isLoading.value = true
+                    result.data?.let {
+                        _marks.value = it
+                    }
                 }
-                .collect { result ->
+                is Resource.Success -> {
                     _isLoading.value = false
-                    result.fold(
-                        onSuccess = { marks ->
-                            _marks.value = marks
-                        },
-                        onFailure = { error ->
-                            _error.value = error.message
-                        }
-                    )
+                    result.data?.let {
+                        _marks.value = it
+                    }
+                    _error.value = null
                 }
-        }
+                is Resource.Error -> {
+                    _isLoading.value = false
+                    _error.value = result.message
+                    result.data?.let {
+                        _marks.value = it
+                    }
+                }
+            }
+        }.launchIn(viewModelScope)
     }
 }
