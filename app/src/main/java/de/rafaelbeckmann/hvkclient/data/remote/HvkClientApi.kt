@@ -4,6 +4,7 @@ import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourses
 import de.rafaelbeckmann.hvkclient.data.model.UserMarks
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
+import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCoursesResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutions
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAll
 import retrofit2.Response
@@ -40,7 +41,7 @@ interface HvkClientApi {
     @GET("users/{username}/vpSelectedCourses")
     suspend fun getVpSelectedCourses(
         @Path("username") username: String
-    ): Response<VpSelectedCourse>
+    ): Response<VpSelectedCoursesResponse>
 
     // TODO: remove
     @GET("vpSubstitutions/{courseName}/{day}")

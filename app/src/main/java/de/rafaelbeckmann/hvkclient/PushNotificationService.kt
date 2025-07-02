@@ -11,6 +11,7 @@ import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -24,6 +25,9 @@ class PushNotificationService : FirebaseMessagingService() {
 
     @Inject
     lateinit var prefUtils: PrefUtils
+
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
 
     // Single coroutine scope for the service
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -48,6 +52,7 @@ class PushNotificationService : FirebaseMessagingService() {
         Log.d(TAG, "New FCM token received: $token")
 
         serviceScope.launch {
+            // TODO: change this to repository.
             prefUtils.saveString("fcm_token", token)
 
             // Only send token to server if user is already logged in

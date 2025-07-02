@@ -103,8 +103,9 @@ fun CourseDetailScreen(
 }
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun MarksList(marks: List<UserMark>,
-              onMarkClick: (UserMark) -> Unit
+fun MarksList(
+    marks: List<UserMark>,
+    onMarkClick: (UserMark) -> Unit
 ) {
     val groupedMarks = marks.groupBy { it.half_year }
 

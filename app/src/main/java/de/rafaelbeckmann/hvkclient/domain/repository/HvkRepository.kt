@@ -38,7 +38,7 @@ interface HvkRepository {
      * @param username The username to fetch selected courses for
      * @return Flow emitting either a success with list of selected courses or an error
      */
-    fun getVpSelectedCourses(username: String): Flow<Resource<VpSelectedCourse?>>
+    fun getVpSelectedCourses(username: String): Flow<Resource<List<String>>>
 
     /**
      * Posts the selected courses for a user

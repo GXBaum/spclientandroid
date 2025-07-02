@@ -186,6 +186,7 @@ fun AppNavHost(
                     modifier = Modifier.fillMaxSize(),
                     onContinueClicked = {
                         scope.launch {
+                            // TODO: use repository instead
                             prefUtils.saveString("onboarding_completed", "true")
                         }
                         navController.navigate(VpGraph) {

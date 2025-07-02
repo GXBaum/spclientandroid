@@ -7,10 +7,13 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
 import de.rafaelbeckmann.hvkclient.data.repository.HvkRepositoryImpl
+import de.rafaelbeckmann.hvkclient.data.repository.SettingsRepositoryImpl
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -60,9 +63,16 @@ object AppModule {
      *
      * This is key to dependency injection - classes depend on interfaces, not concrete implementations.
      */
+    // TODO: rename this function
     @Provides
     @Singleton
     fun provideMyRepository(api: HvkClientApi, cacheDao: CacheDao, app: Application): HvkRepository {
         return HvkRepositoryImpl(api, cacheDao, app)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSettingsRepository(prefUtils: PrefUtils): SettingsRepository {
+        return SettingsRepositoryImpl(prefUtils)
     }
 }

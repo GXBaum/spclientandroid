@@ -108,7 +108,6 @@ fun SettingsScreen(
             CopyTokenButton()
         }
 
-
         OutlinedTextField(
             value = vpCoursenameInput,
             onValueChange = {vpCoursenameInput = it },
@@ -116,6 +115,7 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+        // TODO: zeigt immer alte Werte an, wahrscheinich seit caching
         Text(
             text = "Vertretungsplankurs: ${vpSelectedCourse.value}",
             modifier = Modifier.fillMaxWidth()

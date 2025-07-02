@@ -11,6 +11,7 @@ import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -22,17 +23,18 @@ import javax.inject.Inject
 @HiltViewModel
 open class SettingsViewModel @Inject constructor(
     private val repository: HvkRepository,
+    private val settingsRepository: SettingsRepository,
     open val prefUtils: PrefUtils
 ): ViewModel() {
 
     private val _vpSelectedCourse = MutableStateFlow("")
-    val vpSelectedCourse: StateFlow<String> = _vpSelectedCourse
+    open val vpSelectedCourse: StateFlow<String> = _vpSelectedCourse
 
     private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    open val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+    open val error: StateFlow<String?> = _error
 
     var isDeveloper = mutableStateOf(false)
     var username = mutableStateOf("")
@@ -58,7 +60,7 @@ open class SettingsViewModel @Inject constructor(
 
     fun saveUsername(username: String) {
         viewModelScope.launch {
-            prefUtils.saveString("username", username)
+            settingsRepository.setUsername(username)
         }
     }
 
@@ -68,22 +70,25 @@ open class SettingsViewModel @Inject constructor(
             Log.d("SettingsViewModel", "username: $username")
             when (result) {
                 is Resource.Loading -> {
+                    Log.d("SettingsViewModel", "Loading vpSelectedCourse for user: $username - Result: $result")
                     _isLoading.value = true
-                    result.data?.let {
-                        _vpSelectedCourse.value = it.courseName
+                    result.data?.firstOrNull()?.let {
+                        _vpSelectedCourse.value = it
                     }
                 }
                 is Resource.Success -> {
+                    Log.d("SettingsViewModel", "Success fetching vpSelectedCourse for user: $username - Data: ${result.data}")
                     _isLoading.value = false
                     _error.value = null
-                    _vpSelectedCourse.value = result.data?.courseName ?: ""
+                    _vpSelectedCourse.value = result.data?.firstOrNull() ?: ""
                     Log.d("SettingsViewModel", "vpSelectedCourse: ${result.data}")
                 }
                 is Resource.Error -> {
+                    Log.e("SettingsViewModel", "Error fetching vpSelectedCourse for user: $username, message: ${result.message}")
                     _isLoading.value = false
                     _error.value = result.message
-                    result.data?.let {
-                        _vpSelectedCourse.value = it.courseName
+                    result.data?.firstOrNull()?.let {
+                        _vpSelectedCourse.value = it
                     }
                 }
             }
@@ -101,7 +106,7 @@ open class SettingsViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
-            prefUtils.saveString("vpSelectedCourseName", courseName)
+            settingsRepository.setVpSelectedCourseName(courseName)
 
             try {
                 val courseObject = VpSelectedCourse(courseName)
@@ -121,12 +126,11 @@ open class SettingsViewModel @Inject constructor(
     fun toggleDeveloperMode(context: Context) {
         viewModelScope.launch {
             isDeveloper.value = !isDeveloper.value
-            prefUtils.saveString("isDeveloper", isDeveloper.value.toString())
+            settingsRepository.setIsDeveloper(isDeveloper.value)
 
             if (isDeveloper.value) {
                 Log.d("SettingsViewModel", "Developer mode enabled")
 
-                prefUtils.saveString("isDeveloper", "true")
                 Toast.makeText(
                     context,
                     "Du bist jetzt im Debug Modus (No Diddy)",
@@ -148,7 +152,7 @@ open class SettingsViewModel @Inject constructor(
 
     fun resetOnboardingCompleted() {
         viewModelScope.launch {
-            prefUtils.saveString("onboarding_completed", "false")
+            settingsRepository.setOnboardingCompleted(false)
             Log.d("SettingsViewModel", "Onboarding completed reset")
         }
     }

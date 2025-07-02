@@ -37,13 +37,13 @@ interface CacheDao {
     suspend fun clearUserMarks()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertVpSelectedCourse(course: VpSelectedCourse)
+    suspend fun insertVpSelectedCourses(courses: List<VpSelectedCourse>)
 
-    @Query("SELECT * FROM vpselectedcourse LIMIT 1")
-    fun getVpSelectedCourse(): Flow<VpSelectedCourse?>
+    @Query("SELECT * FROM vpselectedcourse")
+    fun getVpSelectedCourses(): Flow<List<VpSelectedCourse>>
 
     @Query("DELETE FROM vpselectedcourse")
-    suspend fun clearVpSelectedCourse()
+    suspend fun clearVpSelectedCourses()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertVpSubstitutions(substitutions: List<VpSubstitution>)
@@ -67,7 +67,7 @@ interface CacheDao {
     suspend fun clearAllCache() {
         clearUserCourses()
         clearUserMarks()
-        clearVpSelectedCourse()
+        clearVpSelectedCourses()
         deleteVpSubstitutions()
         clearVpSubstitutionsAll()
     }

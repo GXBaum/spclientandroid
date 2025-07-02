@@ -13,6 +13,7 @@ import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAllCache
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -35,7 +36,7 @@ class HvkRepositoryImpl(
         crossinline query: () -> Flow<ResultType>,
         crossinline fetch: suspend () -> retrofit2.Response<RequestType>,
         crossinline saveFetchResult: suspend (RequestType) -> Unit,
-        crossinline shouldFetch: (ResultType) -> Boolean = { true }
+        crossinline shouldFetch: (ResultType?) -> Boolean = { true }
     ): Flow<Resource<ResultType>> = flow {
         val data = query().first()
         emit(Resource.Loading(data))
@@ -45,16 +46,20 @@ class HvkRepositoryImpl(
                 val response = fetch()
                 if (response.isSuccessful) {
                     response.body()?.let { saveFetchResult(it) }
-                    emit(Resource.Success(query().first()))
+                    // Query again after saving to get the updated data
+                    emitAll(query().map { Resource.Success(it) })
                 } else {
                     val error = "API Error: ${response.code()} ${response.message()}"
-                    emit(Resource.Error(error, query().first()))
+                    // On error, emit the error but continue listening to the cache
+                    emitAll(query().map { Resource.Error(error, it) })
                 }
             } catch (e: Exception) {
-                emit(Resource.Error(e.message ?: "Unknown error", query().first()))
+                // On exception, emit the error but continue listening to the cache
+                emitAll(query().map { Resource.Error(e.message ?: "Unknown error", it) })
             }
         } else {
-            emit(Resource.Success(data))
+            // Data is fresh, just emit from cache
+            emitAll(query().map { Resource.Success(it) })
         }
     }
 
@@ -90,7 +95,7 @@ class HvkRepositoryImpl(
         return try {
             val response = api.postVpSelectedCourses(username, courseName)
             if (response.isSuccessful) {
-                cacheDao.insertVpSelectedCourse(courseName)
+                cacheDao.insertVpSelectedCourses(listOf(courseName))
                 Result.success(Unit)
             } else {
                 Result.failure(IOException("Failed to post selected courses: ${response.code()}"))
@@ -100,10 +105,18 @@ class HvkRepositoryImpl(
         }
     }
 
-    override fun getVpSelectedCourses(username: String): Flow<Resource<VpSelectedCourse?>> = networkBoundResource(
-        query = { cacheDao.getVpSelectedCourse() },
+    override fun getVpSelectedCourses(username: String): Flow<Resource<List<String>>> = networkBoundResource(
+        query = {
+            cacheDao.getVpSelectedCourses().map { courses ->
+                courses.map { it.courseName }
+            }
+        },
         fetch = { api.getVpSelectedCourses(username) },
-        saveFetchResult = { cacheDao.insertVpSelectedCourse(it) }
+        saveFetchResult = { response ->
+            cacheDao.clearVpSelectedCourses()
+            val courses = response.courses.map { VpSelectedCourse(it) }
+            cacheDao.insertVpSelectedCourses(courses)
+        }
     )
 
     override fun getVpSubstitutions(courseName: String, day: String): Flow<Resource<List<VpSubstitution>>> = networkBoundResource(

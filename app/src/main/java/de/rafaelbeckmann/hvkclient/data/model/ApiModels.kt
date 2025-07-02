@@ -44,6 +44,10 @@ data class VpSelectedCourse(
     @PrimaryKey val courseName: String
 )
 
+data class VpSelectedCoursesResponse(
+    val courses: List<String>
+)
+
 data class VpSubstitutions(
     val substitutions: List<VpSubstitution>
 )
