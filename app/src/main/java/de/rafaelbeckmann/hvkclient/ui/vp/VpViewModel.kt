@@ -9,6 +9,7 @@ import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAll
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -21,7 +22,8 @@ import javax.inject.Inject
 @HiltViewModel
 open class VpViewModel @Inject constructor(
     private val repository: HvkRepository,
-    private val prefUtils: PrefUtils
+    private val prefUtils: PrefUtils,
+    private val settingsRepository: SettingsRepository
 ): ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -40,7 +42,7 @@ open class VpViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
-            vpSelectedCourseName.value = prefUtils.getString("vpSelectedCourseName") ?: ""
+            vpSelectedCourseName.value = settingsRepository.getVpSelectedCourseName().toString()
 
             if (vpSelectedCourseName.value.isNotEmpty()) {
                 fetchVpSubstitutionsAll(vpSelectedCourseName.value)

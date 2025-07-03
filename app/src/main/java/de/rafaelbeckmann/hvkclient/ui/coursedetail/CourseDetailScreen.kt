@@ -63,8 +63,8 @@ fun CourseDetailScreen(
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(courseId) {
-        val savedUsername = prefUtils.getString("username")
-        username = savedUsername ?: ""
+        // TODO: ist eigentlich ziemlich dumm gerade, aber kb zu ändern
+        val username = viewModel.getUsername()
         viewModel.fetchUserMarks(courseId, username)
     }
 

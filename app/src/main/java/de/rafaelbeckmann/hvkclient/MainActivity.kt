@@ -37,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -44,6 +45,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
+import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.ui.navigation.AppNavHost
 import de.rafaelbeckmann.hvkclient.ui.navigation.CoursesGraph
 import de.rafaelbeckmann.hvkclient.ui.navigation.OnboardingGraph
@@ -57,6 +59,9 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
 
     @Inject
     lateinit var prefUtils: PrefUtils
@@ -98,25 +103,37 @@ class MainActivity : ComponentActivity() {
                 var isOnboardingCompleted by remember { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
-                    isOnboardingCompleted = prefUtils.getString("onboarding_completed").toBoolean()
+                    // TODO: keine ahnung ob das gut ist
+                    isOnboardingCompleted = settingsRepository.isOnboardingCompleted()
 
                     if (!isOnboardingCompleted) {
                         navController.navigate(OnboardingGraph)
                     }
                 }
 
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination
+
+                // if the screen is
+                val showStatusBar = when {
+                    currentDestination?.route?.startsWith(RevealMarkScreen::class.qualifiedName!!) == true -> false
+                    else -> {true}
+                }
 
                 Scaffold(
                     // TODO: WindowInsets(0.dp) für fullscreen
                     //contentWindowInsets = WindowInsets(0.dp),
                     //contentWindowInsets = WindowInsets.safeDrawing,
-                    contentWindowInsets = WindowInsets.statusBars,
+                    //contentWindowInsets = WindowInsets.statusBars,
+
+                    contentWindowInsets = if (showStatusBar) {
+                        WindowInsets.statusBars
+                    } else {
+                        WindowInsets(0.dp)
+                    },
 
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
-                        val navBackStackEntry by navController.currentBackStackEntryAsState()
-                        val currentDestination = navBackStackEntry?.destination
-
                         val showBottomBar = when {
                             currentDestination?.hierarchy?.any { it.route == OnboardingGraph::class.qualifiedName } == true -> false
                             currentDestination?.route?.startsWith(RevealMarkScreen::class.qualifiedName!!) == true -> false

@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.toRoute
 import de.rafaelbeckmann.hvkclient.PrefUtils
+import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.ui.coursedetail.CourseDetailScreen
 import de.rafaelbeckmann.hvkclient.ui.courses.CoursesScreen
 import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreen
@@ -29,6 +30,7 @@ import de.rafaelbeckmann.hvkclient.ui.settings.SettingsScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
@@ -187,7 +189,7 @@ fun AppNavHost(
                     onContinueClicked = {
                         scope.launch {
                             // TODO: use repository instead
-                            prefUtils.saveString("onboarding_completed", "true")
+                            prefUtils.saveString("is_onboarding_completed", "true")
                         }
                         navController.navigate(VpGraph) {
                             popUpTo(OnboardingGraph::class.qualifiedName!!) {

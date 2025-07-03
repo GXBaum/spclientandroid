@@ -7,6 +7,7 @@ import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 open class CourseDetailViewModel @Inject constructor(
     private val repository: HvkRepository,
-    open val prefUtils: PrefUtils
+    open val prefUtils: PrefUtils,
+    private val settingsRepository: SettingsRepository
 ): ViewModel() {
     // UI state
     private val _marks = MutableStateFlow<List<UserMark>>(emptyList())
@@ -56,5 +58,9 @@ open class CourseDetailViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
+    }
+
+    open suspend fun getUsername(): String {
+        return settingsRepository.getUsername() ?: ""
     }
 }

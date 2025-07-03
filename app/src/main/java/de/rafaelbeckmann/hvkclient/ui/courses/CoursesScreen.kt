@@ -47,13 +47,15 @@ fun CoursesScreen(
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(Unit) {
+        // TODO: Use a SettingsRepository instead of PrefUtils directly
         val savedUsername = prefUtils.getString("username")
         username = savedUsername.orEmpty()
         if (username.isNotEmpty()) {
             viewModel.fetchCourses(username)
         }
 
-        val savedIsDeveloper = prefUtils.getString("isDeveloper")
+        // TODO: Use a SettingsRepository instead of PrefUtils directly
+        val savedIsDeveloper = prefUtils.getString("is_developer")
         isDeveloper = savedIsDeveloper == "true"
     }
 

@@ -49,7 +49,7 @@ open class SettingsViewModel @Inject constructor(
              Suggestion: Create a SettingsRepository that wraps DataStore (which you are already providing with Hilt). This makes your ViewModel easier to test and decouples it from the DataStore API.
              Then, inject SettingsRepository into your SettingsViewModel instead of PrefUtils. This centralizes your preferences logic and makes your ViewModels cleaner.
              */
-            isDeveloper.value = prefUtils.getString("isDeveloper").toBoolean()
+            isDeveloper.value = prefUtils.getString("is_developer").toBoolean()
             username.value = prefUtils.getString("username") ?: ""
 
             if (username.value.isNotEmpty()) {
