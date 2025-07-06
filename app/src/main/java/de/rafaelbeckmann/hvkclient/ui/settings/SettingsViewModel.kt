@@ -41,16 +41,12 @@ open class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
+            isDeveloper.value = settingsRepository.isDeveloper()
+            username.value = settingsRepository.getUsername() ?: ""
 
-            /*
-            TODO:
-             Abstract Preferences into a Repository
-             In SettingsViewModel.kt, you inject and use PrefUtils directly. This tightly couples your ViewModel to the specific implementation of how settings are stored.
-             Suggestion: Create a SettingsRepository that wraps DataStore (which you are already providing with Hilt). This makes your ViewModel easier to test and decouples it from the DataStore API.
-             Then, inject SettingsRepository into your SettingsViewModel instead of PrefUtils. This centralizes your preferences logic and makes your ViewModels cleaner.
-             */
-            isDeveloper.value = prefUtils.getString("is_developer").toBoolean()
-            username.value = prefUtils.getString("username") ?: ""
+            // TODO: Remove this hardcoded token in production
+            settingsRepository.setRefreshToken("38227ef324f32bda0ca8377a2059944aaffd2412ec1d32658eea5fffe66de2cd19f19064e7eb63bd1cec26a910833bb3ccc7df2f52fe0f9233b10b5f7927a7e2")
+            Log.d("SettingsViewModel", "refreshToken: ${settingsRepository.getRefreshToken()}")
 
             if (username.value.isNotEmpty()) {
                 fetchSpSelectedCourse(username.value)
@@ -106,7 +102,7 @@ open class SettingsViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
-            settingsRepository.setVpSelectedCourseName(courseName)
+            //settingsRepository.setVpSelectedCourseName(courseName)
 
             try {
                 val courseObject = VpSelectedCourse(courseName)
@@ -167,6 +163,19 @@ open class SettingsViewModel @Inject constructor(
                 Toast.makeText(context, "Fehler beim leeren des Caches", Toast.LENGTH_SHORT).show()
                 Log.e("SettingsViewModel", "Failed to clear cache", e)
             }
+        }
+    }
+
+    fun deleteAccessToken() {
+        viewModelScope.launch {
+            settingsRepository.setAccessToken("")
+            Log.d("SettingsViewModel", "Access token deleted")
+        }
+    }
+    fun deleteRefreshToken() {
+        viewModelScope.launch {
+            settingsRepository.setRefreshToken("")
+            Log.d("SettingsViewModel", "Refresh token deleted")
         }
     }
 

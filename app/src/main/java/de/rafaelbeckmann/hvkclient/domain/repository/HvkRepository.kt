@@ -1,6 +1,7 @@
 package de.rafaelbeckmann.hvkclient.domain.repository
 
 import de.rafaelbeckmann.hvkclient.data.Resource
+import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
@@ -17,6 +18,8 @@ import kotlinx.coroutines.flow.Flow
  * 2. Keep our ViewModel decoupled from specific implementation details
  */
 interface HvkRepository {
+
+    fun login(username: String, password: String): Flow<Resource<LoginResponse>>
 
     /**
      * Fetches user courses from the API

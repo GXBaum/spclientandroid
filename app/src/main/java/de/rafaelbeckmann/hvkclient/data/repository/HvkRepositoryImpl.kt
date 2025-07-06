@@ -3,6 +3,8 @@ package de.rafaelbeckmann.hvkclient.data.repository
 import android.app.Application
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
+import de.rafaelbeckmann.hvkclient.data.model.LoginRequest
+import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
@@ -60,6 +62,20 @@ class HvkRepositoryImpl(
         } else {
             // Data is fresh, just emit from cache
             emitAll(query().map { Resource.Success(it) })
+        }
+    }
+
+    override fun login(username: String, password: String): Flow<Resource<LoginResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.login(LoginRequest(username, password))
+            if (response.isSuccessful && response.body() != null) {
+                emit(Resource.Success(response.body()!!))
+            } else {
+                emit(Resource.Error("Login failed: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "An unknown error occurred"))
         }
     }
 

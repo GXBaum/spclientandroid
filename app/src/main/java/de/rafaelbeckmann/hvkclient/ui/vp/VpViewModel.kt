@@ -24,7 +24,7 @@ open class VpViewModel @Inject constructor(
     private val repository: HvkRepository,
     private val prefUtils: PrefUtils,
     private val settingsRepository: SettingsRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     open val isLoading: StateFlow<Boolean> = _isLoading
@@ -32,25 +32,70 @@ open class VpViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    val vpSelectedCourseName = mutableStateOf("")
+    private val _vpSelectedCourse = MutableStateFlow("")
+    open val vpSelectedCourse: StateFlow<String> = _vpSelectedCourse
 
     val vpSubstitutionsAll = mutableStateOf<VpSubstitutionsAll?>(null)
 
+    var username = mutableStateOf("")
 
+
+    // TODO: Wenn man aktualisiert, werden manchmal die alten Daten angezeigt, auch wenn es die nicht mehr gibt.
     init {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
+            username.value = settingsRepository.getUsername() ?: ""
 
-            vpSelectedCourseName.value = settingsRepository.getVpSelectedCourseName().toString()
-
-            if (vpSelectedCourseName.value.isNotEmpty()) {
-                fetchVpSubstitutionsAll(vpSelectedCourseName.value)
+            if (username.value.isNotEmpty()) {
+                fetchSpSelectedCourse(username.value)
             } else {
                 _isLoading.value = false
+                _error.value = "Username not set. Please set it in the settings."
             }
-        }
 
+            // Observe the selected course and fetch substitutions when it's available
+            vpSelectedCourse
+                .onEach { course ->
+                    if (course.isNotEmpty()) {
+                        fetchVpSubstitutionsAll(course)
+                    }
+                }.launchIn(viewModelScope)
+        }
+    }
+
+    fun fetchSpSelectedCourse(username: String) {
+        repository.getVpSelectedCourses(username).onEach { result ->
+            Log.d("SettingsViewModel", "username: $username")
+            when (result) {
+                is Resource.Loading -> {
+                    Log.d("SettingsViewModel", "Loading vpSelectedCourse for user: $username - Result: $result")
+                    _isLoading.value = true
+                    result.data?.firstOrNull()?.let {
+                        _vpSelectedCourse.value = it
+                    }
+                }
+
+                is Resource.Success -> {
+                    Log.d("SettingsViewModel", "Success fetching vpSelectedCourse for user: $username - Data: ${result.data}")
+                    _isLoading.value = false
+                    _error.value = null
+                    _vpSelectedCourse.value = result.data?.firstOrNull() ?: ""
+                    Log.d("SettingsViewModel", "vpSelectedCourse: ${result.data}")
+                }
+                is Resource.Error -> {
+                    Log.e("SettingsViewModel", "Error fetching vpSelectedCourse for user: $username, message: ${result.message}")
+                    _isLoading.value = false
+                    _error.value = result.message
+                    result.data?.firstOrNull()?.let {
+                        _vpSelectedCourse.value = it
+                    }
+                }
+            }
+        }.catch { exception ->
+            _isLoading.value = false
+            _error.value = exception.message
+        }.launchIn(viewModelScope)
     }
 
     fun fetchVpSubstitutionsAll(courseName: String) {

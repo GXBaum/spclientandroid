@@ -41,6 +41,9 @@ object OnboardingScreen
 @Serializable
 object OnboardingScreenPage2
 
+@Serializable
+object OnboardingScreenPage3
+
 
 data class navItem(
     val label: String,

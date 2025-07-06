@@ -16,7 +16,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,7 +29,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
-    val scope = rememberCoroutineScope()
+    //val scope = rememberCoroutineScope()
 
     val isDeveloper by viewModel.isDeveloper
     var username by viewModel.username
@@ -49,7 +48,8 @@ fun SettingsScreen(
         Text(
             text = "Einstellungen",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(vertical = 8.dp)
+            modifier = Modifier
+                .padding(vertical = 8.dp)
                 .clickable(
                     onClick = {
                         viewModel.toggleDeveloperMode(context)
@@ -92,6 +92,25 @@ fun SettingsScreen(
                     text = "Cache leeren",
                 )
             }
+
+            OutlinedButton(
+                onClick = {
+                    viewModel.deleteAccessToken()
+                },
+            ) {
+                Text(
+                    text = "Access Token löschen",
+                )
+            }
+            OutlinedButton(
+                onClick = {
+                    viewModel.deleteRefreshToken()
+                },
+            ) {
+                Text(
+                    text = "Refresh Token löschen",
+                )
+            }
         }
 
         Spacer(
@@ -115,7 +134,6 @@ fun SettingsScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        // TODO: zeigt immer alte Werte an, wahrscheinich seit caching
         Text(
             text = "Vertretungsplankurs: ${vpSelectedCourse.value}",
             modifier = Modifier.fillMaxWidth()
@@ -133,4 +151,3 @@ fun SettingsScreen(
 
     }
 }
-

@@ -34,13 +34,17 @@ fun VpScreen(
 ) {
     val isLoading = viewModel.isLoading.collectAsState().value
     val error = viewModel.error.collectAsState()
-    val vpSelectedCourseName = viewModel.vpSelectedCourseName.value
+    val vpSelectedCourseName = viewModel.vpSelectedCourse.collectAsState().value
 
     val vpSubstitutionsAll = viewModel.vpSubstitutionsAll.value
 
     PullToRefreshBox(
         isRefreshing = isLoading,
-        onRefresh = { viewModel.fetchVpSubstitutionsAll(vpSelectedCourseName) },
+        onRefresh = {
+            if (vpSelectedCourseName.isNotEmpty()) {
+                viewModel.fetchVpSubstitutionsAll(vpSelectedCourseName)
+            }
+        },
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
@@ -56,7 +60,7 @@ fun VpScreen(
             }
 
             // No substitutions message
-            if (vpSubstitutionsAll?.substitutions.isNullOrEmpty()) {
+            if (vpSubstitutionsAll?.substitutions?.flatten().isNullOrEmpty()) {
                 item(key = "no_substitutions") {
                     Card(
                         modifier = Modifier.fillMaxWidth()
@@ -72,16 +76,18 @@ fun VpScreen(
             }
 
             // Selected course
-            item(key = "selected_course") {
-                Text(
-                    text = "Ausgewählter Kurs: $vpSelectedCourseName",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
+            if (vpSelectedCourseName.isNotEmpty()) {
+                item(key = "selected_course") {
+                    Text(
+                        text = "Ausgewählter Kurs: $vpSelectedCourseName",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
             }
 
             // All substitutions header
-            if (vpSubstitutionsAll?.substitutions?.isNotEmpty() == true) {
+            if (vpSubstitutionsAll?.substitutions?.flatten()?.isNotEmpty() == true) {
                 item(key = "all_substitutions_header") {
                     Text(
                         text = "Vertretungen",
@@ -91,7 +97,7 @@ fun VpScreen(
                 }
 
                 // Use efficient lazy loading for all substitutions
-                itemsIndexed(vpSubstitutionsAll.substitutions) { index, substitutionList ->
+                itemsIndexed(vpSubstitutionsAll.substitutions.filter { it.isNotEmpty() }) { index, substitutionList ->
                     VpTable(
                         modifier = Modifier.padding(bottom = 8.dp),
                         vpSubstitutions = substitutionList

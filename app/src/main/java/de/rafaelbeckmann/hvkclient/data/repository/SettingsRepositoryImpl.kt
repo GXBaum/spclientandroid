@@ -1,5 +1,6 @@
 package de.rafaelbeckmann.hvkclient.data.repository
 
+import android.util.Log
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import javax.inject.Inject
@@ -9,6 +10,8 @@ object PreferenceKeys {
     const val IS_DEVELOPER = "is_developer"
     const val IS_ONBOARDING_COMPLETED = "is_onboarding_completed"
     const val VP_SELECTED_COURSE_NAME = "vp_selected_course_name"
+    const val ACCESS_TOKEN = "access_token"
+    const val REFRESH_TOKEN = "refresh_token"
 }
 
 class SettingsRepositoryImpl @Inject constructor(
@@ -39,11 +42,33 @@ class SettingsRepositoryImpl @Inject constructor(
         return prefUtils.getString(PreferenceKeys.IS_ONBOARDING_COMPLETED)?.toBoolean() ?: false
     }
 
+    /*
     override suspend fun setVpSelectedCourseName(courseName: String) {
         prefUtils.saveString(PreferenceKeys.VP_SELECTED_COURSE_NAME, courseName)
     }
 
     override suspend fun getVpSelectedCourseName(): String? {
         return prefUtils.getString(PreferenceKeys.VP_SELECTED_COURSE_NAME)
+    }
+    */
+
+    override suspend fun setAccessToken(token: String) {
+        prefUtils.saveString(PreferenceKeys.ACCESS_TOKEN, token)
+        Log.d("SettingsRepository", "Access token set: $token")
+    }
+
+    override suspend fun getAccessToken(): String? {
+        Log.d("SettingsRepository", "Access token retrieved: ${prefUtils.getString(PreferenceKeys.ACCESS_TOKEN)}")
+        return prefUtils.getString(PreferenceKeys.ACCESS_TOKEN)
+    }
+
+    override suspend fun setRefreshToken(token: String) {
+        prefUtils.saveString(PreferenceKeys.REFRESH_TOKEN, token)
+        Log.d("SettingsRepository", "Refresh token set: $token")
+    }
+
+    override suspend fun getRefreshToken(): String? {
+        Log.d("SettingsRepository", "Refresh token retrieved: ${prefUtils.getString(PreferenceKeys.REFRESH_TOKEN)}")
+        return prefUtils.getString(PreferenceKeys.REFRESH_TOKEN)
     }
 }

@@ -10,6 +10,24 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 
 // TODO: split into multiple files
 
+data class LoginRequest(
+    val username: String,
+    val password: String
+)
+
+data class LoginResponse(
+    val accessToken: String,
+    val refreshToken: String
+)
+
+data class RefreshTokenRequest(
+    val token: String
+)
+
+data class TokenRefreshResponse(
+    val accessToken: String
+)
+
 data class TokenUpdateRequest(
     val token: String,
     val spUsername: String

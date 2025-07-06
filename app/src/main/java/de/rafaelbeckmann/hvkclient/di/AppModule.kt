@@ -9,7 +9,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
+import de.rafaelbeckmann.hvkclient.data.remote.AuthInterceptor
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
+import de.rafaelbeckmann.hvkclient.data.remote.TokenAuthenticator
 import de.rafaelbeckmann.hvkclient.data.repository.HvkRepositoryImpl
 import de.rafaelbeckmann.hvkclient.data.repository.SettingsRepositoryImpl
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
@@ -24,9 +26,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
-    }
+    private const val BASE_URL = "https://rafaelbeckmann.de/api/dev/"
 
     @Provides
     @Singleton
@@ -36,33 +36,77 @@ object AppModule {
             .build()
     }
 
+    @Provides
+    @Singleton
+    fun provideAuthInterceptor(settingsRepository: SettingsRepository): AuthInterceptor {
+        return AuthInterceptor(settingsRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTokenAuthenticator(
+        settingsRepository: SettingsRepository,
+        @AuthApi api: HvkClientApi // Use the qualified API to break the cycle
+    ): TokenAuthenticator {
+        return TokenAuthenticator(settingsRepository, api)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        tokenAuthenticator: TokenAuthenticator
+    ): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+        return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
+            .authenticator(tokenAuthenticator)
+            .build()
+    }
+
     // TODO: rename this function
     @Provides
     @Singleton
-    fun provideMyApi(moshi: Moshi): HvkClientApi {
+    fun provideMyApi(okHttpClient: OkHttpClient, moshi: Moshi): HvkClientApi {
         return Retrofit.Builder()
-            .baseUrl("https://rafaelbeckmann.de/api/dev/")
-            .client(
-                OkHttpClient.Builder()
-                    .addInterceptor(loggingInterceptor)
-                    .build()
-            )
+            .baseUrl(BASE_URL)
+            .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(HvkClientApi::class.java)
     }
 
-    /**
-     * This function is crucial for understanding how interfaces and implementations work together.
-     *
-     * It tells Hilt (dependency injection framework):
-     * "Whenever something needs a HvkRepository, give it an instance of MyRepositoryImpl"
-     *
-     * The return type is HvkRepository (interface) but we're actually returning
-     * MyRepositoryImpl (the concrete implementation of that interface).
-     *
-     * This is key to dependency injection - classes depend on interfaces, not concrete implementations.
-     */
+    // --- Start of cycle-breaking providers ---
+
+    @Provides
+    @Singleton
+    @AuthApi // Provide the special OkHttpClient for auth
+    fun provideAuthOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @AuthApi // Provide the special HvkClientApi for auth
+    fun provideAuthApi(@AuthApi okHttpClient: OkHttpClient, moshi: Moshi): HvkClientApi {
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(HvkClientApi::class.java)
+    }
+
+    // --- End of cycle-breaking providers ---
+
+
     // TODO: rename this function
     @Provides
     @Singleton
