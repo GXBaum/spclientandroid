@@ -20,6 +20,8 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+
+
 # Keep data classes used by Moshi for serialization.
 # Replace 'de.rafaelbeckmann.hvkclient.data.model.**' with the actual package
 # where your data model classes are located.
