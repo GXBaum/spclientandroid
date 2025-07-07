@@ -14,60 +14,20 @@
 
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keepattributes SourceFile,LineNumberTable
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+# Keep data classes used by Moshi for serialization.
+# Replace 'de.rafaelbeckmann.hvkclient.data.model.**' with the actual package
+# where your data model classes are located.
+-keep class de.rafaelbeckmann.hvkclient.data.model.** { *; }
+-keepnames class de.rafaelbeckmann.hvkclient.data.model.**
 
-
-
-
-
-
-
-# TODO: das hier richtig machen, ist nur ein provisorischer test um den release build zu fixen
-# TEST, MAL GUCKEN OB DAS SO PASST
-
-# Keep your application classes
--keep class de.rafaelbeckmann.hvkclient.** { *; }
-
-# Retrofit
--keep class retrofit2.** { *; }
--keepattributes Signature
--keepattributes Exceptions
-
-# OkHttp
--keepattributes Annotation
--keep class okhttp3.** { *; }
--keep interface okhttp3.** { *; }
--dontwarn okhttp3.**
-
-# Moshi
--keep class com.squareup.moshi.** { *; }
--keepclassmembers class ** {
-    @com.squareup.moshi.* <fields>;
-}
-
-# Hilt/Dagger
--keep class dagger.hilt.** { *; }
--keep class javax.inject.** { *; }
--keep class * extends dagger.hilt.android.lifecycle.HiltViewModel
-
-# Kotlinx Serialization
--keepattributes *Annotation*, InnerClasses
--dontnote kotlinx.serialization.AnnotationsKt
--keep class kotlinx.serialization.** { *; }
-
-# Firebase
--keep class com.google.firebase.** { *; }
--keep class com.google.android.gms.** { *; }
-
-# Compose
--keep class androidx.compose.** { *; }
-
-# ViewModels
--keep class * extends androidx.lifecycle.ViewModel {
-    <init>();
+# Keep any class that is annotated with @JsonClass and its constructor.
+# This is for Moshi's reflection-based adapter.
+-keep @com.squareup.moshi.JsonClass class * {
+    <init>(...);
 }

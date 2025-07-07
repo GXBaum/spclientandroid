@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -48,12 +49,12 @@ import dagger.hilt.android.AndroidEntryPoint
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.ui.navigation.AppNavHost
 import de.rafaelbeckmann.hvkclient.ui.navigation.CoursesGraph
+import de.rafaelbeckmann.hvkclient.ui.navigation.NavItem
 import de.rafaelbeckmann.hvkclient.ui.navigation.OnboardingGraph
 import de.rafaelbeckmann.hvkclient.ui.navigation.RevealMarkScreen
 import de.rafaelbeckmann.hvkclient.ui.navigation.SettingsGraph
 import de.rafaelbeckmann.hvkclient.ui.navigation.VpGraph
 import de.rafaelbeckmann.hvkclient.ui.navigation.VpScreen
-import de.rafaelbeckmann.hvkclient.ui.navigation.navItem
 import de.rafaelbeckmann.hvkclient.ui.theme.HvKClientTheme
 import javax.inject.Inject
 
@@ -82,6 +83,8 @@ class MainActivity : ComponentActivity() {
 
                 // Handle navigation based on intent extras (Deep Links)
                 LaunchedEffect(Unit) {
+
+                    //TODO: change to real deep link handling (https://medium.com/androiddevelopers/type-safe-navigation-for-compose-105325a97657, https://developer.android.com/guide/navigation/design/deep-link)
                     val navigateToRevealMark = intent.getBooleanExtra("navigate_to_reveal_mark", false)
                     val grade = intent.getStringExtra("grade")
                     val navigateToVp = intent.getBooleanExtra("navigate_to_vp", false)
@@ -114,11 +117,10 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
-                // if the screen is
-                val showStatusBar = when {
-                    currentDestination?.route?.startsWith(RevealMarkScreen::class.qualifiedName!!) == true -> false
-                    else -> {true}
-                }
+                val isRevealMarkScreen = currentDestination?.hasRoute(RevealMarkScreen::class) == true
+                val isOnboarding = currentDestination?.hierarchy?.any { it.hasRoute(OnboardingGraph::class) } == true
+
+                val showStatusBar = !isRevealMarkScreen
 
                 Scaffold(
                     // TODO: WindowInsets(0.dp) für fullscreen
@@ -134,11 +136,7 @@ class MainActivity : ComponentActivity() {
 
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
-                        val showBottomBar = when {
-                            currentDestination?.hierarchy?.any { it.route == OnboardingGraph::class.qualifiedName } == true -> false
-                            currentDestination?.route?.startsWith(RevealMarkScreen::class.qualifiedName!!) == true -> false
-                            else -> true
-                        }
+                        val showBottomBar = !isOnboarding && !isRevealMarkScreen
 
                         AnimatedVisibility(
                             visible = showBottomBar,
@@ -148,14 +146,14 @@ class MainActivity : ComponentActivity() {
                             FlexibleBottomAppBar {
                                 // TODO: implement notification badge count
                                 val navItemList = listOf(
-                                    navItem("Vertretungsplan", Icons.Rounded.Home, 0, VpGraph),
-                                    navItem("SP Noten", Icons.Rounded.Grade, 0, CoursesGraph),
-                                    navItem("Einstellungen", Icons.Rounded.Settings, 0, SettingsGraph)
+                                    NavItem("Vertretungsplan", Icons.Rounded.Home, 0, VpGraph),
+                                    NavItem("SP Noten", Icons.Rounded.Grade, 0, CoursesGraph),
+                                    NavItem("Einstellungen", Icons.Rounded.Settings, 0, SettingsGraph)
                                 )
 
                                 navItemList.forEach { navItem ->
                                     val isSelected = currentDestination?.hierarchy?.any {
-                                        it.route == navItem.screenObject::class.qualifiedName
+                                        it.hasRoute(navItem.screenObject::class)
                                     } == true
 
                                     NavigationBarItem(

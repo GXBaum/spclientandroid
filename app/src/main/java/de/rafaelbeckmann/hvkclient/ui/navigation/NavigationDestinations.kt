@@ -45,7 +45,7 @@ object OnboardingScreenPage2
 object OnboardingScreenPage3
 
 
-data class navItem(
+data class NavItem(
     val label: String,
     val icon: ImageVector,
     val badgeCount: Int,

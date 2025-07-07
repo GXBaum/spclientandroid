@@ -27,8 +27,8 @@ open class SettingsViewModel @Inject constructor(
     open val prefUtils: PrefUtils
 ): ViewModel() {
 
-    private val _vpSelectedCourse = MutableStateFlow("")
-    open val vpSelectedCourse: StateFlow<String> = _vpSelectedCourse
+    private val _vpSelectedCourse = MutableStateFlow<List<String>>(emptyList())
+    open val vpSelectedCourse: StateFlow<List<String>> = _vpSelectedCourse
 
     private val _isLoading = MutableStateFlow(false)
     open val isLoading: StateFlow<Boolean> = _isLoading
@@ -61,6 +61,7 @@ open class SettingsViewModel @Inject constructor(
     }
 
 
+    // TODO: fetcht mehrere Male
     fun fetchSpSelectedCourse(username: String) {
         repository.getVpSelectedCourses(username).onEach { result ->
             Log.d("SettingsViewModel", "username: $username")
@@ -68,7 +69,7 @@ open class SettingsViewModel @Inject constructor(
                 is Resource.Loading -> {
                     Log.d("SettingsViewModel", "Loading vpSelectedCourse for user: $username - Result: $result")
                     _isLoading.value = true
-                    result.data?.firstOrNull()?.let {
+                    result.data?.let {
                         _vpSelectedCourse.value = it
                     }
                 }
@@ -76,14 +77,14 @@ open class SettingsViewModel @Inject constructor(
                     Log.d("SettingsViewModel", "Success fetching vpSelectedCourse for user: $username - Data: ${result.data}")
                     _isLoading.value = false
                     _error.value = null
-                    _vpSelectedCourse.value = result.data?.firstOrNull() ?: ""
+                    _vpSelectedCourse.value = result.data ?: emptyList()
                     Log.d("SettingsViewModel", "vpSelectedCourse: ${result.data}")
                 }
                 is Resource.Error -> {
                     Log.e("SettingsViewModel", "Error fetching vpSelectedCourse for user: $username, message: ${result.message}")
                     _isLoading.value = false
                     _error.value = result.message
-                    result.data?.firstOrNull()?.let {
+                    result.data?.let {
                         _vpSelectedCourse.value = it
                     }
                 }

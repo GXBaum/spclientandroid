@@ -31,6 +31,7 @@ import de.rafaelbeckmann.hvkclient.ui.vp.VpScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+// TODO: inject via Hilt
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
 fun AppNavHost(

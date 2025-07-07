@@ -93,6 +93,7 @@ dependencies {
 
     implementation(libs.moshi.kotlin)
 
+    // TODO: maybe change to debugImplementation
     implementation(libs.logging.interceptor)
 
     // ViewModel Compose

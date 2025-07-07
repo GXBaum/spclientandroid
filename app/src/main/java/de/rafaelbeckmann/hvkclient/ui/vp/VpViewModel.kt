@@ -32,8 +32,8 @@ open class VpViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    private val _vpSelectedCourse = MutableStateFlow("")
-    open val vpSelectedCourse: StateFlow<String> = _vpSelectedCourse
+    private val _vpSelectedCourse = MutableStateFlow<List<String>>(emptyList())
+    open val vpSelectedCourse: StateFlow<List<String>> = _vpSelectedCourse
 
     val vpSubstitutionsAll = mutableStateOf<VpSubstitutionsAll?>(null)
 
@@ -56,10 +56,8 @@ open class VpViewModel @Inject constructor(
 
             // Observe the selected course and fetch substitutions when it's available
             vpSelectedCourse
-                .onEach { course ->
-                    if (course.isNotEmpty()) {
-                        fetchVpSubstitutionsAll(course)
-                    }
+                .onEach { courses ->
+                    fetchVpSubstitutionsAll(courses)
                 }.launchIn(viewModelScope)
         }
     }
@@ -71,7 +69,7 @@ open class VpViewModel @Inject constructor(
                 is Resource.Loading -> {
                     Log.d("SettingsViewModel", "Loading vpSelectedCourse for user: $username - Result: $result")
                     _isLoading.value = true
-                    result.data?.firstOrNull()?.let {
+                    result.data?.let {
                         _vpSelectedCourse.value = it
                     }
                 }
@@ -80,14 +78,14 @@ open class VpViewModel @Inject constructor(
                     Log.d("SettingsViewModel", "Success fetching vpSelectedCourse for user: $username - Data: ${result.data}")
                     _isLoading.value = false
                     _error.value = null
-                    _vpSelectedCourse.value = result.data?.firstOrNull() ?: ""
+                    _vpSelectedCourse.value = result.data ?: emptyList()
                     Log.d("SettingsViewModel", "vpSelectedCourse: ${result.data}")
                 }
                 is Resource.Error -> {
                     Log.e("SettingsViewModel", "Error fetching vpSelectedCourse for user: $username, message: ${result.message}")
                     _isLoading.value = false
                     _error.value = result.message
-                    result.data?.firstOrNull()?.let {
+                    result.data?.let {
                         _vpSelectedCourse.value = it
                     }
                 }
@@ -98,7 +96,14 @@ open class VpViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun fetchVpSubstitutionsAll(courseName: String) {
+    // TODO: api hinzufügen, die mehrere Kurse gleichzeitig abfragen kann
+    fun fetchVpSubstitutionsAll(courseNames: List<String>) {
+        val courseName = courseNames.firstOrNull()
+        if (courseName.isNullOrEmpty()) {
+            _isLoading.value = false
+            vpSubstitutionsAll.value = VpSubstitutionsAll(emptyList())
+            return
+        }
         // URL encoding
         val encodedCourseName = URLEncoder.encode(courseName, "UTF-8")
 
