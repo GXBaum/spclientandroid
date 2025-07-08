@@ -98,6 +98,7 @@ open class SettingsViewModel @Inject constructor(
 
 
 
+    // TODO: man kann einen Kurs "" erstellen, der dann nicht mehr gelöscht werden kann
     fun postVpSelectedCourse(courseName: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -111,6 +112,24 @@ open class SettingsViewModel @Inject constructor(
                 repository.postVpSelectedCourses(username.value, courseObject)
 
                 // After posting successfully, refresh the data
+                fetchSpSelectedCourse(username.value)
+            } catch (exception: Exception) {
+                _error.value = exception.message
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // TODO: irgendwie mehr responsive machen
+    fun deleteVpSelectedCourse(courseName: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+
+            try {
+                repository.deleteVpSelectedCourse(username.value, courseName)
+
+                // After deleting successfully, refresh the data
                 fetchSpSelectedCourse(username.value)
             } catch (exception: Exception) {
                 _error.value = exception.message

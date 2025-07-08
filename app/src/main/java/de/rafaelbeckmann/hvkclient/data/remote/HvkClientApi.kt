@@ -13,6 +13,7 @@ import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutions
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAll
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -56,6 +57,12 @@ interface HvkClientApi {
     suspend fun getVpSelectedCourses(
         @Path("username") username: String
     ): Response<VpSelectedCoursesResponse>
+
+    @DELETE("users/{username}/vpSelectedCourses/{courseName}")
+    suspend fun deleteVpSelectedCourse(
+        @Path("username") username: String,
+        @Path("courseName") courseName: String
+    ): Response<Any>
 
     // TODO: remove
     @GET("vpSubstitutions/{courseName}/{day}")

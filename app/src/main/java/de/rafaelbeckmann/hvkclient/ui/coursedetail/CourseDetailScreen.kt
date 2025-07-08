@@ -58,8 +58,6 @@ fun CourseDetailScreen(
     val error by viewModel.error.collectAsState()
 
     var username by remember { mutableStateOf("") }
-    val prefUtils = viewModel.prefUtils
-
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(courseId) {

@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.io.IOException
+import java.net.URLEncoder
 
 class HvkRepositoryImpl(
     private val api: HvkClientApi,
@@ -135,6 +136,24 @@ class HvkRepositoryImpl(
         }
     )
 
+    override suspend fun deleteVpSelectedCourse(username: String, courseName: String): Result<Unit> {
+        return try {
+            // TODO: ist es vlt doch besser, es im body zu schicken, dann wäre das nicht nötig
+            // TODO: das ist gottlos dumm, aber er macht es zu + und nicht %20
+            val encodedCourseName = URLEncoder.encode(courseName, "UTF-8").replace("+", "%20")
+            val response = api.deleteVpSelectedCourse(username, encodedCourseName)
+            if (response.isSuccessful) {
+                // TODO: Uncomment when cacheDao is implemented
+                //cacheDao.deleteVpSelectedCourse(courseName)
+                Result.success(Unit)
+            } else {
+                Result.failure(IOException("Failed to delete selected course: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override fun getVpSubstitutions(courseName: String, day: String): Flow<Resource<List<VpSubstitution>>> = networkBoundResource(
         query = { cacheDao.getVpSubstitutions() },
         fetch = { api.getVpSubstitutions(courseName, day) },
@@ -153,7 +172,11 @@ class HvkRepositoryImpl(
                     } ?: VpSubstitutionsAll(emptyList())
                 }
             },
-            fetch = { api.getVpSubstitutionsAll(courseName) },
+            fetch = {
+                // TODO: das ist gottlos dumm, aber er macht es zu + und nicht %20
+                val encodedCourseName = URLEncoder.encode(courseName, "UTF-8").replace("+", "%20")
+                api.getVpSubstitutionsAll(encodedCourseName)
+            },
             saveFetchResult = {
                 val cacheEntry = VpSubstitutionsAllCache(courseName, it.substitutions)
                 cacheDao.insertVpSubstitutionsAll(cacheEntry)

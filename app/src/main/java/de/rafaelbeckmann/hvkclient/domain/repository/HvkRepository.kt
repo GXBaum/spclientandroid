@@ -51,6 +51,8 @@ interface HvkRepository {
      */
     suspend fun postVpSelectedCourses(username: String, courseName: VpSelectedCourse): Result<Unit>
 
+    suspend fun deleteVpSelectedCourse(username: String, courseName: String): Result<Unit>
+
 
     fun getVpSubstitutions(courseName: String, day: String): Flow<Resource<List<VpSubstitution>>>
 

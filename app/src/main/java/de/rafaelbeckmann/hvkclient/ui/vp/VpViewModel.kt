@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
 import javax.inject.Inject
 
 @HiltViewModel
@@ -104,10 +103,8 @@ open class VpViewModel @Inject constructor(
             vpSubstitutionsAll.value = VpSubstitutionsAll(emptyList())
             return
         }
-        // URL encoding
-        val encodedCourseName = URLEncoder.encode(courseName, "UTF-8")
 
-        repository.getVpSubstitutionsAll(encodedCourseName)
+        repository.getVpSubstitutionsAll(courseName)
             .onEach { result ->
                 Log.d("VpViewModel", "Result ALL: $result")
                 when (result) {
