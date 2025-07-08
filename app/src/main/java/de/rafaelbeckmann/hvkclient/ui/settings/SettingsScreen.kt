@@ -154,7 +154,10 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         LazyColumn {
-            items(vpSelectedCourse) { course ->
+            items(
+                items = vpSelectedCourse,
+                key = { it }
+            ) { course ->
 
                 val isFirst = vpSelectedCourse.first() == course
                 //val isLast = vpSelectedCourse.last() == course
@@ -181,7 +184,8 @@ fun SettingsScreen(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 1.dp),
+                        .padding(vertical = 1.dp)
+                        .animateItem(),
                     shape = shape,
                     color = MaterialTheme.colorScheme.surfaceContainer,
                 ) {
@@ -209,7 +213,9 @@ fun SettingsScreen(
             }
 
             // TODO: das muss die absolut dümmste mögliche Lösung sein, aber ich weiß nicht wie ich es besser machen soll
-            item {
+            item (
+                key = "add_course_button"
+            ){
                 val shape = if (vpSelectedCourse.isEmpty()) {
                     RoundedCornerShape(16.dp)
                 } else {
@@ -228,7 +234,8 @@ fun SettingsScreen(
                             onClick = {
                                 showAddCourseDialog = true
                             }
-                        ),
+                        )
+                        .animateItem(),
                     shape = shape,
                     color = MaterialTheme.colorScheme.surfaceContainer,
                 ) {
@@ -238,15 +245,24 @@ fun SettingsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // TODO: nur einen Button machen, der einen dann zu einem Dialog oder Screen führt, mit Suche
-                        Spacer(
-                            modifier = Modifier.weight(1f)
+                        Text(
+                            text = "Kurs hinzufügen",
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .weight(1f)
                         )
 
-                        Icon(
-                            modifier = Modifier.padding(16.dp),
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = "Kurs hinzufügen"
-                        )
+                        IconButton(
+                            onClick = {
+                                showAddCourseDialog = true
+                            }
+                        ) {
+                            Icon(
+                                //modifier = Modifier.padding(16.dp),
+                                imageVector = Icons.Rounded.Add,
+                                contentDescription = "Kurs hinzufügen"
+                            )
+                        }
                     }
                 }
             }

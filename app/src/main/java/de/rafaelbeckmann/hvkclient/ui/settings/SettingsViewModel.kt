@@ -44,8 +44,6 @@ open class SettingsViewModel @Inject constructor(
             isDeveloper.value = settingsRepository.isDeveloper()
             username.value = settingsRepository.getUsername() ?: ""
 
-            // TODO: Remove this hardcoded token in production
-            settingsRepository.setRefreshToken("38227ef324f32bda0ca8377a2059944aaffd2412ec1d32658eea5fffe66de2cd19f19064e7eb63bd1cec26a910833bb3ccc7df2f52fe0f9233b10b5f7927a7e2")
             Log.d("SettingsViewModel", "refreshToken: ${settingsRepository.getRefreshToken()}")
 
             if (username.value.isNotEmpty()) {

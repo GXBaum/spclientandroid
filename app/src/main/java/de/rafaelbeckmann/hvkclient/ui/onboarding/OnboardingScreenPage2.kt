@@ -12,7 +12,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun OnboardingScreenPage2(
     modifier: Modifier = Modifier,
-    onContinueClicked: () -> Unit = {}
+    onLoginClicked: () -> Unit = {},
+    onCreateAccountClicked: () -> Unit = {}
 ) {
 
     Column (
@@ -23,10 +24,17 @@ fun OnboardingScreenPage2(
         Text("Page 2 of Onboarding")
 
         Button(
-            onClick = onContinueClicked,
+            onClick = onLoginClicked,
         ) {
             Text(
-                text = "Weiter",
+                text = "einloggen",
+            )
+        }
+        Button(
+            onClick = { /* TODO: navigate to next page */ },
+        ) {
+            Text(
+                text = "Account erstellen",
             )
         }
     }

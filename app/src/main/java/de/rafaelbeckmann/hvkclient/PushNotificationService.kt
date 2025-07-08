@@ -24,9 +24,6 @@ class PushNotificationService : FirebaseMessagingService() {
     lateinit var repository: HvkRepository
 
     @Inject
-    lateinit var prefUtils: PrefUtils
-
-    @Inject
     lateinit var settingsRepository: SettingsRepository
 
     // Single coroutine scope for the service
@@ -52,16 +49,11 @@ class PushNotificationService : FirebaseMessagingService() {
         Log.d(TAG, "New FCM token received: $token")
 
         serviceScope.launch {
-            // TODO: change this to repository.
-            prefUtils.saveString("fcm_token", token)
-
-            // Only send token to server if user is already logged in
-            val username = "Rafael.Beckmann" // TODO: REMOVE, get username from shared preferences
-            //val username = prefUtils.getString("username")
+            val username = settingsRepository.getUsername()
             if (!username.isNullOrEmpty()) {
                 sendTokenToServer(token, username)
             } else {
-                Log.d(TAG, "Token stored locally, will send when user logs in")
+                Log.d(TAG, "Token updated, will send when user logs in")
             }
         }
     }

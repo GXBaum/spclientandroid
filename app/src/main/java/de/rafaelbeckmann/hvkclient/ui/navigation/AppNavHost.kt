@@ -66,7 +66,7 @@ fun AppNavHost(
         */
 
         enterTransition = {
-            fadeIn(animationSpec = tween(durationMillis = 200))
+            fadeIn(animationSpec = tween(durationMillis = 100))
 
             /*
             fadeIn(animationSpec = tween(durationMillis = 200)) +
@@ -78,7 +78,7 @@ fun AppNavHost(
              */
         },
         exitTransition = {
-            fadeOut(animationSpec = tween(durationMillis = 200))
+            fadeOut(animationSpec = tween(durationMillis = 100))
 
 
             /*
@@ -186,9 +186,13 @@ fun AppNavHost(
             composable<OnboardingScreenPage2> {
                 OnboardingScreenPage2(
                     modifier = Modifier.fillMaxSize(),
-                    onContinueClicked = {
+                    onLoginClicked = {
                         navController.navigate(OnboardingScreenPage3)
+                    },
+                    onCreateAccountClicked = {
+                        TODO("Navigate to create account screen")
                     }
+
                 )
             }
             composable<OnboardingScreenPage3> {

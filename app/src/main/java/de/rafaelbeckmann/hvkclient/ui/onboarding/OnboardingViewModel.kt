@@ -2,8 +2,11 @@ package de.rafaelbeckmann.hvkclient.ui.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.data.Resource
+import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,6 +41,10 @@ open class OnboardingViewModel @Inject constructor(
                             settingsRepository.setOnboardingCompleted(true)
                             _loginState.value = LoginState.Success
                         }
+
+                        // TODO: Firebase.messaging.token.await() auch ins repo?
+                        val tokenUpdateRequest = TokenUpdateRequest(Firebase.messaging.token.await(), username)
+                        repository.updateToken(username, tokenUpdateRequest)
                     } ?: run {
                         _loginState.value = LoginState.Error("Login response was empty.")
                     }
