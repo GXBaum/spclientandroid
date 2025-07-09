@@ -80,7 +80,10 @@ fun CoursesScreen(
                 if (courses.isNotEmpty()) {
                     // TODO: vielleicht zu einem eigenen Composable machen
                     LazyColumn {
-                        items(courses) { course ->
+                        items(
+                            items = courses,
+                            key = { it.courseId }
+                        ) { course ->
 
                             val isFirst = courses.first() == course
                             val isLast = courses.last() == course
@@ -108,8 +111,9 @@ fun CoursesScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 1.dp)
-                                    .clickable { onCourseClick(course) },
-                                shape = shape,
+                                    .clickable { onCourseClick(course) }
+                                    .animateItem(),
+                            shape = shape,
                                 color = MaterialTheme.colorScheme.surfaceContainer,
                             ) {
                                 Row {

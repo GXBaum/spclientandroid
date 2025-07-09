@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
         requestNotificationPermission()
 
         setContent {
+            window.isNavigationBarContrastEnforced = false
             HvKClientTheme {
 
                 // TODO: inject with Hilt

@@ -109,7 +109,9 @@ fun MarksList(
 
     LazyColumn(
     ) {
-        item {
+        item (
+            key = "header"
+        ){
             Text(
                 text = "Kursnoten",
                 style = MaterialTheme.typography.headlineMedium,
@@ -119,7 +121,9 @@ fun MarksList(
 
         // TODO: manchmal falsche Reihenfolge
         groupedMarks.forEach { (halfYear, marksInGroup) ->
-            item {
+            item (
+                key = "halfYear_$halfYear"
+            ){
                 Text(
                     text = "Halbjahr: $halfYear",
                     style = MaterialTheme.typography.titleLarge,
@@ -129,7 +133,10 @@ fun MarksList(
 
             // TODO: vielleicht zu einem eigenen Composable machen
 
-            items(marksInGroup) { mark ->
+            items(
+                items = marksInGroup,
+                key = { it.mark_id }
+            ) { mark ->
                 val isFirst = marksInGroup.first() == mark
                 val isLast = marksInGroup.last() == mark
                 val shape = if (isFirst && isLast) {
@@ -146,7 +153,8 @@ fun MarksList(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 1.dp)
-                        .clickable { onMarkClick(mark) },
+                        .clickable { onMarkClick(mark) }
+                        .animateItem(),
                     shape = shape,
                     color = MaterialTheme.colorScheme.surfaceContainer
                 ) {
