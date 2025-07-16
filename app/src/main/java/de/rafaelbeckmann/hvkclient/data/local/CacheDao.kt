@@ -8,8 +8,7 @@ import androidx.room.Transaction
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAllCache
+import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -46,29 +45,22 @@ interface CacheDao {
     suspend fun clearVpSelectedCourses()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertVpSubstitutions(substitutions: List<VpSubstitution>)
+    suspend fun insertVpSubstitutionsCache(cache: VpSubstitutionsCache)
 
-    @Query("DELETE FROM vpsubstitution")
-    suspend fun deleteVpSubstitutions()
+    @Query("SELECT * FROM vp_substitutions_cache WHERE courseName IN (:courseNames)")
+    fun getVpSubstitutionsForCourses(courseNames: List<String>): Flow<List<VpSubstitutionsCache>>
 
-    @Query("SELECT * FROM vpsubstitution")
-    fun getVpSubstitutions(): Flow<List<VpSubstitution>>
+    @Query("DELETE FROM vp_substitutions_cache")
+    suspend fun clearVpSubstitutionsCache()
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertVpSubstitutionsAll(substitutions: VpSubstitutionsAllCache)
-
-    @Query("SELECT * FROM vp_substitutions_all WHERE courseName = :courseName")
-    fun getVpSubstitutionsAll(courseName: String): Flow<VpSubstitutionsAllCache?>
-
-    @Query("DELETE FROM vp_substitutions_all")
-    suspend fun clearVpSubstitutionsAll()
+    @Query("DELETE FROM vp_substitutions_cache WHERE courseName IN (:courseNames)")
+    suspend fun deleteVpSubstitutionsForCourses(courseNames: List<String>)
 
     @Transaction
     suspend fun clearAllCache() {
         clearUserCourses()
         clearUserMarks()
         clearVpSelectedCourses()
-        deleteVpSubstitutions()
-        clearVpSubstitutionsAll()
+        clearVpSubstitutionsCache()
     }
 }

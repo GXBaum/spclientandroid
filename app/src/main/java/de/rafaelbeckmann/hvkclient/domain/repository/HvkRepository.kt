@@ -5,9 +5,8 @@ import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
+import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAll
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -53,11 +52,7 @@ interface HvkRepository {
 
     suspend fun deleteVpSelectedCourse(username: String, courseName: String): Result<Unit>
 
-
-    fun getVpSubstitutions(courseName: String, day: String): Flow<Resource<List<VpSubstitution>>>
-
-
-    fun getVpSubstitutionsAll(courseName: String): Flow<Resource<VpSubstitutionsAll>>
+    fun getVpSubstitutionsMultipleCourses(courseNames: List<String>): Flow<Resource<VpResponse>>
 
     /**
      * Clears all cached data from the local database.

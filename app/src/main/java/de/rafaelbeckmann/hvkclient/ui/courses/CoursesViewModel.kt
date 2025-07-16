@@ -9,45 +9,55 @@ import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
+
+data class CoursesUiState(
+    val courses: List<UserCourse> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
 
 @HiltViewModel
 open class CoursesViewModel @Inject constructor(
     private val repository: HvkRepository,
     open val prefUtils: PrefUtils
-): ViewModel() {
-    // UI state
-    private val _courses = MutableStateFlow<List<UserCourse>>(emptyList())
-    open val courses: StateFlow<List<UserCourse>> = _courses
+) : ViewModel() {
 
-    private val _isLoading = MutableStateFlow(false)
-    open val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _error = MutableStateFlow<String?>(null)
-    open val error: StateFlow<String?> = _error
+    private val _uiState = MutableStateFlow(CoursesUiState())
+    open val uiState: StateFlow<CoursesUiState> = _uiState.asStateFlow()
 
     /**
      * Fetches courses for the given username
      */
     open fun fetchCourses(username: String) {
         repository.getUserCourses(username).onEach { result ->
-            when (result) {
-                is Resource.Loading -> {
-                    _isLoading.value = true
-                    _error.value = null
-                    result.data?.let { _courses.value = it }
-                }
-                is Resource.Success -> {
-                    _isLoading.value = false
-                    _error.value = null
-                    result.data?.let { _courses.value = it }
-                }
-                is Resource.Error -> {
-                    _isLoading.value = false
-                    _error.value = result.message
-                    result.data?.let { _courses.value = it }
+            _uiState.update { currentState ->
+                when (result) {
+                    is Resource.Loading -> {
+                        currentState.copy(
+                            isLoading = true,
+                            error = null,
+                            courses = result.data ?: currentState.courses
+                        )
+                    }
+                    is Resource.Success -> {
+                        currentState.copy(
+                            isLoading = false,
+                            error = null,
+                            courses = result.data ?: emptyList()
+                        )
+                    }
+                    is Resource.Error -> {
+                        currentState.copy(
+                            isLoading = false,
+                            error = result.message,
+                            courses = result.data ?: currentState.courses
+                        )
+                    }
                 }
             }
         }.launchIn(viewModelScope)

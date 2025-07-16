@@ -1,6 +1,7 @@
 package de.rafaelbeckmann.hvkclient.data.repository
 
 import android.app.Application
+import android.util.Log
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.model.LoginRequest
@@ -8,10 +9,9 @@ import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
+import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAll
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAllCache
+import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import kotlinx.coroutines.flow.Flow
@@ -154,32 +154,28 @@ class HvkRepositoryImpl(
         }
     }
 
-    override fun getVpSubstitutions(courseName: String, day: String): Flow<Resource<List<VpSubstitution>>> = networkBoundResource(
-        query = { cacheDao.getVpSubstitutions() },
-        fetch = { api.getVpSubstitutions(courseName, day) },
-        saveFetchResult = {
-            cacheDao.deleteVpSubstitutions()
-            cacheDao.insertVpSubstitutions(it.substitutions)
-        }
-    )
-
-    override fun getVpSubstitutionsAll(courseName: String): Flow<Resource<VpSubstitutionsAll>> {
+    override fun getVpSubstitutionsMultipleCourses(courseNames: List<String>): Flow<Resource<VpResponse>> {
         return networkBoundResource(
             query = {
-                cacheDao.getVpSubstitutionsAll(courseName).map { cacheEntry ->
-                    cacheEntry?.let {
-                        VpSubstitutionsAll(it.substitutions)
-                    } ?: VpSubstitutionsAll(emptyList())
+                cacheDao.getVpSubstitutionsForCourses(courseNames).map { cacheEntries ->
+                    val substitutionsMap = cacheEntries.associate { it.courseName to it.vpClass }
+                    VpResponse(substitutionsMap)
                 }
             },
             fetch = {
-                // TODO: das ist gottlos dumm, aber er macht es zu + und nicht %20
-                val encodedCourseName = URLEncoder.encode(courseName, "UTF-8").replace("+", "%20")
-                api.getVpSubstitutionsAll(encodedCourseName)
+                val coursesInOneString = courseNames.joinToString(",")
+                Log.d("repo", coursesInOneString)
+                api.getVpSubstitutionsMultipleCourses(coursesInOneString)
             },
-            saveFetchResult = {
-                val cacheEntry = VpSubstitutionsAllCache(courseName, it.substitutions)
-                cacheDao.insertVpSubstitutionsAll(cacheEntry)
+            saveFetchResult = { result ->
+                // First delete existing entries for these courses
+                cacheDao.deleteVpSubstitutionsForCourses(courseNames)
+
+                // Then save the new data
+                result.substitutions.forEach { (courseName, vpClass) ->
+                    val cacheEntry = VpSubstitutionsCache(courseName, vpClass)
+                    cacheDao.insertVpSubstitutionsCache(cacheEntry)
+                }
             }
         )
     }

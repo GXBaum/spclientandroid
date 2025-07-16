@@ -7,10 +7,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.TextObfuscationMode
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedSecureTextField
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -33,7 +40,8 @@ fun OnboardingScreenPage3(
     onContinueClicked: () -> Unit = {}
 ) {
     var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val passwordState = remember { TextFieldState() }
+    var showPassword by remember { mutableStateOf(false) }
     val loginState by viewModel.loginState.collectAsState()
 
     Column(
@@ -57,13 +65,24 @@ fun OnboardingScreenPage3(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+        OutlinedSecureTextField(
+            state = passwordState,
             label = { Text("Passwort") },
-            visualTransformation = PasswordVisualTransformation(),
+            textObfuscationMode =
+                if (showPassword) {
+                    TextObfuscationMode.Visible
+                } else {
+                    TextObfuscationMode.RevealLastTyped
+                },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            trailingIcon = {
+                IconButton(onClick = { showPassword = !showPassword }) {
+                    Icon(
+                        imageVector = if (showPassword) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
+                        contentDescription = if (showPassword) "Passwort verbergen" else "Passwort anzeigen"
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -71,9 +90,9 @@ fun OnboardingScreenPage3(
         when (val state = loginState) {
             is LoginState.Idle -> {
                 Button(
-                    onClick = { viewModel.login(username, password) },
+                    onClick = { viewModel.login(username, passwordState.text.toString()) },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = username.isNotBlank() && password.isNotBlank()
+                    enabled = username.isNotBlank() && passwordState.text.isNotEmpty()
                 ) {
                     Text("Login")
                 }
@@ -83,8 +102,6 @@ fun OnboardingScreenPage3(
             }
             is LoginState.Success -> {
                 Text("Login erfolgreich!", color = MaterialTheme.colorScheme.primary)
-                // Navigation to the main app screen should be handled by the parent composable
-                // observing this state change.
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
@@ -98,9 +115,9 @@ fun OnboardingScreenPage3(
                 Text(state.message, color = MaterialTheme.colorScheme.error)
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
-                    onClick = { viewModel.login(username, password) },
+                    onClick = { viewModel.login(username, passwordState.text.toString()) },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = username.isNotBlank() && password.isNotBlank()
+                    enabled = username.isNotBlank() && passwordState.text.isNotEmpty()
                 ) {
                     Text("Erneut versuchen")
                 }

@@ -36,9 +36,7 @@ fun CoursesScreen(
     viewModel: CoursesViewModel = hiltViewModel(),
     onCourseClick: (UserCourse) -> Unit = {},
 ) {
-    val courses by viewModel.courses.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
-    val error by viewModel.error.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     var username by remember { mutableStateOf("") }
     var isDeveloper by remember { mutableStateOf(false) }
 
@@ -64,29 +62,30 @@ fun CoursesScreen(
         //color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         PullToRefreshBox(
-            isRefreshing = isLoading,
+            isRefreshing = uiState.isLoading,
             onRefresh = { viewModel.fetchCourses(username) },
             modifier = Modifier.fillMaxSize(),
-        ) {
+            // indicator = { ContainedLoadingIndicator() }, // TODO: er ist oben links
+            ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
             ) {
-                if (error != null) {
-                    ErrorCard(error = error!!)
+                uiState.error?.let { error ->
+                    ErrorCard(error = error)
                 }
 
-                if (courses.isNotEmpty()) {
+                if (uiState.courses.isNotEmpty()) {
                     // TODO: vielleicht zu einem eigenen Composable machen
                     LazyColumn {
                         items(
-                            items = courses,
-                            key = { it.courseId }
+                            items = uiState.courses,
+                            key = { course -> course.courseId }
                         ) { course ->
 
-                            val isFirst = courses.first() == course
-                            val isLast = courses.last() == course
+                            val isFirst = uiState.courses.first() == course
+                            val isLast = uiState.courses.last() == course
                             val shape = if (isFirst && isLast) {
                                 RoundedCornerShape(16.dp)
                             } else if (isFirst) {
@@ -126,7 +125,7 @@ fun CoursesScreen(
                                             modifier = Modifier.weight(1f)
                                         )
                                         Text(
-                                            text = "${course.courseId}",
+                                            text = course.courseId.toString(),
                                             modifier = Modifier
                                                 .padding(16.dp)
                                         )

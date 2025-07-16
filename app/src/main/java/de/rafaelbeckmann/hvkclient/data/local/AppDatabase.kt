@@ -5,18 +5,23 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
+import de.rafaelbeckmann.hvkclient.data.model.VpClassConverter
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAllCache
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAllConverter
+import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
 
 @Database(
-    entities = [UserCourse::class, UserMark::class, VpSelectedCourse::class, VpSubstitution::class, VpSubstitutionsAllCache::class],
+    entities = [
+        UserCourse::class,
+        UserMark::class,
+        VpSelectedCourse::class,
+        VpSubstitution::class,
+        VpSubstitutionsCache::class
+    ],
     version = 1,
     exportSchema = false
 )
-@TypeConverters(VpSubstitutionsAllConverter::class)
+@TypeConverters(VpClassConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun cacheDao(): CacheDao
 }
-

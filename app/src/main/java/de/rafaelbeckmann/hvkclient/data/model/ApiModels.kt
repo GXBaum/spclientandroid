@@ -3,9 +3,7 @@ package de.rafaelbeckmann.hvkclient.data.model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
-import androidx.room.TypeConverters
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 
 // TODO: split into multiple files
@@ -66,49 +64,51 @@ data class VpSelectedCoursesResponse(
     val courses: List<String>
 )
 
-data class VpSubstitutions(
-    val substitutions: List<VpSubstitution>
-)
-
 @Entity
 data class VpSubstitution(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val hour: String,
     val original: String,
     val replacement: String,
-    val description: String
+    val description: String,
+    val vp_date: String
 )
 
-
-data class VpSubstitutionsAll(
-    val substitutions: List<List<VpSubstitution>>
+data class VpClass(
+    val today: List<VpSubstitution> = emptyList(),
+    val tomorrow: List<VpSubstitution> = emptyList()
 )
 
-// TODO: mit VpSubstitutionsAll zusammenlegen, also VpSubstitutionsAll mit diesen sachen anotieren
-
-@Entity(tableName = "vp_substitutions_all")
-@TypeConverters(VpSubstitutionsAllConverter::class)
-data class VpSubstitutionsAllCache(
-    @PrimaryKey val courseName: String,
-    val substitutions: List<List<VpSubstitution>>
+data class VpResponse(
+    val substitutions: Map<String, VpClass>
 )
+
+// TODO: mit VpSubstitutionsAll zusammenlegen, also VpSubstitutionsAll mit diesen sachen annotieren
+
 
 // TODO: ist es goofy dass das mit JSON gespeichert wird?
-class VpSubstitutionsAllConverter {
+
+
+// TODO
+@Entity(tableName = "vp_substitutions_cache")
+data class VpSubstitutionsCache(
+    @PrimaryKey val courseName: String,
+    val vpClass: VpClass
+)
+
+class VpClassConverter {
     private val moshi = Moshi.Builder()
-    .add(KotlinJsonAdapterFactory())
-    .build()
-    private val listMyData = Types.newParameterizedType(List::class.java, VpSubstitution::class.java)
-    private val listListMyData = Types.newParameterizedType(List::class.java, listMyData)
-    private val jsonAdapter = moshi.adapter<List<List<VpSubstitution>>>(listListMyData)
+        .add(KotlinJsonAdapterFactory())
+        .build()
+    private val vpClassAdapter = moshi.adapter<VpClass>(VpClass::class.java)
 
     @TypeConverter
-    fun fromString(value: String): List<List<VpSubstitution>>? {
-        return jsonAdapter.fromJson(value)
+    fun fromVpClass(vpClass: VpClass): String {
+        return vpClassAdapter.toJson(vpClass)
     }
 
     @TypeConverter
-    fun fromList(list: List<List<VpSubstitution>>): String {
-        return jsonAdapter.toJson(list)
+    fun toVpClass(value: String): VpClass? {
+        return vpClassAdapter.fromJson(value)
     }
 }

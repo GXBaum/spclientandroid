@@ -7,10 +7,9 @@ import de.rafaelbeckmann.hvkclient.data.model.TokenRefreshResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourses
 import de.rafaelbeckmann.hvkclient.data.model.UserMarks
+import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCoursesResponse
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutions
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsAll
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -18,6 +17,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface HvkClientApi {
     @POST("auth/login")
@@ -64,15 +64,8 @@ interface HvkClientApi {
         @Path("courseName") courseName: String
     ): Response<Any>
 
-    // TODO: remove
-    @GET("vpSubstitutions/{courseName}/{day}")
-    suspend fun getVpSubstitutions(
-        @Path("courseName") courseName: String,
-        @Path("day") day: String
-    ): Response<VpSubstitutions>
-
-    @GET("vpSubstitutions/{courseName}")
-    suspend fun getVpSubstitutionsAll(
-        @Path("courseName") courseName: String,
-    ): Response<VpSubstitutionsAll>
+    @GET("vpSubstitutions")
+    suspend fun getVpSubstitutionsMultipleCourses(
+        @Query("courses") courses: String
+    ): Response<VpResponse>
 }

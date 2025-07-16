@@ -31,4 +31,3 @@ object DatabaseModule {
         return appDatabase.cacheDao()
     }
 }
-

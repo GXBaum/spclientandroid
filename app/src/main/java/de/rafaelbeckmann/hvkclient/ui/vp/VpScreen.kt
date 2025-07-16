@@ -1,6 +1,7 @@
 package de.rafaelbeckmann.hvkclient.ui.vp
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -9,14 +10,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -26,83 +37,106 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VpScreen(
     modifier: Modifier = Modifier,
     viewModel: VpViewModel = hiltViewModel()
 ) {
-    val isLoading = viewModel.isLoading.collectAsState().value
-    val error = viewModel.error.collectAsState()
-    val vpSelectedCourseName = viewModel.vpSelectedCourse.collectAsState().value
-
-    val vpSubstitutionsAll = viewModel.vpSubstitutionsAll.value
+    val state by viewModel.vpScreenState.collectAsState()
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
 
     PullToRefreshBox(
-        isRefreshing = isLoading,
+        isRefreshing = state.isLoading,
         onRefresh = {
-            if (vpSelectedCourseName.isNotEmpty()) {
-                viewModel.fetchVpSubstitutionsAll(vpSelectedCourseName)
+            if (state.selectedCourses.isNotEmpty()) {
+                viewModel.fetchVpSubstitutionsMultipleCourses(state.selectedCourses)
             }
         },
+        // indicator = { ContainedLoadingIndicator() }, // TODO: er ist oben links
         modifier = Modifier.fillMaxSize()
     ) {
-        LazyColumn(
+        Column(
             modifier = modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
         ) {
-            // TODO: change this for a snack bar or something
-            if (!error.value.isNullOrEmpty()) {
-                item(key = "error_message") {
-                    ErrorCard(error.value!!)
+            if (state.selectedCourses.isNotEmpty()) {
+                val pagerState = rememberPagerState { state.selectedCourses.size }
+                LaunchedEffect(selectedTabIndex) {
+                    pagerState.animateScrollToPage(selectedTabIndex)
                 }
-            }
+                LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
+                    if (!pagerState.isScrollInProgress) {
+                        selectedTabIndex = pagerState.currentPage
+                    }
+                }
 
-            // No substitutions message
-            if (vpSubstitutionsAll?.substitutions?.flatten().isNullOrEmpty()) {
-                item(key = "no_substitutions") {
-                    Card(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Keine Vertretungen gefunden",
-                            modifier = Modifier
-                                .padding(16.dp)
-                                .align(Alignment.CenterHorizontally)
+                PrimaryScrollableTabRow(selectedTabIndex = selectedTabIndex) {
+                    state.selectedCourses.forEachIndexed { index, courseName ->
+                        Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = { selectedTabIndex = index },
+                            text = { Text(courseName) }
                         )
                     }
                 }
-            }
 
-            // Selected course
-            if (vpSelectedCourseName.isNotEmpty()) {
-                item(key = "selected_course") {
-                    Text(
-                        text = "Ausgewählter Kurs: $vpSelectedCourseName",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) { page ->
+                    val courseName = state.selectedCourses.getOrNull(page)
+                    val substitutionsForCourse = courseName?.let { state.substitutions?.substitutions?.get(it) }
+                    val allSubstitutions = substitutionsForCourse?.let { it.today + it.tomorrow } // TODO: WHAT
+
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        if (allSubstitutions.isNullOrEmpty()) {
+                            item(key = "no_substitutions") {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 8.dp)
+                                ) {
+                                    Text(
+                                        text = "Keine Vertretungen gefunden",
+                                        modifier = Modifier
+                                            .padding(16.dp)
+                                            .align(Alignment.CenterHorizontally)
+                                    )
+                                }
+                            }
+                        } else {
+                            item(key = "all_substitutions_header") {
+                                Text(
+                                    text = "Vertretungen",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            val substitutionGroups = listOfNotNull(
+                                substitutionsForCourse.today.takeIf { it.isNotEmpty() },
+                                substitutionsForCourse.tomorrow.takeIf { it.isNotEmpty() }
+                            )
+                            itemsIndexed(substitutionGroups) { _, substitutionList ->
+                                VpTable(
+                                    modifier = Modifier.padding(bottom = 8.dp),
+                                    vpSubstitutions = substitutionList
+                                )
+                            }
+                        }
+                    }
+                }
+            } else if (!state.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Keine Kurse ausgewählt.")
                 }
             }
 
-            // All substitutions header
-            if (vpSubstitutionsAll?.substitutions?.flatten()?.isNotEmpty() == true) {
-                item(key = "all_substitutions_header") {
-                    Text(
-                        text = "Vertretungen",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-
-                // Use efficient lazy loading for all substitutions
-                itemsIndexed(vpSubstitutionsAll.substitutions.filter { it.isNotEmpty() }) { index, substitutionList ->
-                    VpTable(
-                        modifier = Modifier.padding(bottom = 8.dp),
-                        vpSubstitutions = substitutionList
-                    )
-                }
+            if (!state.error.isNullOrEmpty()) {
+                ErrorCard(state.error!!)
             }
         }
     }
