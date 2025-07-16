@@ -2,7 +2,6 @@ package de.rafaelbeckmann.hvkclient.ui.main
 
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -30,7 +29,6 @@ import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.ui.navigation.AppNavHost
 import de.rafaelbeckmann.hvkclient.ui.navigation.OnboardingGraph
 import de.rafaelbeckmann.hvkclient.ui.navigation.RevealMarkScreen
-import de.rafaelbeckmann.hvkclient.ui.navigation.VpScreen
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
@@ -43,30 +41,9 @@ fun MainScreen(
 
     val navController = rememberNavController()
 
-    // Handle navigation based on intent extras (Deep Links)
-    LaunchedEffect(Unit) {
-
-        //TODO: change to real deep link handling (https://medium.com/androiddevelopers/type-safe-navigation-for-compose-105325a97657, https://developer.android.com/guide/navigation/design/deep-link)
-        val navigateToRevealMark = intent.getBooleanExtra("navigate_to_reveal_mark", false)
-        val grade = intent.getStringExtra("grade")
-        val navigateToVp = intent.getBooleanExtra("navigate_to_vp", false)
-
-        when {
-            navigateToRevealMark && grade != null -> {
-                Log.d("DeepLink", "Navigating to grade reveal screen with grade: $grade")
-                intent.removeExtra("navigate_to_reveal_mark")
-                navController.navigate(RevealMarkScreen(grade))
-            }
-            navigateToVp -> {
-                Log.d("DeepLink", "Navigating to vp screen")
-                intent.removeExtra("navigate_to_vp")
-                navController.navigate(VpScreen)
-            }
-        }
-    }
-
     var isOnboardingCompleted by remember { mutableStateOf(false) }
 
+    //TODO: change to real deep link handling (https://medium.com/androiddevelopers/type-safe-navigation-for-compose-105325a97657, https://developer.android.com/guide/navigation/design/deep-link)
     LaunchedEffect(Unit) {
         // TODO: keine ahnung ob das gut ist
         isOnboardingCompleted = settingsRepository.isOnboardingCompleted()

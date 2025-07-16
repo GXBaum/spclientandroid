@@ -18,6 +18,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.ui.coursedetail.CourseDetailScreen
@@ -108,7 +109,12 @@ fun AppNavHost(
         }
     ) {
         navigation<VpGraph>(
-            startDestination = VpScreen
+            startDestination = VpScreen,
+            deepLinks = listOf(
+                navDeepLink<VpGraph>(
+                    basePath = "hvkclient://vp"
+                )
+            )
         ) {
             composable<VpScreen> {
                 VpScreen(
@@ -138,8 +144,7 @@ fun AppNavHost(
                 val args = it.toRoute<CourseDetailsScreen>()
 
                 CourseDetailScreen(
-                    modifier = Modifier
-                        .fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     courseId = args.courseId,
                     onNavigateToRevealMark = { grade ->
                         navController.navigate(
@@ -149,7 +154,13 @@ fun AppNavHost(
                 )
             }
 
-            composable<RevealMarkScreen> {
+            composable<RevealMarkScreen> (
+                deepLinks = listOf(
+                    navDeepLink<RevealMarkScreen>(
+                        basePath = "hvkclient://revealmark"
+                    )
+                )
+            ){
                 val args = it.toRoute<RevealMarkScreen>()
                 RevealMarkScreen(
                     modifier = Modifier
@@ -161,12 +172,16 @@ fun AppNavHost(
         }
 
         navigation<SettingsGraph>(
-            startDestination = SettingsScreen
+            startDestination = SettingsScreen,
+            deepLinks = listOf(
+                navDeepLink<SettingsGraph>(
+                    basePath = "hvkclient://settings"
+                )
+            )
         ) {
             composable<SettingsScreen> {
                 SettingsScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }

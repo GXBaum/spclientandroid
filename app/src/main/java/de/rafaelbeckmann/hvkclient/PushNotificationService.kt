@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -18,6 +19,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// TODO: komplett neu machen
 @AndroidEntryPoint
 class PushNotificationService : FirebaseMessagingService() {
     @Inject
@@ -143,11 +145,9 @@ class PushNotificationService : FirebaseMessagingService() {
         val title = message.data["title"] ?: "Neue Note"
         val body = message.data["body"] ?: "Eine neue Note ist verfügbar"
 
-        // Create intent to launch MainActivity with grade information
-        val intent = Intent(this, MainActivity::class.java).apply {
-            putExtra("navigate_to_reveal_mark", true)
-            putExtra("grade", grade)
-            // Add these flags to ensure proper navigation when app is closed
+        val deepLinkUri = "hvkclient://revealmark/$grade".toUri()
+
+        val intent = Intent(Intent.ACTION_VIEW, deepLinkUri).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
 
@@ -176,9 +176,9 @@ class PushNotificationService : FirebaseMessagingService() {
         val title = message.data["title"] ?: "Vertretungsplan Update"
         val body = message.data["body"] ?: "Der Vertretungsplan wurde aktualisiert"
 
-        // Create intent to launch MainActivity with VP screen destination
-        val intent = Intent(this, MainActivity::class.java).apply {
-            putExtra("navigate_to_vp", true)
+        val deepLinkUri = "hvkclient://vp".toUri()
+
+        val intent = Intent(Intent.ACTION_VIEW, deepLinkUri).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
 
@@ -207,8 +207,10 @@ class PushNotificationService : FirebaseMessagingService() {
         val title = message.data["title"] ?: "Benachrichtigung"
         val body = message.data["body"] ?: "Eine neue Benachrichtigung ist eingegangen"
 
-        // Create intent to launch MainActivity
-        val intent = Intent(this, MainActivity::class.java).apply {
+        // TODO: ist das sinnvoll?
+        val deepLinkUri = "hvkclient://app".toUri()
+
+        val intent = Intent(Intent.ACTION_VIEW, deepLinkUri).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
 
