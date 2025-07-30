@@ -66,8 +66,8 @@ fun RevealMarkScreen(
     if (gradeAsInt != null) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        var gradePoints = remember { grade.toIntOrNull()?.coerceIn(0, 15) ?: 0 }
-        var randomIndices = remember { (0 until 15).shuffled().take(gradePoints) }
+        val gradePoints = remember { grade.toIntOrNull()?.coerceIn(0, 15) ?: 0 }
+        val randomIndices = remember { (0 until 15).shuffled().take(gradePoints) }
 
         //Text(randomIndices.toString())
 

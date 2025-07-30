@@ -9,7 +9,6 @@ object PreferenceKeys {
     const val USERNAME = "username"
     const val IS_DEVELOPER = "is_developer"
     const val IS_ONBOARDING_COMPLETED = "is_onboarding_completed"
-    const val VP_SELECTED_COURSE_NAME = "vp_selected_course_name"
     const val ACCESS_TOKEN = "access_token"
     const val REFRESH_TOKEN = "refresh_token"
 }
@@ -41,16 +40,6 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun isOnboardingCompleted(): Boolean {
         return prefUtils.getString(PreferenceKeys.IS_ONBOARDING_COMPLETED)?.toBoolean() ?: false
     }
-
-    /*
-    override suspend fun setVpSelectedCourseName(courseName: String) {
-        prefUtils.saveString(PreferenceKeys.VP_SELECTED_COURSE_NAME, courseName)
-    }
-
-    override suspend fun getVpSelectedCourseName(): String? {
-        return prefUtils.getString(PreferenceKeys.VP_SELECTED_COURSE_NAME)
-    }
-    */
 
     override suspend fun setAccessToken(token: String) {
         prefUtils.saveString(PreferenceKeys.ACCESS_TOKEN, token)

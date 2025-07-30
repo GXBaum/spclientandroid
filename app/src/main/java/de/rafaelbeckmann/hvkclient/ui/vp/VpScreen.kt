@@ -58,7 +58,7 @@ fun VpScreen(
     ) {
         Column(
             modifier = modifier
-                .padding(horizontal = 16.dp)
+                //.padding(horizontal = 16.dp)
                 .fillMaxSize()
         ) {
             if (state.selectedCourses.isNotEmpty()) {
@@ -67,9 +67,7 @@ fun VpScreen(
                     pagerState.animateScrollToPage(selectedTabIndex)
                 }
                 LaunchedEffect(pagerState.currentPage, pagerState.isScrollInProgress) {
-                    if (!pagerState.isScrollInProgress) {
-                        selectedTabIndex = pagerState.currentPage
-                    }
+                    selectedTabIndex = pagerState.targetPage
                 }
 
                 PrimaryScrollableTabRow(selectedTabIndex = selectedTabIndex) {
@@ -92,7 +90,11 @@ fun VpScreen(
                     val substitutionsForCourse = courseName?.let { state.substitutions?.substitutions?.get(it) }
                     val allSubstitutions = substitutionsForCourse?.let { it.today + it.tomorrow } // TODO: WHAT
 
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp)
+                    ) {
                         if (allSubstitutions.isNullOrEmpty()) {
                             item(key = "no_substitutions") {
                                 Card(

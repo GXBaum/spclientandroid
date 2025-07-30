@@ -2,8 +2,8 @@ package de.rafaelbeckmann.hvkclient.ui.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
+import com.google.firebase.Firebase
+import com.google.firebase.messaging.messaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest

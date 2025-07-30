@@ -10,20 +10,18 @@ plugins {
     // Navigation Compose
     alias(libs.plugins.kotlin.serialization)
 
-
     id("com.google.devtools.ksp")
-
 }
 
 
 android {
     namespace = "de.rafaelbeckmann.hvkclient"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "de.rafaelbeckmann.hvkclient"
         minSdk = 31
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
@@ -83,7 +81,6 @@ dependencies {
     //Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-
     implementation(libs.firebase.messaging)
 
     //Retrofit
@@ -99,13 +96,11 @@ dependencies {
     // ViewModel Compose
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-
     //Dagger - Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
-
 
     // Navigation Compose
     implementation(libs.navigation.compose)
@@ -113,8 +108,6 @@ dependencies {
 
     //data store
     implementation(libs.androidx.datastore.preferences)
-    //implementation(libs.datastore.pref)
-
 
     // icons
     implementation(libs.androidx.material.icons.extended)
