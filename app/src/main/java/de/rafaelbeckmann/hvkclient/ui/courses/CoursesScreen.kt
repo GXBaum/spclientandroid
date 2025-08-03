@@ -1,18 +1,10 @@
 package de.rafaelbeckmann.hvkclient.ui.courses
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -28,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
+import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
+import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -65,74 +59,37 @@ fun CoursesScreen(
             isRefreshing = uiState.isLoading,
             onRefresh = { viewModel.fetchCourses(username) },
             modifier = Modifier.fillMaxSize(),
-            // indicator = { ContainedLoadingIndicator() }, // TODO: er ist oben links
-            ) {
-            Column(
+            // indicator = { ContainedLoadingIndicator() }, // TODO: das ist alles schwachsinn, ich gebe auf
+        ) {
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
             ) {
                 uiState.error?.let { error ->
-                    ErrorCard(error = error)
+                    item {
+                        ErrorCard(error = error)
+                    }
                 }
 
                 if (uiState.courses.isNotEmpty()) {
-                    // TODO: vielleicht zu einem eigenen Composable machen
-                    LazyColumn {
-                        items(
-                            items = uiState.courses,
-                            key = { course -> course.courseId }
-                        ) { course ->
-
-                            val isFirst = uiState.courses.first() == course
-                            val isLast = uiState.courses.last() == course
-                            val shape = if (isFirst && isLast) {
-                                RoundedCornerShape(16.dp)
-                            } else if (isFirst) {
-                                RoundedCornerShape(
-                                    topStart = 16.dp,
-                                    topEnd = 16.dp,
-                                    bottomStart = 4.dp,
-                                    bottomEnd = 4.dp
-                                )
-                            } else if (isLast) {
-                                RoundedCornerShape(
-                                    topStart = 4.dp,
-                                    topEnd = 4.dp,
-                                    bottomStart = 16.dp,
-                                    bottomEnd = 16.dp
-                                )
-                            } else {
-                                RoundedCornerShape(4.dp)
-                            }
-
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 1.dp)
-                                    .clickable { onCourseClick(course) }
-                                    .animateItem(),
-                            shape = shape,
-                                color = MaterialTheme.colorScheme.surfaceContainer,
-                            ) {
-                                Row {
+                    roundedListItems(
+                        items = uiState.courses,
+                        key = { course -> course.courseId },
+                        onItemClick = { course -> onCourseClick(course) }
+                    ) { course ->
+                        RoundedListItem(
+                            text = course.name,
+                            trailingIcon = {
+                                if (isDeveloper) {
                                     Text(
-                                        text = course.name,
-                                        modifier = Modifier.padding(16.dp)
+                                        text = course.courseId.toString(),
+                                        modifier = Modifier
+                                            .padding(16.dp)
                                     )
-                                    if (isDeveloper) {
-                                        Spacer(
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        Text(
-                                            text = course.courseId.toString(),
-                                            modifier = Modifier
-                                                .padding(16.dp)
-                                        )
-                                    }
                                 }
                             }
-                        }
+                        )
                     }
                 }
             }

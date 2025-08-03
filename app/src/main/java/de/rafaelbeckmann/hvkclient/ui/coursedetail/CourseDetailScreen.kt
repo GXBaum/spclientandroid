@@ -1,7 +1,6 @@
 package de.rafaelbeckmann.hvkclient.ui.coursedetail
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,8 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Today
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,7 +20,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialShapes.Companion.Cookie12Sided
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.toShape
@@ -43,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
+import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,11 +104,8 @@ fun MarksList(
 ) {
     val groupedMarks = marks.groupBy { it.half_year }
 
-    LazyColumn(
-    ) {
-        item (
-            key = "header"
-        ){
+    LazyColumn {
+        item(key = "header") {
             Text(
                 text = "Kursnoten",
                 style = MaterialTheme.typography.headlineMedium,
@@ -121,9 +115,7 @@ fun MarksList(
 
         // TODO: manchmal falsche Reihenfolge
         groupedMarks.forEach { (halfYear, marksInGroup) ->
-            item (
-                key = "halfYear_$halfYear"
-            ){
+            item(key = "halfYear_$halfYear") {
                 Text(
                     text = "Halbjahr: $halfYear",
                     style = MaterialTheme.typography.titleLarge,
@@ -131,84 +123,60 @@ fun MarksList(
                 )
             }
 
-            // TODO: vielleicht zu einem eigenen Composable machen
-
-            items(
+            roundedListItems(
                 items = marksInGroup,
-                key = { it.mark_id }
+                key = { it.mark_id },
+                onItemClick = onMarkClick
             ) { mark ->
-                val isFirst = marksInGroup.first() == mark
-                val isLast = marksInGroup.last() == mark
-                val shape = if (isFirst && isLast) {
-                    RoundedCornerShape(16.dp)
-                } else if (isFirst) {
-                    RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-                } else if (isLast) {
-                    RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
-                } else {
-                    RoundedCornerShape(4.dp)
-                }
-
-                Surface(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 1.dp)
-                        .clickable { onMarkClick(mark) }
-                        .animateItem(),
-                    shape = shape,
-                    color = MaterialTheme.colorScheme.surfaceContainer
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-
-                            if (mark.name.isNotEmpty()){
-                                Text(
-                                    text = mark.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            } else {
-                                Text(
-                                    text = "kein Titel",
-                                    fontStyle = FontStyle.Italic
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Row {
-                                Icon(
-                                    imageVector = Icons.Rounded.Today,
-                                    contentDescription = null,
-                                )
-                                Text(text = mark.date)
-                            }
-
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        Box(
-                            modifier = Modifier
-                                .size(64.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    shape = Cookie12Sided.toShape()
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        if (mark.name.isNotEmpty()) {
                             Text(
-                                text = mark.grade,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.headlineMedium
+                                text = mark.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        } else {
+                            Text(
+                                text = "kein Titel",
+                                fontStyle = FontStyle.Italic
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row {
+                            Icon(
+                                imageVector = Icons.Rounded.Today,
+                                contentDescription = null,
+                            )
+                            Text(text = mark.date)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = Cookie12Sided.toShape()
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = mark.grade,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.headlineMedium
+                        )
                     }
                 }
             }
