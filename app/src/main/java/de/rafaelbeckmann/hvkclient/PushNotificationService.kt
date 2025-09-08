@@ -22,11 +22,9 @@ import javax.inject.Inject
 // TODO: komplett neu machen
 @AndroidEntryPoint
 class PushNotificationService : FirebaseMessagingService() {
-    @Inject
-    lateinit var repository: HvkRepository
 
-    @Inject
-    lateinit var settingsRepository: SettingsRepository
+    @Inject lateinit var repository: HvkRepository
+    @Inject lateinit var settingsRepository: SettingsRepository
 
     // Single coroutine scope for the service
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -129,104 +127,42 @@ class PushNotificationService : FirebaseMessagingService() {
             Log.d(TAG, "Message body: ${message.notification?.body}")
         }
 
-        when {
-            message.data["grade"] != null -> handleGradeNotification(message)
-            message.data["open_vp"] != null -> handleVpUpdateNotification(message)
-            else -> handleOtherNotification(message)
-        }
+        handleNotification(message)
+
     }
 
-    private fun handleGradeNotification(message: RemoteMessage) {
-        Log.d(TAG, "Grade notification received: ${message.data}")
+    private fun handleNotification(message: RemoteMessage) {
+        Log.d(TAG, "notification received: ${message.data}")
 
-        val grade = message.data["grade"]
-        Log.d(TAG, grade.toString())
+        val channelId = when (message.data["channel_id"]){
+            CHANNEL_GRADES -> CHANNEL_GRADES
+            CHANNEL_VP_UPDATES -> CHANNEL_VP_UPDATES
+            else -> CHANNEL_OTHER
+        }
 
-        val title = message.data["title"] ?: "Neue Note"
-        val body = message.data["body"] ?: "Eine neue Note ist verfügbar"
+        val title = message.data["title"] ?: "unbekannte Benachrichtigung"
+        val body = message.data["body"] ?: "bitte gib Bescheid, um das Problem zu beheben"
 
-        val deepLinkUri = "hvkclient://revealmark/$grade".toUri()
+
+        // TODO: hvkclient://app ist vlt dumm
+        val deepLinkUri = (message.data["deepLink"] ?: "hvkclient://app").toUri()
 
         val intent = Intent(Intent.ACTION_VIEW, deepLinkUri).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
-
         val pendingIntent = PendingIntent.getActivity(
             this, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         // Build notification
-        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_GRADES)
+        val notificationBuilder = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-
-        showNotification(notificationBuilder)
-    }
-
-    private fun handleVpUpdateNotification(message: RemoteMessage) {
-        Log.d(TAG, "VP update notification received")
-
-        val title = message.data["title"] ?: "Vertretungsplan Update"
-        val body = message.data["body"] ?: "Der Vertretungsplan wurde aktualisiert"
-
-        val deepLinkUri = "hvkclient://vp".toUri()
-
-        val intent = Intent(Intent.ACTION_VIEW, deepLinkUri).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
-            this, 1, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // Build notification
-        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_VP_UPDATES)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-
-        showNotification(notificationBuilder)
-    }
-
-    private fun handleOtherNotification(message: RemoteMessage) {
-        Log.d(TAG, "Other notification received")
-
-        val title = message.data["title"] ?: "Benachrichtigung"
-        val body = message.data["body"] ?: "Eine neue Benachrichtigung ist eingegangen"
-
-        // TODO: ist das sinnvoll?
-        val deepLinkUri = "hvkclient://app".toUri()
-
-        val intent = Intent(Intent.ACTION_VIEW, deepLinkUri).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
-            this, 2, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // Build notification
-        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_OTHER)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setPriority(NotificationCompat.PRIORITY_HIGH) // TODO: muss das anders sein bei z.B other notifications?
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE) // TODO: muss das anders sein bei nicht-Nachrichten
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 
@@ -238,4 +174,4 @@ class PushNotificationService : FirebaseMessagingService() {
         val notificationId = (System.currentTimeMillis() % 10000).toInt()
         notificationManager.notify(notificationId, builder.build())
     }
-} 
+}

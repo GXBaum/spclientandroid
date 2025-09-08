@@ -42,6 +42,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.ui.common.CopyTokenButton
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
+import kotlinx.coroutines.android.awaitFrame
 
 sealed class CourseListItem {
     data class Course(val name: String) : CourseListItem()
@@ -240,7 +241,11 @@ private fun AddCourseDialog(
     var courseName by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
+    /*LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }*/
+    LaunchedEffect(focusRequester) {
+        awaitFrame() // wait until dialog is there as the focus doesnt work TODO: check if a new version fixes it
         focusRequester.requestFocus()
     }
 

@@ -36,6 +36,14 @@ interface HvkClientApi {
         @Body tokenUpdate: TokenUpdateRequest
     ): Response<Any>
 
+    /*
+    // TODO add
+    @POST("users")
+    suspend fun createAccount(
+        @Body request: createAccountRequest
+    ): Response<>
+    */
+
     @GET("users/{username}/courses")
     suspend fun getUserCourses(
         @Path("username") username: String

@@ -116,4 +116,7 @@ dependencies {
     implementation(libs.androidx.room)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.ksp)
+
+    // für SplashScreen (Theme.Material3.DayNight.NoActionBar)
+    implementation(libs.material)
 }

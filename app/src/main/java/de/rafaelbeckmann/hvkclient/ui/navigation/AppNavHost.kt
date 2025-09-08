@@ -108,18 +108,28 @@ fun AppNavHost(
             //scaleOut(animationSpec = tween(durationMillis = 200), targetScale = 0.95f)
         }
     ) {
+        // TODO: vlt müssen die deepLinks sinnvollerf benannt werden
         navigation<VpGraph>(
-            startDestination = VpScreen,
+            startDestination = VpScreen(""),
             deepLinks = listOf(
                 navDeepLink<VpGraph>(
                     basePath = "hvkclient://vp"
                 )
             )
         ) {
-            composable<VpScreen> {
+            composable<VpScreen> (
+                deepLinks = listOf(
+                    navDeepLink<VpScreen>(
+                        basePath = "hvkclient://vpScreen"
+                    )
+                )
+            ){
+                val args = it.toRoute<VpScreen>()
+
                 VpScreen(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxSize(),
+                    course = args.course
                 )
             }
         }
@@ -154,6 +164,7 @@ fun AppNavHost(
                 )
             }
 
+            // TODO: soll die Note ein query argument sein?
             composable<RevealMarkScreen> (
                 deepLinks = listOf(
                     navDeepLink<RevealMarkScreen>(

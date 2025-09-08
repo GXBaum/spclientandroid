@@ -33,7 +33,9 @@ data class RevealMarkScreen(
 object SettingsScreen
 
 @Serializable
-object VpScreen
+data class VpScreen(
+    val course: String? = null
+)
 
 @Serializable
 object OnboardingScreen
