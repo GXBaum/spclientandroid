@@ -4,6 +4,8 @@ import android.app.Application
 import android.util.Log
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
+import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
+import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.data.model.LoginRequest
 import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
@@ -80,15 +82,15 @@ class HvkRepositoryImpl(
         }
     }
 
-    override fun getUserCourses(username: String): Flow<Resource<List<UserCourse>>> = networkBoundResource(
+    override fun getUserCourses(userId: Int): Flow<Resource<List<UserCourse>>> = networkBoundResource(
         query = { cacheDao.getUserCourses() },
-        fetch = { api.getUserCourses(username) },
+        fetch = { api.getUserCourses(userId) },
         saveFetchResult = { cacheDao.insertUserCourses(it.courses) }
     )
 
-    override suspend fun updateToken(username: String, tokenUpdateRequest: TokenUpdateRequest): Result<Unit> {
+    override suspend fun updateToken(userId: Int, tokenUpdateRequest: TokenUpdateRequest): Result<Unit> {
         return try {
-            val response = api.updateToken(username, tokenUpdateRequest)
+            val response = api.updateToken(userId, tokenUpdateRequest)
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
@@ -99,18 +101,18 @@ class HvkRepositoryImpl(
         }
     }
 
-    override fun getUserMarksForCourse(username: String, courseId: Int): Flow<Resource<List<UserMark>>> = networkBoundResource(
+    override fun getUserMarksForCourse(userId: Int, courseId: Int): Flow<Resource<List<UserMark>>> = networkBoundResource(
         query = { cacheDao.getUserMarksForCourse(courseId) },
-        fetch = { api.getUserMarksForCourse(username, courseId) },
+        fetch = { api.getUserMarksForCourse(userId, courseId) },
         saveFetchResult = {
             cacheDao.deleteUserMarksForCourse(courseId)
             cacheDao.insertUserMarks(it.marks)
         }
     )
 
-    override suspend fun postVpSelectedCourses(username: String, courseName: VpSelectedCourse): Result<Unit> {
+    override suspend fun postVpSelectedCourses(userId: Int, courseName: VpSelectedCourse): Result<Unit> {
         return try {
-            val response = api.postVpSelectedCourses(username, courseName)
+            val response = api.postVpSelectedCourses(userId, courseName)
             if (response.isSuccessful) {
                 cacheDao.insertVpSelectedCourses(listOf(courseName))
                 Result.success(Unit)
@@ -122,26 +124,26 @@ class HvkRepositoryImpl(
         }
     }
 
-    override fun getVpSelectedCourses(username: String): Flow<Resource<List<String>>> = networkBoundResource(
+    override fun getVpSelectedCourses(userId: Int): Flow<Resource<List<String>>> = networkBoundResource(
         query = {
             cacheDao.getVpSelectedCourses().map { courses ->
                 courses.map { it.courseName }
             }
         },
-        fetch = { api.getVpSelectedCourses(username) },
+        fetch = { api.getVpSelectedCourses(userId) },
         saveFetchResult = { response ->
             cacheDao.clearVpSelectedCourses()
-            val courses = response.courses.map { VpSelectedCourse(it) }
+            val courses = response.courses.map { VpSelectedCourse(it.course) }
             cacheDao.insertVpSelectedCourses(courses)
         }
     )
 
-    override suspend fun deleteVpSelectedCourse(username: String, courseName: String): Result<Unit> {
+    override suspend fun deleteVpSelectedCourse(userId: Int, courseName: String): Result<Unit> {
         return try {
             // TODO: ist es vlt doch besser, es im body zu schicken, dann wäre das nicht nötig
             // TODO: das ist gottlos dumm, aber er macht es zu + und nicht %20
             val encodedCourseName = URLEncoder.encode(courseName, "UTF-8").replace("+", "%20")
-            val response = api.deleteVpSelectedCourse(username, encodedCourseName)
+            val response = api.deleteVpSelectedCourse(userId, encodedCourseName)
             if (response.isSuccessful) {
                 // TODO: Uncomment when cacheDao is implemented
                 //cacheDao.deleteVpSelectedCourse(courseName)
@@ -176,6 +178,43 @@ class HvkRepositoryImpl(
                     val cacheEntry = VpSubstitutionsCache(courseName, vpClass)
                     cacheDao.insertVpSubstitutionsCache(cacheEntry)
                 }
+            }
+        )
+    }
+
+    // TODO: vielleicht nicht direkt be jedem buchstaben suchen
+    override fun getCourseSearch(courseName: String): Flow<Resource<List<String>>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.getCourseSearch(courseName)
+            if (response.isSuccessful) {
+                val courses = response.body()?.courses ?: emptyList()
+                emit(Resource.Success(courses))
+            } else {
+                emit(Resource.Error("Course search failed: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Unknown error"))
+        }
+    }
+
+    override fun getFeatureFlags(): Flow<Resource<FeatureFlag>> {
+        return networkBoundResource(
+            query = {
+                cacheDao.getFeatureFlags().map { rows ->
+                    FeatureFlag(rows.associate { it.key to it.value })
+                }
+            },
+            fetch = { api.getFeatureFlags() },
+            saveFetchResult = { result ->
+                cacheDao.clearFeatureFlags()
+                val rows = result.featureFlags.map { (key, value) ->
+                    FeatureFlagEntity(
+                        key = key,
+                        value = value
+                    )
+                }
+                cacheDao.upsertFeatureFlags(rows)
             }
         )
     }

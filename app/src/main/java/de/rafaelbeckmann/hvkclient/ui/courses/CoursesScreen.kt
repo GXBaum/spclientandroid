@@ -31,24 +31,17 @@ fun CoursesScreen(
     onCourseClick: (UserCourse) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var username by remember { mutableStateOf("") }
+    var userId by remember { mutableStateOf<Int?>(null) }
     var isDeveloper by remember { mutableStateOf(false) }
-
-    // Use the PrefUtils instance from the ViewModel
-    val prefUtils = viewModel.prefUtils
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(Unit) {
-        // TODO: Use a SettingsRepository instead of PrefUtils directly
-        val savedUsername = prefUtils.getString("username")
-        username = savedUsername.orEmpty()
-        if (username.isNotEmpty()) {
-            viewModel.fetchCourses(username)
-        }
+        val savedUsername = viewModel.getUserId()
+        userId = savedUsername
+        userId?.let { viewModel.fetchCourses(it) }
 
-        // TODO: Use a SettingsRepository instead of PrefUtils directly
-        val savedIsDeveloper = prefUtils.getString("is_developer")
-        isDeveloper = savedIsDeveloper == "true"
+        // TODO: warum ist das überhaupt da?
+        val isDeveloper = viewModel.isDeveloper()
     }
 
     Surface(
@@ -57,7 +50,7 @@ fun CoursesScreen(
     ) {
         PullToRefreshBox(
             isRefreshing = uiState.isLoading,
-            onRefresh = { viewModel.fetchCourses(username) },
+            onRefresh = { userId?.let { viewModel.fetchCourses(it) } },
             modifier = Modifier.fillMaxSize(),
             // indicator = { ContainedLoadingIndicator() }, // TODO: das ist alles schwachsinn, ich gebe auf
         ) {

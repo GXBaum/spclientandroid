@@ -37,14 +37,14 @@ open class OnboardingViewModel @Inject constructor(
                         viewModelScope.launch {
                             settingsRepository.setAccessToken(it.accessToken)
                             settingsRepository.setRefreshToken(it.refreshToken)
-                            settingsRepository.setUsername(username)
+                            settingsRepository.setUserId(it.userId)
                             settingsRepository.setOnboardingCompleted(true)
                             _loginState.value = LoginState.Success
                         }
 
                         // TODO: Firebase.messaging.token.await() auch ins repo?
-                        val tokenUpdateRequest = TokenUpdateRequest(Firebase.messaging.token.await(), username)
-                        repository.updateToken(username, tokenUpdateRequest)
+                        val tokenUpdateRequest = TokenUpdateRequest(Firebase.messaging.token.await(), it.userId)
+                        repository.updateToken(it.userId, tokenUpdateRequest)
                     } ?: run {
                         _loginState.value = LoginState.Error("Login response was empty.")
                     }

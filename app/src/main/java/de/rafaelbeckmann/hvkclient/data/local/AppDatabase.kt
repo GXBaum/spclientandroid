@@ -3,6 +3,7 @@ package de.rafaelbeckmann.hvkclient.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpClassConverter
@@ -16,7 +17,8 @@ import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
         UserMark::class,
         VpSelectedCourse::class,
         VpSubstitution::class,
-        VpSubstitutionsCache::class
+        VpSubstitutionsCache::class,
+        FeatureFlagEntity::class
     ],
     version = 1,
     exportSchema = false

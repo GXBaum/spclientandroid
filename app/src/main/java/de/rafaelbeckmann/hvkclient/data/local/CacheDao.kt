@@ -5,12 +5,14 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
 import kotlinx.coroutines.flow.Flow
 
+// TODO: maybe replace replace with ignore?
 @Dao
 interface CacheDao {
 
@@ -56,11 +58,22 @@ interface CacheDao {
     @Query("DELETE FROM vp_substitutions_cache WHERE courseName IN (:courseNames)")
     suspend fun deleteVpSubstitutionsForCourses(courseNames: List<String>)
 
+    // Feature flags
+    @Query("SELECT * FROM feature_flag")
+    fun getFeatureFlags(): Flow<List<FeatureFlagEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertFeatureFlags(flags: List<FeatureFlagEntity>)
+
+    @Query("DELETE FROM feature_flag")
+    suspend fun clearFeatureFlags()
+
     @Transaction
     suspend fun clearAllCache() {
         clearUserCourses()
         clearUserMarks()
         clearVpSelectedCourses()
         clearVpSubstitutionsCache()
+        clearFeatureFlags()
     }
 }

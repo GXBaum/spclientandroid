@@ -25,10 +25,13 @@ open class SettingsViewModel @Inject constructor(
     private val repository: HvkRepository,
     private val settingsRepository: SettingsRepository,
     open val prefUtils: PrefUtils
-): ViewModel() {
+) : ViewModel() {
 
     private val _vpSelectedCourse = MutableStateFlow<List<String>>(emptyList())
     open val vpSelectedCourse: StateFlow<List<String>> = _vpSelectedCourse
+
+    private val _courseSearch = MutableStateFlow<List<String>>(emptyList())
+    open val courseSearch: StateFlow<List<String>> = _courseSearch
 
     private val _isLoading = MutableStateFlow(false)
     open val isLoading: StateFlow<Boolean> = _isLoading
@@ -37,49 +40,50 @@ open class SettingsViewModel @Inject constructor(
     open val error: StateFlow<String?> = _error
 
     var isDeveloper = mutableStateOf(false)
-    var username = mutableStateOf("")
+    var userId = mutableStateOf<Int?>(null)
 
     init {
         viewModelScope.launch {
             isDeveloper.value = settingsRepository.isDeveloper()
-            username.value = settingsRepository.getUsername() ?: ""
+            userId.value = settingsRepository.getUserId()
 
             Log.d("SettingsViewModel", "refreshToken: ${settingsRepository.getRefreshToken()}")
 
-            if (username.value.isNotEmpty()) {
-                fetchSpSelectedCourse(username.value)
+            if (userId.value != null) {
+                fetchSpSelectedCourse(userId.value!!)
             }
         }
     }
 
-    fun saveUsername(username: String) {
+    fun saveUsername(userId: Int) {
         viewModelScope.launch {
-            settingsRepository.setUsername(username)
+            settingsRepository.setUserId(userId)
+            fetchSpSelectedCourse(userId)
         }
     }
 
 
     // TODO: fetcht mehrere Male
-    fun fetchSpSelectedCourse(username: String) {
-        repository.getVpSelectedCourses(username).onEach { result ->
-            Log.d("SettingsViewModel", "username: $username")
+    fun fetchSpSelectedCourse(userId: Int) {
+        repository.getVpSelectedCourses(userId).onEach { result ->
+            Log.d("SettingsViewModel", "username: ${this@SettingsViewModel.userId}")
             when (result) {
                 is Resource.Loading -> {
-                    Log.d("SettingsViewModel", "Loading vpSelectedCourse for user: $username - Result: $result")
+                    Log.d("SettingsViewModel", "Loading vpSelectedCourse for user: ${this@SettingsViewModel.userId} - Result: $result")
                     _isLoading.value = true
                     result.data?.let {
                         _vpSelectedCourse.value = it
                     }
                 }
                 is Resource.Success -> {
-                    Log.d("SettingsViewModel", "Success fetching vpSelectedCourse for user: $username - Data: ${result.data}")
+                    Log.d("SettingsViewModel", "Success fetching vpSelectedCourse for user: ${this@SettingsViewModel.userId} - Data: ${result.data}")
                     _isLoading.value = false
                     _error.value = null
                     _vpSelectedCourse.value = result.data ?: emptyList()
                     Log.d("SettingsViewModel", "vpSelectedCourse: ${result.data}")
                 }
                 is Resource.Error -> {
-                    Log.e("SettingsViewModel", "Error fetching vpSelectedCourse for user: $username, message: ${result.message}")
+                    Log.e("SettingsViewModel", "Error fetching vpSelectedCourse for user: ${this@SettingsViewModel.userId}, message: ${result.message}")
                     _isLoading.value = false
                     _error.value = result.message
                     result.data?.let {
@@ -98,42 +102,77 @@ open class SettingsViewModel @Inject constructor(
 
     // TODO: man kann einen Kurs "" erstellen, der dann nicht mehr gelöscht werden kann
     fun postVpSelectedCourse(courseName: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
+        if (courseName.isBlank()) return
+        userId.value?.let { id ->
+            viewModelScope.launch {
+                _isLoading.value = true
+                _error.value = null
 
-            //settingsRepository.setVpSelectedCourseName(courseName)
+                //settingsRepository.setVpSelectedCourseName(courseName)
 
-            try {
-                val courseObject = VpSelectedCourse(courseName)
+                try {
+                    val courseObject = VpSelectedCourse(courseName)
 
-                repository.postVpSelectedCourses(username.value, courseObject)
+                    repository.postVpSelectedCourses(id, courseObject)
 
-                // After posting successfully, refresh the data
-                fetchSpSelectedCourse(username.value)
-            } catch (exception: Exception) {
-                _error.value = exception.message
-                _isLoading.value = false
+                    // After posting successfully, refresh the data
+                    fetchSpSelectedCourse(id)
+                } catch (exception: Exception) {
+                    _error.value = exception.message
+                    _isLoading.value = false
+                }
             }
         }
     }
 
     // TODO: irgendwie mehr responsive machen
     fun deleteVpSelectedCourse(courseName: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
+        userId.value?.let { id ->
+            viewModelScope.launch {
+                _isLoading.value = true
+                _error.value = null
 
-            try {
-                repository.deleteVpSelectedCourse(username.value, courseName)
+                try {
+                    repository.deleteVpSelectedCourse(id, courseName)
 
-                // After deleting successfully, refresh the data
-                fetchSpSelectedCourse(username.value)
-            } catch (exception: Exception) {
-                _error.value = exception.message
-                _isLoading.value = false
+                    // After deleting successfully, refresh the data
+                    fetchSpSelectedCourse(id)
+                } catch (exception: Exception) {
+                    _error.value = exception.message
+                    _isLoading.value = false
+                }
             }
         }
+    }
+
+    // TODO: maybe don't search for every letter and cache?
+    fun searchCourses(courseName: String) {
+        repository.getCourseSearch(courseName).onEach { result ->
+            Log.d("SettingsViewModel", "username: $userId")
+            when (result) {
+                is Resource.Loading -> {
+                    _isLoading.value = true
+                    result.data?.let {
+                        _courseSearch.value = it
+                    }
+                }
+                is Resource.Success -> {
+                    _isLoading.value = false
+                    _error.value = null
+                    _courseSearch.value = result.data ?: emptyList()
+                }
+                is Resource.Error -> {
+                    _isLoading.value = false
+                    _error.value = result.message
+                    result.data?.let {
+                        _courseSearch.value = it
+                    }
+                }
+            }
+        }.catch { exception ->
+            _isLoading.value = false
+            _error.value = exception.message
+        }.launchIn(viewModelScope)
     }
 
 
@@ -141,26 +180,11 @@ open class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             isDeveloper.value = !isDeveloper.value
             settingsRepository.setIsDeveloper(isDeveloper.value)
-
-            if (isDeveloper.value) {
-                Log.d("SettingsViewModel", "Developer mode enabled")
-
-                Toast.makeText(
-                    context,
-                    "Du bist jetzt im Debug Modus (No Diddy)",
-                    Toast.LENGTH_LONG
-                ).show()
-
-            } else {
-                Log.d("SettingsViewModel", "Developer mode disabled")
-
-                Toast.makeText(
-                    context,
-                    "Du bist jetzt wieder im normalen Modus",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-
+            Toast.makeText(
+                context,
+                if (isDeveloper.value) "Du bist jetzt im Debug Modus (No Diddy)" else "Du bist jetzt wieder im normalen Modus",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -190,6 +214,7 @@ open class SettingsViewModel @Inject constructor(
             Log.d("SettingsViewModel", "Access token deleted")
         }
     }
+
     fun deleteRefreshToken() {
         viewModelScope.launch {
             settingsRepository.setRefreshToken("")

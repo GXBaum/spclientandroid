@@ -29,6 +29,7 @@ import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreenPage3
 import de.rafaelbeckmann.hvkclient.ui.revealmark.RevealMarkScreen
 import de.rafaelbeckmann.hvkclient.ui.settings.SettingsScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpScreen
+import de.rafaelbeckmann.hvkclient.ui.vp.VpWebView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -108,13 +109,12 @@ fun AppNavHost(
             //scaleOut(animationSpec = tween(durationMillis = 200), targetScale = 0.95f)
         }
     ) {
-        // TODO: vlt müssen die deepLinks sinnvollerf benannt werden
+        // TODO: vlt müssen die deepLinks sinnvoller benannt werden
         navigation<VpGraph>(
             startDestination = VpScreen(""),
             deepLinks = listOf(
-                navDeepLink<VpGraph>(
-                    basePath = "hvkclient://vp"
-                )
+                navDeepLink { uriPattern = "hvkclient://vp" },
+                //navDeepLink { uriPattern = "https://rafaelbeckmann.de/hvkclient/vp" }
             )
         ) {
             composable<VpScreen> (
@@ -129,7 +129,24 @@ fun AppNavHost(
                 VpScreen(
                     modifier = Modifier
                         .fillMaxSize(),
-                    course = args.course
+                    course = args.course,
+                    onVpOpenClick = {
+                        navController.navigate(VpWebView)
+                    },
+                )
+            }
+
+            // TODO: makes vpWebView shit again, but animations would be nice
+            composable<VpWebView> {
+                VpWebView(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        /*.sharedBounds(
+                            sharedContentState = rememberSharedContentState(
+                                key = VP_FAB_EXPLODE_BOUND
+                            ),
+                            animatedVisibilityScope = this
+                        )*/
                 )
             }
         }
@@ -230,7 +247,7 @@ fun AppNavHost(
                             prefUtils.saveString("is_onboarding_completed", "true")
                         }
                         navController.navigate(VpGraph) {
-                            popUpTo(OnboardingGraph::class.qualifiedName!!) {
+                            popUpTo(OnboardingGraph) {
                                 inclusive = true
                             }
                         }

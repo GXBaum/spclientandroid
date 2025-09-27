@@ -49,23 +49,24 @@ class PushNotificationService : FirebaseMessagingService() {
         Log.d(TAG, "New FCM token received: $token")
 
         serviceScope.launch {
-            val username = settingsRepository.getUsername()
-            if (!username.isNullOrEmpty()) {
-                sendTokenToServer(token, username)
+            val userId = settingsRepository.getUserId()
+            if (userId != null) {
+                sendTokenToServer(token, userId)
             } else {
+                // TODO: no explanation needed
                 Log.d(TAG, "Token updated, will send when user logs in")
             }
         }
     }
 
-    private fun sendTokenToServer(token: String, username: String) {
+    private fun sendTokenToServer(token: String, userId: Int) {
         serviceScope.launch {
             try {
-                Log.d(TAG, "Sending token to server for user: $username")
+                Log.d(TAG, "Sending token to server for user: $userId")
 
                 // make TokenUpdateRequest object
-                val tokenUpdateRequest = TokenUpdateRequest(token, username)
-                repository.updateToken(username, tokenUpdateRequest)
+                val tokenUpdateRequest = TokenUpdateRequest(token, userId)
+                repository.updateToken(userId, tokenUpdateRequest)
 
                 Log.d(TAG, "Token sent successfully")
             } catch (e: Exception) {
@@ -128,12 +129,13 @@ class PushNotificationService : FirebaseMessagingService() {
         }
 
         handleNotification(message)
-
     }
 
     private fun handleNotification(message: RemoteMessage) {
         Log.d(TAG, "notification received: ${message.data}")
 
+        // TODO: improve this code
+        // TODO: let more notification settings be controlled by the server
         val channelId = when (message.data["channel_id"]){
             CHANNEL_GRADES -> CHANNEL_GRADES
             CHANNEL_VP_UPDATES -> CHANNEL_VP_UPDATES
@@ -157,7 +159,7 @@ class PushNotificationService : FirebaseMessagingService() {
 
         // Build notification
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification) // TODO: maybe make this adaptable?
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))

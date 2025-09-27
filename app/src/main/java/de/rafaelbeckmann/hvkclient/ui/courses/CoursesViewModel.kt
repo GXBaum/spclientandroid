@@ -7,6 +7,7 @@ import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +25,8 @@ data class CoursesUiState(
 @HiltViewModel
 open class CoursesViewModel @Inject constructor(
     private val repository: HvkRepository,
-    open val prefUtils: PrefUtils
+    open val prefUtils: PrefUtils,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CoursesUiState())
@@ -33,8 +35,8 @@ open class CoursesViewModel @Inject constructor(
     /**
      * Fetches courses for the given username
      */
-    open fun fetchCourses(username: String) {
-        repository.getUserCourses(username).onEach { result ->
+    open fun fetchCourses(userId: Int) {
+        repository.getUserCourses(userId).onEach { result ->
             _uiState.update { currentState ->
                 when (result) {
                     is Resource.Loading -> {
@@ -61,5 +63,13 @@ open class CoursesViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
+    }
+
+    open suspend fun getUserId(): Int? {
+        return settingsRepository.getUserId()
+    }
+
+    open suspend fun isDeveloper(): Boolean {
+        return settingsRepository.isDeveloper()
     }
 }

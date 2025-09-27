@@ -1,5 +1,7 @@
 package de.rafaelbeckmann.hvkclient.data.remote
 
+import de.rafaelbeckmann.hvkclient.data.model.CourseSearchResponse
+import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
 import de.rafaelbeckmann.hvkclient.data.model.LoginRequest
 import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
 import de.rafaelbeckmann.hvkclient.data.model.RefreshTokenRequest
@@ -30,9 +32,9 @@ interface HvkClientApi {
         @Body request: RefreshTokenRequest
     ): Response<TokenRefreshResponse>
 
-    @PUT("users/{username}/notification-token")
+    @PUT("users/{userId}/notification-token")
     suspend fun updateToken(
-        @Path("username") username: String,
+        @Path("userId") userId: Int,
         @Body tokenUpdate: TokenUpdateRequest
     ): Response<Any>
 
@@ -44,31 +46,40 @@ interface HvkClientApi {
     ): Response<>
     */
 
-    @GET("users/{username}/courses")
+    @GET("featureFlags")
+    suspend fun getFeatureFlags(
+    ): Response<FeatureFlag>
+
+    @GET("courseSearch")
+    suspend fun getCourseSearch(
+        @Query("courseName") courseName: String
+    ): Response<CourseSearchResponse>
+
+    @GET("users/{userId}/courses")
     suspend fun getUserCourses(
-        @Path("username") username: String
+        @Path("userId") userId: Int
     ): Response<UserCourses>
 
-    @GET("users/{username}/{courseId}/marks")
+    @GET("users/{userId}/{courseId}/marks")
     suspend fun getUserMarksForCourse(
-        @Path("username") username: String,
+        @Path("userId") userId: Int,
         @Path("courseId") courseId: Int
     ): Response<UserMarks>
 
-    @POST("users/{username}/vpSelectedCourses")
+    @POST("users/{userId}/vpSelectedCourses")
     suspend fun postVpSelectedCourses(
-        @Path("username") username: String,
+        @Path("userId") userId: Int,
         @Body courseName: VpSelectedCourse
     ): Response<Any>
 
-    @GET("users/{username}/vpSelectedCourses")
+    @GET("users/{userId}/vpSelectedCourses")
     suspend fun getVpSelectedCourses(
-        @Path("username") username: String
+        @Path("userId") userId: Int
     ): Response<VpSelectedCoursesResponse>
 
-    @DELETE("users/{username}/vpSelectedCourses/{courseName}")
+    @DELETE("users/{userId}/vpSelectedCourses/{courseName}")
     suspend fun deleteVpSelectedCourse(
-        @Path("username") username: String,
+        @Path("userId") userId: Int,
         @Path("courseName") courseName: String
     ): Response<Any>
 

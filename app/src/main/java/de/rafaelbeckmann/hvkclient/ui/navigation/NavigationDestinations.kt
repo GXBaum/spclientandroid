@@ -46,6 +46,9 @@ object OnboardingScreenPage2
 @Serializable
 object OnboardingScreenPage3
 
+@Serializable
+object VpWebView
+
 
 data class NavItem(
     val label: String,

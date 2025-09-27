@@ -33,8 +33,8 @@ open class CourseDetailViewModel @Inject constructor(
     /**
      * Fetches courses for the given username
      */
-    open fun fetchUserMarks(courseId: Int, username: String) {
-        repository.getUserMarksForCourse(username, courseId).onEach { result ->
+    open fun fetchUserMarks(courseId: Int, userId: Int) {
+        repository.getUserMarksForCourse(userId, courseId).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                     _isLoading.value = true
@@ -60,7 +60,7 @@ open class CourseDetailViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    open suspend fun getUsername(): String {
-        return settingsRepository.getUsername() ?: ""
+    open suspend fun getUserId(): Int? {
+        return settingsRepository.getUserId()
     }
 }

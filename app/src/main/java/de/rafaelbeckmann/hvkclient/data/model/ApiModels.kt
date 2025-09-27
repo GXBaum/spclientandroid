@@ -8,6 +8,20 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 
 // TODO: split into multiple files
 
+data class CourseSearchResponse(
+    val courses: List<String>
+)
+
+data class FeatureFlag(
+    val featureFlags: Map<String, Boolean>
+)
+
+@Entity(tableName = "feature_flag")
+data class FeatureFlagEntity(
+    @PrimaryKey val key: String,
+    val value: Boolean
+)
+
 data class LoginRequest(
     val username: String,
     val password: String
@@ -15,7 +29,8 @@ data class LoginRequest(
 
 data class LoginResponse(
     val accessToken: String,
-    val refreshToken: String
+    val refreshToken: String,
+    val userId: Int
 )
 
 data class RefreshTokenRequest(
@@ -28,7 +43,7 @@ data class TokenRefreshResponse(
 
 data class TokenUpdateRequest(
     val token: String,
-    val spUsername: String
+    val user_id: Int
 )
 
 data class UserCourses(
@@ -45,12 +60,11 @@ data class UserMarks(
 )
 @Entity
 data class UserMark(
-    @PrimaryKey val mark_id: Int,
+    @PrimaryKey val id: Int,
     val name: String,
     val date: String,
     val grade: String,
     val course_id: Int,
-    val sp_username: String,
     val half_year: Int
 )
 
@@ -61,7 +75,10 @@ data class VpSelectedCourse(
 )
 
 data class VpSelectedCoursesResponse(
-    val courses: List<String>
+    val courses: List<VpSelectedCourseResponse>
+)
+data class VpSelectedCourseResponse(
+    val course: String
 )
 
 @Entity

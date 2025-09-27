@@ -34,7 +34,7 @@ open class VpViewModel @Inject constructor(
     private val repository: HvkRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
-    var username = mutableStateOf("")
+    var userId = mutableStateOf<Int?>(null)
 
     private val _vpScreenState = MutableStateFlow(VpScreenState())
     open val vpScreenState: StateFlow<VpScreenState> = _vpScreenState.asStateFlow()
@@ -44,12 +44,12 @@ open class VpViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             _vpScreenState.value = _vpScreenState.value.copy(isLoading = true, error = null)
-            username.value = settingsRepository.getUsername() ?: ""
+            userId.value = settingsRepository.getUserId()
 
-            if (username.value.isNotEmpty()) {
-                fetchSpSelectedCourse(username.value)
-            } else {
-                _vpScreenState.value = _vpScreenState.value.copy(isLoading = false, error = "Username not set. Please set it in the settings.")
+            userId.value?.let { id ->
+                fetchSpSelectedCourse(id)
+            } ?: run {
+                _vpScreenState.value = _vpScreenState.value.copy(isLoading = false, error = "User ID not set. Please set it in the settings.")
             }
 
             // Observe the selected course and fetch substitutions when it's available
@@ -63,29 +63,28 @@ open class VpViewModel @Inject constructor(
         }
     }
 
-    fun fetchSpSelectedCourse(username: String) {
-        repository.getVpSelectedCourses(username).onEach { result ->
-            Log.d("SettingsViewModel", "username: $username")
+    fun fetchSpSelectedCourse(userId: Int) {
+        repository.getVpSelectedCourses(userId).onEach { result ->
+            Log.d("VpViewModel", "userId: $userId")
             when (result) {
                 is Resource.Loading -> {
-                    Log.d("SettingsViewModel", "Loading vpSelectedCourse for user: $username - Result: $result")
+                    Log.d("VpViewModel", "Loading vpSelectedCourse for user: $userId - Result: $result")
                     _vpScreenState.value = _vpScreenState.value.copy(isLoading = true)
                     result.data?.let {
                         _vpScreenState.value = _vpScreenState.value.copy(selectedCourses = it)
                     }
                 }
-
                 is Resource.Success -> {
-                    Log.d("SettingsViewModel", "Success fetching vpSelectedCourse for user: $username - Data: ${result.data}")
+                    Log.d("VpViewModel", "Success fetching vpSelectedCourse for user: $userId - Data: ${result.data}")
                     _vpScreenState.value = _vpScreenState.value.copy(
                         isLoading = false,
                         error = null,
                         selectedCourses = result.data ?: emptyList()
                     )
-                    Log.d("SettingsViewModel", "vpSelectedCourse: ${result.data}")
+                    Log.d("VpViewModel", "vpSelectedCourse: ${result.data}")
                 }
                 is Resource.Error -> {
-                    Log.e("SettingsViewModel", "Error fetching vpSelectedCourse for user: $username, message: ${result.message}")
+                    Log.e("VpViewModel", "Error fetching vpSelectedCourse for user: $userId, message: ${result.message}")
                     _vpScreenState.value = _vpScreenState.value.copy(isLoading = false, error = result.message)
                     result.data?.let {
                         _vpScreenState.value = _vpScreenState.value.copy(selectedCourses = it)
@@ -139,6 +138,5 @@ open class VpViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
-
     }
 }

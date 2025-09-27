@@ -8,5 +8,9 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="hvk_lila">#A74D95</color>
+    <color name="hvk_lila_logo_1">#4e56a2</color>
+    <color name="hvk_lila_logo_2">#a84d97</color>
+    <color name="hvk_lila_logo_3">#8f8fb5</color>
+    <color name="hvk_lila_logo_4">#69327a</color>
+
 </resources>

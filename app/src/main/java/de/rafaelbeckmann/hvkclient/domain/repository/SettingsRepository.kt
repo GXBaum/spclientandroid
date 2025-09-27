@@ -1,8 +1,8 @@
 package de.rafaelbeckmann.hvkclient.domain.repository
 
 interface SettingsRepository {
-    suspend fun setUsername(username: String)
-    suspend fun getUsername(): String?
+    suspend fun setUserId(userId: Int)
+    suspend fun getUserId(): Int?
 
     suspend fun setIsDeveloper(isDeveloper: Boolean)
     suspend fun isDeveloper(): Boolean

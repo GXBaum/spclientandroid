@@ -54,18 +54,24 @@ fun CourseDetailScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
 
-    var username by remember { mutableStateOf("") }
+    var userId by remember { mutableStateOf<Int?>(null) }
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(courseId) {
         // TODO: ist eigentlich ziemlich dumm gerade, aber kb zu ändern
-        username = viewModel.getUsername()
-        viewModel.fetchUserMarks(courseId, username)
+        userId = viewModel.getUserId()
+        userId?.let { id ->
+            viewModel.fetchUserMarks(courseId, id)
+        }
     }
 
     PullToRefreshBox(
         isRefreshing = isLoading,
-        onRefresh = { viewModel.fetchUserMarks(courseId, username) },
+        onRefresh = {
+            userId?.let { id ->
+                viewModel.fetchUserMarks(courseId, id)
+            }
+        },
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
@@ -125,7 +131,7 @@ fun MarksList(
 
             roundedListItems(
                 items = marksInGroup,
-                key = { it.mark_id },
+                key = { it.id },
                 onItemClick = onMarkClick
             ) { mark ->
                 Row(

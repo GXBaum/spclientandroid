@@ -30,10 +30,7 @@ android {
 
     buildTypes {
         release {
-            // Enables code-related app optimization.
-            isMinifyEnabled = true // test ob das die app kleiner macht // TODO: macht irgendwas kaputt // fix wahrscheinlich mit proguard.pro datei in gradle scripts // nicht mehr
-
-            // Enables resource shrinking.
+            isMinifyEnabled = true // bei fehlern regeln in proguard.pro anpassen
             isShrinkResources = true
 
             proguardFiles(

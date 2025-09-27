@@ -30,6 +30,6 @@
 
 # Keep any class that is annotated with @JsonClass and its constructor.
 # This is for Moshi's reflection-based adapter.
--keep @com.squareup.moshi.JsonClass class * {
-    <init>(...);
-}
+#-keep @com.squareup.moshi.JsonClass class * {
+#    <init>(...);
+#}
