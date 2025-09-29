@@ -8,6 +8,15 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 
 // TODO: split into multiple files
 
+data class createAccountRequest(
+    val isNotificationEnabled: Int
+)
+data class createAccountResponse(
+    val accessToken: String,
+    val refreshToken: String,
+    val userId: Int
+)
+
 data class CourseSearchResponse(
     val courses: List<String>
 )
@@ -43,7 +52,8 @@ data class TokenRefreshResponse(
 
 data class TokenUpdateRequest(
     val token: String,
-    val user_id: Int
+    val userId: Int
+    // TODO: this doesn't match the API (userId in here is redundant and not used)
 )
 
 data class UserCourses(
@@ -88,7 +98,8 @@ data class VpSubstitution(
     val original: String,
     val replacement: String,
     val description: String,
-    val vp_date: String
+    val vp_date: String,
+    val isDeleted: Int
 )
 
 data class VpClass(

@@ -33,20 +33,56 @@ open class OnboardingViewModel @Inject constructor(
                     _loginState.value = LoginState.Loading
                 }
                 is Resource.Success -> {
-                    result.data?.let {
+                    result.data?.let { response ->
                         viewModelScope.launch {
-                            settingsRepository.setAccessToken(it.accessToken)
-                            settingsRepository.setRefreshToken(it.refreshToken)
-                            settingsRepository.setUserId(it.userId)
+                            settingsRepository.setAccessToken(response.accessToken)
+                            settingsRepository.setRefreshToken(response.refreshToken)
+                            settingsRepository.setUserId(response.userId)
                             settingsRepository.setOnboardingCompleted(true)
+
+                            // TODO: Firebase.messaging.token.await() auch ins repo?
+                            val fcmToken = Firebase.messaging.token.await()
+                            val tokenUpdateRequest = TokenUpdateRequest(fcmToken, response.userId)
+
+                            repository.updateToken(response.userId, tokenUpdateRequest)
                             _loginState.value = LoginState.Success
                         }
-
-                        // TODO: Firebase.messaging.token.await() auch ins repo?
-                        val tokenUpdateRequest = TokenUpdateRequest(Firebase.messaging.token.await(), it.userId)
-                        repository.updateToken(it.userId, tokenUpdateRequest)
                     } ?: run {
                         _loginState.value = LoginState.Error("Login response was empty.")
+                    }
+                }
+                is Resource.Error -> {
+                    _loginState.value = LoginState.Error(result.message ?: "Ein unbekannter Fehler ist aufgetreten.")
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+
+
+    fun createAccount(isNotificationEnabled: Int) {
+        repository.createAccount(isNotificationEnabled).onEach { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    _loginState.value = LoginState.Loading
+                }
+                is Resource.Success -> {
+                    result.data?.let { response ->
+                        viewModelScope.launch {
+                            settingsRepository.setAccessToken(response.accessToken)
+                            settingsRepository.setRefreshToken(response.refreshToken)
+                            settingsRepository.setUserId(response.userId)
+                            settingsRepository.setOnboardingCompleted(true)
+
+                            // TODO: Firebase.messaging.token.await() auch ins repo?
+                            val fcmToken = Firebase.messaging.token.await()
+                            val tokenUpdateRequest = TokenUpdateRequest(fcmToken, response.userId)
+                            repository.updateToken(response.userId, tokenUpdateRequest)
+
+                            _loginState.value = LoginState.Success
+                        }
+                    } ?: run {
+                        _loginState.value = LoginState.Error("Create account response was empty.")
                     }
                 }
                 is Resource.Error -> {

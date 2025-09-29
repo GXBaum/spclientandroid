@@ -12,6 +12,8 @@ import de.rafaelbeckmann.hvkclient.data.model.UserMarks
 import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCoursesResponse
+import de.rafaelbeckmann.hvkclient.data.model.createAccountRequest
+import de.rafaelbeckmann.hvkclient.data.model.createAccountResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -38,13 +40,12 @@ interface HvkClientApi {
         @Body tokenUpdate: TokenUpdateRequest
     ): Response<Any>
 
-    /*
-    // TODO add
+
     @POST("users")
     suspend fun createAccount(
         @Body request: createAccountRequest
-    ): Response<>
-    */
+    ): Response<createAccountResponse>
+
 
     @GET("featureFlags")
     suspend fun getFeatureFlags(

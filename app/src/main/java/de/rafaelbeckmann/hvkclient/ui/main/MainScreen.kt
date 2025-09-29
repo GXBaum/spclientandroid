@@ -34,6 +34,7 @@ import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.ui.navigation.AppNavHost
 import de.rafaelbeckmann.hvkclient.ui.navigation.OnboardingGraph
 import de.rafaelbeckmann.hvkclient.ui.navigation.RevealMarkScreen
+import de.rafaelbeckmann.hvkclient.ui.navigation.VpGraph
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -50,13 +51,11 @@ fun MainScreen(
     var isOnboardingCompleted by remember { mutableStateOf(false) }
 
     //TODO: change to real deep link handling (https://medium.com/androiddevelopers/type-safe-navigation-for-compose-105325a97657, https://developer.android.com/guide/navigation/design/deep-link)
-    LaunchedEffect(Unit) {
-        // TODO: keine ahnung ob das gut ist
-        isOnboardingCompleted = settingsRepository.isOnboardingCompleted()
 
-        if (!isOnboardingCompleted) {
-            navController.navigate(OnboardingGraph)
-        }
+    var startDestination by remember { mutableStateOf<Any>(VpGraph) }
+    LaunchedEffect(Unit) {
+        val completed = settingsRepository.isOnboardingCompleted()
+        startDestination = if (completed) VpGraph else OnboardingGraph
     }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -65,7 +64,13 @@ fun MainScreen(
     val isRevealMarkScreen = currentDestination?.hasRoute(RevealMarkScreen::class) == true
     val isOnboarding = currentDestination?.hierarchy?.any { it.hasRoute(OnboardingGraph::class) } == true
 
-    val showStatusBar = !isRevealMarkScreen
+    // TODO: regression in bottomPadding in VpWebView.kt (falsely adds navigation bar padding even though i have a NavBar Component in use, which consumes that space)
+    //val isSettings = currentDestination?.hierarchy?.any { it.hasRoute(SettingsGraph::class) } == true
+    //val isCourses = currentDestination?.hierarchy?.any { it.hasRoute(CoursesGraph::class) } == true
+
+    //val showStatusBar = !isRevealMarkScreen
+    val showStatusBar = false
+
 
 
     // snackbar
@@ -128,6 +133,7 @@ fun MainScreen(
         // TODO: inject via Hilt
         AppNavHost(
             navController = navController,
+            startDestination = startDestination,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),

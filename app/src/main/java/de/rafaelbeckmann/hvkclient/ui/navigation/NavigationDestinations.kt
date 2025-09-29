@@ -41,10 +41,10 @@ data class VpScreen(
 object OnboardingScreen
 
 @Serializable
-object OnboardingScreenPage2
+object OnboardingScreenSetup
 
 @Serializable
-object OnboardingScreenPage3
+object OnboardingScreenLogin
 
 @Serializable
 object VpWebView

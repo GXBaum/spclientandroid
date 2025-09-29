@@ -14,6 +14,8 @@ import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
+import de.rafaelbeckmann.hvkclient.data.model.createAccountRequest
+import de.rafaelbeckmann.hvkclient.data.model.createAccountResponse
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import kotlinx.coroutines.flow.Flow
@@ -65,6 +67,20 @@ class HvkRepositoryImpl(
         } else {
             // Data is fresh, just emit from cache
             emitAll(query().map { Resource.Success(it) })
+        }
+    }
+
+    override fun createAccount(isNotificationEnabled: Int): Flow<Resource<createAccountResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = api.createAccount(createAccountRequest(isNotificationEnabled))
+            if (response.isSuccessful && response.body() != null) {
+                emit(Resource.Success(response.body()!!))
+            } else {
+                emit(Resource.Error("Account creation failed: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "An unknown error occurred"))
         }
     }
 

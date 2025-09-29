@@ -36,12 +36,6 @@ class PushNotificationService : FirebaseMessagingService() {
         private const val CHANNEL_GRADES = "grade_notifications"
         private const val CHANNEL_VP_UPDATES = "vp_updates"
         private const val CHANNEL_OTHER = "other_notifications"
-
-        //TODO: Implement
-        // Notification IDs
-        private const val NOTIFICATION_ID_GRADE = 1001
-        private const val NOTIFICATION_ID_VP = 2001
-        private const val NOTIFICATION_ID_OTHER = 3001
     }
 
     override fun onNewToken(token: String) {

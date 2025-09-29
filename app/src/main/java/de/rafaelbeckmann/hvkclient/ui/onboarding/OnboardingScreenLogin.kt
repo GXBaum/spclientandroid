@@ -43,7 +43,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun OnboardingScreenPage3(
+fun OnboardingScreenLogin(
     modifier: Modifier = Modifier,
     viewModel: OnboardingViewModel = hiltViewModel(),
     onContinueClicked: () -> Unit = {}
@@ -165,5 +165,5 @@ fun OnboardingScreenPage3(
 @Preview(showBackground = true)
 @Composable
 fun OnboardingScreen3Preview() {
-    OnboardingScreenPage3()
+    OnboardingScreenLogin()
 }

@@ -24,27 +24,27 @@ import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.ui.coursedetail.CourseDetailScreen
 import de.rafaelbeckmann.hvkclient.ui.courses.CoursesScreen
 import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreen
-import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreenPage2
-import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreenPage3
+import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreenLogin
+import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreenSetup
 import de.rafaelbeckmann.hvkclient.ui.revealmark.RevealMarkScreen
 import de.rafaelbeckmann.hvkclient.ui.settings.SettingsScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpWebView
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 // TODO: inject via Hilt
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
+    startDestination: Any,
     modifier: Modifier = Modifier,
     scope: CoroutineScope,
     prefUtils: PrefUtils
 ) {
     NavHost(
         navController = navController,
-        startDestination = VpGraph,
+        startDestination = startDestination,
         modifier = modifier,
 
         /*
@@ -220,32 +220,30 @@ fun AppNavHost(
             composable<OnboardingScreen> {
                 OnboardingScreen(
                     onContinueClicked = {
-                        navController.navigate(OnboardingScreenPage2)
+                        navController.navigate(OnboardingScreenSetup)
+                    },
+                    onLoginClicked = {
+                        navController.navigate(OnboardingScreenLogin)
                     },
                     modifier = Modifier
                         .fillMaxSize()
                 )
             }
-            composable<OnboardingScreenPage2> {
-                OnboardingScreenPage2(
-                    modifier = Modifier.fillMaxSize(),
-                    onLoginClicked = {
-                        navController.navigate(OnboardingScreenPage3)
-                    },
-                    onCreateAccountClicked = {
-                        TODO("Navigate to create account screen")
-                    }
-
-                )
-            }
-            composable<OnboardingScreenPage3> {
-                OnboardingScreenPage3(
+            composable<OnboardingScreenSetup> {
+                OnboardingScreenSetup(
                     modifier = Modifier.fillMaxSize(),
                     onContinueClicked = {
-                        scope.launch {
-                            // TODO: use repository instead
-                            prefUtils.saveString("is_onboarding_completed", "true")
-                        }
+                        navController.navigate(VpGraph) {
+                            popUpTo(OnboardingGraph) {
+                                inclusive = true
+                            }
+                        }                    }
+                )
+            }
+            composable<OnboardingScreenLogin> {
+                OnboardingScreenLogin(
+                    modifier = Modifier.fillMaxSize(),
+                    onContinueClicked = {
                         navController.navigate(VpGraph) {
                             popUpTo(OnboardingGraph) {
                                 inclusive = true

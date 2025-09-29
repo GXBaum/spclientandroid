@@ -32,17 +32,35 @@ fun <T> LazyListScope.roundedListItems(
             bottomEnd = if (isLast) cornerRadius else innerRadius
         )
 
+        // only create an onClick lambda when a handler was provided (to fix min tap target size)
+        val onClickLambda: (() -> Unit)? = onItemClick?.let { handler ->
+            { handler(item) }
+        }
+
         item(key = key?.invoke(item)) {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 1.dp)
-                    .animateItem(),
-                onClick = { onItemClick?.invoke(item) },
-                shape = shape,
-                color = MaterialTheme.colorScheme.surfaceContainer,
-            ) {
-                itemContent(item)
+            if (onClickLambda != null) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 1.dp)
+                        .animateItem(),
+                    onClick = onClickLambda, // only when not null
+                    shape = shape,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                ) {
+                    itemContent(item)
+                }
+            } else {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 1.dp)
+                        .animateItem(),
+                    shape = shape,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                ) {
+                    itemContent(item)
+                }
             }
         }
     }

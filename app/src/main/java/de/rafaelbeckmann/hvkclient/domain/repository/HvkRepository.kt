@@ -8,6 +8,7 @@ import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
+import de.rafaelbeckmann.hvkclient.data.model.createAccountResponse
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -18,6 +19,8 @@ import kotlinx.coroutines.flow.Flow
  * 2. Keep our ViewModel decoupled from specific implementation details
  */
 interface HvkRepository {
+
+    fun createAccount(isNotificationEnabled: Int): Flow<Resource<createAccountResponse>>
 
     fun login(username: String, password: String): Flow<Resource<LoginResponse>>
 

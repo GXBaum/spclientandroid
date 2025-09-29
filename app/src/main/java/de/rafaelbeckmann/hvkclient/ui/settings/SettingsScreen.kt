@@ -7,10 +7,13 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -93,6 +96,7 @@ fun SettingsScreen(
         modifier = modifier
             .padding(horizontal = 16.dp)
             .fillMaxSize(),
+        contentPadding = WindowInsets.systemBars.asPaddingValues(),
         //verticalArrangement = Arrangement.spacedBy(8.dp) // TODO: eigentlich cool, aber macht die liste kaputt
     ) {
         item {
@@ -105,37 +109,35 @@ fun SettingsScreen(
             )
         }
 
-        item {
-            OutlinedTextField(
-                value = userIdString,
-                onValueChange = { newValue ->
-                    userIdString = newValue
-                },
-                label = { Text("SP User ID") },
-                trailingIcon = {
-                    IconButton(
-                        onClick = {
-                            val parsedId = userIdString.toIntOrNull()
-                            if (parsedId != null) {
-                                viewModel.saveUsername(parsedId)
-                                Toast.makeText(context, "User ID gespeichert", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, "Ungültige User ID", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Save,
-                            contentDescription = "ID speichern"
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
         if (isDeveloper) {
             item {
+                OutlinedTextField(
+                    value = userIdString,
+                    onValueChange = { newValue ->
+                        userIdString = newValue
+                    },
+                    label = { Text("SP User ID") },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                val parsedId = userIdString.toIntOrNull()
+                                if (parsedId != null) {
+                                    viewModel.saveUsername(parsedId)
+                                    Toast.makeText(context, "User ID gespeichert", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Ungültige User ID", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Save,
+                                contentDescription = "ID speichern"
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 Column {
                     OutlinedButton(
                         onClick = { viewModel.resetOnboardingCompleted() },

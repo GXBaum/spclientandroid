@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
@@ -17,7 +19,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
+import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 import kotlinx.coroutines.launch
 
 /*
@@ -69,6 +71,7 @@ fun VpScreen(
     }
 
     Scaffold(
+        modifier = Modifier.safeDrawingPadding(),
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 expanded = fabExpanded,
@@ -92,7 +95,6 @@ fun VpScreen(
                         viewModel.fetchVpSubstitutionsMultipleCourses(state.selectedCourses)
                     }
                 },
-                // indicator = { ContainedLoadingIndicator() }, // TODO: er ist oben links
                 modifier = Modifier
                     .fillMaxSize()
                     //.padding(innerPadding), // todo fix
@@ -132,50 +134,24 @@ fun VpScreen(
                             val courseName = state.selectedCourses.getOrNull(page)
                             val substitutionsForCourse = courseName?.let { state.substitutions?.substitutions?.get(it) }
 
-                            val sections = buildList {
-                                val today = substitutionsForCourse?.today.orEmpty()
-                                val tomorrow = substitutionsForCourse?.tomorrow.orEmpty()
-                                if (today.isNotEmpty()) add("Heute" to today)
-                                if (tomorrow.isNotEmpty()) add("Nächster Schultag" to tomorrow)
-                            }
+                            val sections = listOf(
+                                "Heute" to (substitutionsForCourse?.today.orEmpty()),
+                                "Nächster Schultag" to (substitutionsForCourse?.tomorrow.orEmpty())
+                            )
 
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .padding(horizontal = 16.dp)
                             ) {
-                                if (sections.isEmpty()) {
-                                    item(key = "no_substitutions_$courseName") {
-                                        Card(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(top = 8.dp)
-                                        ) {
-                                            Text(
-                                                text = "Keine Vertretungen gefunden",
-                                                modifier = Modifier
-                                                    .padding(16.dp)
-                                                    .align(Alignment.CenterHorizontally)
-                                            )
-                                        }
+                                sections.forEach { (title, list) ->
+                                    item(key = "header_${courseName}_$title") {
+                                        Text(
+                                            text = title,
+                                            style = MaterialTheme.typography.titleLarge
+                                        )
                                     }
-                                } else {
-                                    sections.forEach { (title, list) ->
-                                        item(
-                                            key = "header_${courseName}_$title",
-                                        ){
-                                            Text(
-                                                text = title,
-                                                style = MaterialTheme.typography.titleLarge
-                                            )
-                                        }
-                                        item(key = "table_${courseName}_$title") {
-                                            VpTable(
-                                                modifier = Modifier.padding(bottom = 8.dp),
-                                                vpSubstitutions = list
-                                            )
-                                        }
-                                    }
+                                    vpTableItems(list)
                                 }
                             }
                         }
@@ -193,59 +169,6 @@ fun VpScreen(
 }
 
 @Composable
-fun VpTable(
-    modifier: Modifier = Modifier,
-    vpSubstitutions: List<VpSubstitution>
-) {
-    Card(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            // Table Header
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(8.dp)
-            ) {
-                TableCell(text = "Stunde", weight = 0.15f, isHeader = true)
-                TableCell(text = "Original", weight = 0.25f, isHeader = true)
-                TableCell(text = "Vertretung", weight = 0.25f, isHeader = true)
-                TableCell(text = "Hinweis", weight = 0.35f, isHeader = true)
-            }
-
-            // Table Content
-            vpSubstitutions.forEachIndexed { index, substitution ->
-                TableRow(index, substitution)
-            }
-        }
-    }
-}
-
-@Composable
-private fun TableRow(index: Int, substitution: VpSubstitution) {
-    val background = if (index % 2 == 0) {
-        MaterialTheme.colorScheme.surface
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-    }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(background)
-            .padding(8.dp)
-    ) {
-        TableCell(text = substitution.hour, weight = 0.15f)
-        TableCell(text = substitution.original, weight = 0.25f)
-        TableCell(text = substitution.replacement, weight = 0.25f)
-        TableCell(text = substitution.description, weight = 0.35f)
-    }
-
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-}
-
-@Composable
 fun RowScope.TableCell(
     text: String,
     weight: Float,
@@ -260,4 +183,65 @@ fun RowScope.TableCell(
             .weight(weight)
             .padding(4.dp)
     )
+}
+
+
+fun LazyListScope.vpTableItems(
+    vpSubstitutions: List<VpSubstitution>
+) {
+    val (deleted, active) = vpSubstitutions.partition { it.isDeleted == 1 }
+
+    if (vpSubstitutions.isEmpty()) {
+        item {
+            Card(modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+            ) {
+                Text(
+                    text = "Keine Einträge",
+                    modifier = Modifier
+                        .padding(16.dp)
+                )
+            }
+        }
+    } else {
+        roundedListItems(
+            items = active,
+            //key = { sub -> sub.id }
+        ) { sub ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
+                TableCell(text = sub.hour, weight = 0.10f)
+                TableCell(text = sub.original, weight = 0.25f)
+                TableCell(text = sub.replacement, weight = 0.25f)
+                TableCell(text = sub.description, weight = 0.40f)
+            }
+        }
+    }
+
+    if (deleted.isNotEmpty()){
+        item{
+            Text("gelöscht")
+        }
+        roundedListItems(
+            items = deleted,
+        ) { sub ->
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        color = MaterialTheme.colorScheme.errorContainer,
+                    )
+                    .padding(8.dp)
+            ) {
+                TableCell(text = sub.hour, weight = 0.10f)
+                TableCell(text = sub.original, weight = 0.25f)
+                TableCell(text = sub.replacement, weight = 0.25f)
+                TableCell(text = sub.description, weight = 0.40f)
+            }
+        }
+    }
 }
