@@ -63,7 +63,7 @@ fun VpScreen(
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { state.selectedCourses.size })
 
-    // animate Fab
+    // Animate FAB collapse
     var fabExpanded by rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(4_000)
@@ -84,88 +84,104 @@ fun VpScreen(
                 },
                 text = { Text("Vertretungsplan") },
             )
-        },
-        content = { innerPadding ->
-            val nothing = innerPadding // TODO: temporary fix to use innerPadding
-
-            PullToRefreshBox(
-                isRefreshing = state.isLoading,
-                onRefresh = {
-                    if (state.selectedCourses.isNotEmpty()) {
-                        viewModel.fetchVpSubstitutionsMultipleCourses(state.selectedCourses)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxSize()
-                    //.padding(innerPadding), // todo fix
-            ) {
-                Column(modifier = modifier.fillMaxSize()) {
-                    if (state.selectedCourses.isNotEmpty()) {
-
-                        // Jump to the tab from the navigation argument once courses are loaded.
-                        LaunchedEffect(state.selectedCourses, course) {
-                            val index = course?.let { state.selectedCourses.indexOf(it) } ?: -1
-                            if (index >= 0) {
-                                pagerState.scrollToPage(index)
-                            }
-                        }
-
-                        PrimaryScrollableTabRow(selectedTabIndex = pagerState.currentPage) {
-                            state.selectedCourses.forEachIndexed { index, courseName ->
-                                Tab(
-                                    selected = pagerState.currentPage == index,
-                                    onClick = {
-                                        scope.launch {
-                                            pagerState.animateScrollToPage(index)
-                                        }
-                                    },
-                                    text = { Text(courseName) }
-                                )
-                            }
-                        }
-
-                        HorizontalPager(
-                            state = pagerState,
-                            beyondViewportPageCount = 1,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                        ) { page ->
-                            val courseName = state.selectedCourses.getOrNull(page)
-                            val substitutionsForCourse = courseName?.let { state.substitutions?.substitutions?.get(it) }
-
-                            val sections = listOf(
-                                "Heute" to (substitutionsForCourse?.today.orEmpty()),
-                                "Nächster Schultag" to (substitutionsForCourse?.tomorrow.orEmpty())
-                            )
-
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(horizontal = 16.dp)
-                            ) {
-                                sections.forEach { (title, list) ->
-                                    item(key = "header_${courseName}_$title") {
-                                        Text(
-                                            text = title,
-                                            style = MaterialTheme.typography.titleLarge
-                                        )
-                                    }
-                                    vpTableItems(list)
-                                }
-                            }
-                        }
-                    } else if (!state.isLoading) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Keine Kurse ausgewählt.")
-                        }
-                    }
-
-                    state.error?.let { ErrorCard(it) }
+        }
+    ) { innerPadding ->
+        PullToRefreshBox(
+            isRefreshing = state.isLoading,
+            onRefresh = {
+                if (state.selectedCourses.isNotEmpty()) {
+                    viewModel.fetchVpSubstitutionsMultipleCourses(state.selectedCourses)
                 }
+            },
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Column(modifier = modifier.fillMaxSize()) {
+                if (state.selectedCourses.isNotEmpty()) {
+
+                    // Jump to tab from navigation arg once courses loaded
+                    LaunchedEffect(state.selectedCourses, course) {
+                        val index = course?.let { state.selectedCourses.indexOf(it) } ?: -1
+                        if (index >= 0) pagerState.scrollToPage(index)
+                    }
+
+                    PrimaryScrollableTabRow(selectedTabIndex = pagerState.currentPage) {
+                        state.selectedCourses.forEachIndexed { index, courseName ->
+                            Tab(
+                                selected = pagerState.currentPage == index,
+                                onClick = {
+                                    scope.launch { pagerState.animateScrollToPage(index) }
+                                },
+                                text = { Text(courseName) }
+                            )
+                        }
+                    }
+
+                    HorizontalPager(
+                        state = pagerState,
+                        beyondViewportPageCount = 1,
+                        modifier = Modifier.fillMaxSize()
+                    ) { page ->
+                        val courseName = state.selectedCourses.getOrNull(page)
+                        val substitutionsForCourse = courseName?.let { state.substitutions?.substitutions?.get(it) }
+
+                        val sections = listOf(
+                            "Heute" to (substitutionsForCourse?.today.orEmpty()),
+                            "Nächster Schultag" to (substitutionsForCourse?.tomorrow.orEmpty())
+                        )
+
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            sections.forEach { (title, list) ->
+                                item(key = "header_${courseName}_$title") {
+                                    Text(
+                                        text = title,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        modifier = Modifier.padding(top = 16.dp)
+                                    )
+                                }
+
+                                // TODO: horrible code, i think
+                                val dayKey = when (title) {
+                                    "Heute" -> "today"
+                                    "Nächster Schultag" -> "tomorrow"
+                                    else -> null
+                                }
+                                val filteredInfo = state.vpInfo!!.info.filter { it.day == dayKey }
+
+                                roundedListItems(
+                                    items = filteredInfo
+                                ) { info ->
+                                    Text(
+                                        text = info.data,
+                                        modifier = Modifier.padding(8.dp)
+                                    )
+                                }
+
+
+                                vpTableItems(list)
+                            }
+                        }
+                    }
+                } else if (!state.isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Keine Kurse ausgewählt.")
+                    }
+                }
+
+                state.error?.let { ErrorCard(it) }
             }
         }
-    )
+    }
 }
 
 @Composable
@@ -193,9 +209,10 @@ fun LazyListScope.vpTableItems(
 
     if (vpSubstitutions.isEmpty()) {
         item {
-            Card(modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             ) {
                 Text(
                     text = "Keine Einträge",

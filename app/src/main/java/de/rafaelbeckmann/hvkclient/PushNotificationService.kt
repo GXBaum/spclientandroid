@@ -158,7 +158,7 @@ class PushNotificationService : FirebaseMessagingService() {
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_HIGH) // TODO: muss das anders sein bei z.B other notifications?
-            .setCategory(NotificationCompat.CATEGORY_MESSAGE) // TODO: muss das anders sein bei nicht-Nachrichten
+            .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION) // TODO: changed to fix Android System Intelligence recommendations (open Map) // TODO: muss das anders sein bei nicht-Nachrichten
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
 

@@ -8,6 +8,7 @@ import androidx.room.Transaction
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
+import de.rafaelbeckmann.hvkclient.data.model.VpInfoItem
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
 import kotlinx.coroutines.flow.Flow
@@ -68,6 +69,16 @@ interface CacheDao {
     @Query("DELETE FROM feature_flag")
     suspend fun clearFeatureFlags()
 
+    // VP Info
+    @Query("SELECT * FROM vp_info")
+    fun getVpInfoItems(): Flow<List<VpInfoItem>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertVpInfo(items: List<VpInfoItem>)
+
+    @Query("DELETE FROM vp_info")
+    suspend fun clearVpInfo()
+
     @Transaction
     suspend fun clearAllCache() {
         clearUserCourses()
@@ -75,5 +86,6 @@ interface CacheDao {
         clearVpSelectedCourses()
         clearVpSubstitutionsCache()
         clearFeatureFlags()
+        clearVpInfo()
     }
 }

@@ -21,6 +21,18 @@ data class CourseSearchResponse(
     val courses: List<String>
 )
 
+data class VpInfo(
+    val info: List<VpInfoItem>
+)
+
+@Entity(tableName = "vp_info")
+data class VpInfoItem(
+    @PrimaryKey val id: Int,
+    val fetched_at: String,
+    val day: String,
+    val data: String
+)
+
 data class FeatureFlag(
     val featureFlags: Map<String, Boolean>
 )

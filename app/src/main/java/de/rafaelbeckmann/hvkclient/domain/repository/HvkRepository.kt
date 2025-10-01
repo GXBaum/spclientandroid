@@ -6,6 +6,7 @@ import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
+import de.rafaelbeckmann.hvkclient.data.model.VpInfo
 import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.createAccountResponse
@@ -61,6 +62,8 @@ interface HvkRepository {
     fun getCourseSearch(courseName: String): Flow<Resource<List<String>>>
 
     fun getFeatureFlags(): Flow<Resource<FeatureFlag>>
+
+    fun getVpInfo(): Flow<Resource<VpInfo>>
 
     /**
      * Clears all cached data from the local database.

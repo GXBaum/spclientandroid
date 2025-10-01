@@ -9,6 +9,7 @@ import de.rafaelbeckmann.hvkclient.data.model.TokenRefreshResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourses
 import de.rafaelbeckmann.hvkclient.data.model.UserMarks
+import de.rafaelbeckmann.hvkclient.data.model.VpInfo
 import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCoursesResponse
@@ -88,4 +89,8 @@ interface HvkClientApi {
     suspend fun getVpSubstitutionsMultipleCourses(
         @Query("courses") courses: String
     ): Response<VpResponse>
+
+    @GET("vp/info")
+    suspend fun getVpInfo(
+    ): Response<VpInfo>
 }

@@ -7,9 +7,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -64,15 +64,6 @@ fun MainScreen(
     val isRevealMarkScreen = currentDestination?.hasRoute(RevealMarkScreen::class) == true
     val isOnboarding = currentDestination?.hierarchy?.any { it.hasRoute(OnboardingGraph::class) } == true
 
-    // TODO: regression in bottomPadding in VpWebView.kt (falsely adds navigation bar padding even though i have a NavBar Component in use, which consumes that space)
-    //val isSettings = currentDestination?.hierarchy?.any { it.hasRoute(SettingsGraph::class) } == true
-    //val isCourses = currentDestination?.hierarchy?.any { it.hasRoute(CoursesGraph::class) } == true
-
-    //val showStatusBar = !isRevealMarkScreen
-    val showStatusBar = false
-
-
-
     // snackbar
     val snackbarHostState = remember { SnackbarHostState() }
     ObserveAsEvents(
@@ -94,16 +85,8 @@ fun MainScreen(
     }
 
     Scaffold(
-        // TODO: WindowInsets(0.dp) für fullscreen
-        //contentWindowInsets = WindowInsets(0.dp),
-        //contentWindowInsets = WindowInsets.safeDrawing,
-        //contentWindowInsets = WindowInsets.statusBars,
-
-        contentWindowInsets = if (showStatusBar) {
-            WindowInsets.statusBars
-        } else {
-            WindowInsets(0.dp)
-        },
+        // TODO: regression in bottomPadding in VpWebView.kt (falsely adds navigation bar padding even though i have a NavBar Component in use, which consumes that space)
+        contentWindowInsets = WindowInsets(0.dp),
 
         snackbarHost = {
             SnackbarHost(
@@ -136,7 +119,8 @@ fun MainScreen(
             startDestination = startDestination,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
             scope = scope,
             prefUtils = prefUtils
         )

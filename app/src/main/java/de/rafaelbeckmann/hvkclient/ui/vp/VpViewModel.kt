@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.data.Resource
+import de.rafaelbeckmann.hvkclient.data.model.VpInfo
 import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
@@ -25,7 +26,8 @@ data class VpScreenState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val selectedCourses: List<String> = emptyList(),
-    val substitutions: VpResponse? = null
+    val substitutions: VpResponse? = null,
+    val vpInfo: VpInfo? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -45,6 +47,8 @@ open class VpViewModel @Inject constructor(
         viewModelScope.launch {
             _vpScreenState.value = _vpScreenState.value.copy(isLoading = true, error = null)
             userId.value = settingsRepository.getUserId()
+
+            fetchVpInfo()
 
             userId.value?.let { id ->
                 fetchSpSelectedCourse(id)
@@ -135,6 +139,45 @@ open class VpViewModel @Inject constructor(
                         )
                     }
                     Log.e("VpViewModel", "Error fetching substitutions: ${result.message}")
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    fun fetchVpInfo() {
+        repository.getVpInfo().onEach { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    _vpScreenState.value = _vpScreenState.value.copy(isLoading = true)
+                    result.data?.let {
+                        Log.d("VpViewModel", "vp info loading: ${result.data}")
+
+                        _vpScreenState.value = _vpScreenState.value.copy(vpInfo = it)
+                    }
+                }
+                is Resource.Success -> {
+                    result.data?.let {
+                        Log.d("VpViewModel", "vp info success: ${result.data}")
+
+                        _vpScreenState.value = _vpScreenState.value.copy(
+                            isLoading = false,
+                            error = null,
+                            vpInfo = it
+                        )
+                    }
+                    Log.d("VpViewModel", "vp info: ${result.data}")
+                }
+                is Resource.Error -> {
+                    result.data?.let {
+                        Log.d("VpViewModel", "vp info error: ${result.data}")
+
+                        _vpScreenState.value = _vpScreenState.value.copy(
+                            isLoading = false,
+                            error = null,
+                            vpInfo = it
+                        )
+                    }
+                    Log.e("VpViewModel", "Error fetching vp info: ${result.message}")
                 }
             }
         }.launchIn(viewModelScope)

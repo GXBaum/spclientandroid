@@ -7,6 +7,7 @@ import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpClassConverter
+import de.rafaelbeckmann.hvkclient.data.model.VpInfoItem
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
@@ -18,9 +19,10 @@ import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
         VpSelectedCourse::class,
         VpSubstitution::class,
         VpSubstitutionsCache::class,
-        FeatureFlagEntity::class
+        FeatureFlagEntity::class,
+        VpInfoItem::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(VpClassConverter::class)
