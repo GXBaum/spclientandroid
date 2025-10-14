@@ -22,7 +22,7 @@ import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
         FeatureFlagEntity::class,
         VpInfoItem::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(VpClassConverter::class)

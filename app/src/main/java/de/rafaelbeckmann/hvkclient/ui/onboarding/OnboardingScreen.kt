@@ -75,7 +75,7 @@ fun OnboardingScreen(
                 style = MaterialTheme.typography.headlineLarge,
             )
             Text(
-                text = "Dies ist eine inoffizielle App für den Vertretungsplan und in der Zukunft auch teilweise das Schulportal. Keine Garantie für irgendetwas.",
+                text = "Dies ist eine inoffizielle App für den Vertretungsplan und in der Zukunft auch teilweise das Schulportal. In den allermeisten Fällen sollte die App richtig funktionieren, ich kann jedoch nichts garantieren.",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(vertical = 16.dp)

@@ -30,7 +30,8 @@ data class VpInfoItem(
     @PrimaryKey val id: Int,
     val fetched_at: String,
     val day: String,
-    val data: String
+    val data: String? = null,
+    val summary: String? = null
 )
 
 data class FeatureFlag(
@@ -87,7 +88,8 @@ data class UserMark(
     val date: String,
     val grade: String,
     val course_id: Int,
-    val half_year: Int
+    val half_year: Int,
+    val isDeleted: Boolean
 )
 
 
@@ -111,7 +113,7 @@ data class VpSubstitution(
     val replacement: String,
     val description: String,
     val vp_date: String,
-    val isDeleted: Int
+    val isDeleted: Boolean
 )
 
 data class VpClass(

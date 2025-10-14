@@ -60,9 +60,7 @@ open class VpViewModel @Inject constructor(
             vpScreenState.map { it.selectedCourses }
                 .distinctUntilChanged()
                 .onEach { courses ->
-                    if (courses.isNotEmpty()) {
-                        fetchVpSubstitutionsMultipleCourses(courses)
-                    }
+                    fetchVpSubstitutionsMultipleCourses(courses)
                 }.launchIn(viewModelScope)
         }
     }
@@ -181,5 +179,11 @@ open class VpViewModel @Inject constructor(
                 }
             }
         }.launchIn(viewModelScope)
+    }
+
+    fun refresh() {
+        val courses = vpScreenState.value.selectedCourses
+        fetchVpSubstitutionsMultipleCourses(courses)
+        fetchVpInfo()
     }
 }

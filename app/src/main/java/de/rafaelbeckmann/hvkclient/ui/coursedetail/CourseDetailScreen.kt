@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Today
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -132,62 +133,89 @@ fun MarksList(
                 )
             }
 
-            roundedListItems(
-                items = marksInGroup,
-                key = { it.id },
-                onItemClick = onMarkClick
-            ) { mark ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        if (mark.name.isNotEmpty()) {
-                            Text(
-                                text = mark.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        } else {
-                            Text(
-                                text = "kein Titel",
-                                fontStyle = FontStyle.Italic
-                            )
-                        }
+            markList(
+                marksInGroup = marksInGroup.filter { mark -> !mark.isDeleted },
+                onMarkClick = onMarkClick,
+            )
 
-                        Spacer(modifier = Modifier.height(8.dp))
+            item {
+                Text(
+                    text = "gelöscht",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                )
+            }
 
-                        Row {
-                            Icon(
-                                imageVector = Icons.Rounded.Today,
-                                contentDescription = null,
-                            )
-                            Text(text = mark.date)
-                        }
-                    }
+            markList(
+                marksInGroup = marksInGroup.filter { mark -> mark.isDeleted },
+                onMarkClick = onMarkClick,
+                isDeleted = true
+            )
+        }
+    }
+}
 
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .background(
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = Cookie12Sided.toShape()
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = mark.grade,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-                    }
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+fun LazyListScope.markList(
+    marksInGroup: List<UserMark>,
+    onMarkClick: (UserMark) -> Unit,
+    isDeleted: Boolean? = false,
+) {
+    roundedListItems(
+        items = marksInGroup,
+        key = { it.id },
+        onItemClick = onMarkClick
+    ) { mark ->
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .let { if (isDeleted == true) it.background(MaterialTheme.colorScheme.errorContainer) else it }
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                if (mark.name.isNotEmpty()) {
+                    Text(
+                        text = mark.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                } else {
+                    Text(
+                        text = "kein Titel",
+                        fontStyle = FontStyle.Italic
+                    )
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row {
+                    Icon(
+                        imageVector = Icons.Rounded.Today,
+                        contentDescription = null,
+                    )
+                    Text(text = mark.date)
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = Cookie12Sided.toShape()
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = mark.grade,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineMedium
+                )
             }
         }
     }

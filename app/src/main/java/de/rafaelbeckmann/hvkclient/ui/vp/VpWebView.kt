@@ -188,6 +188,11 @@ fun WebViewWithLoadingIndicator(url: String, modifier: Modifier = Modifier) {
                 canGoBack = webView.canGoBack()
                 isLoading = false
             }
+            // TODO: check if reload problem is solved (old website)
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                view?.clearCache(true)
+            }
         }
         if (webView.url != url) {
             isLoading = true
