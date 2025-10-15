@@ -6,12 +6,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -76,82 +78,83 @@ fun CourseDetailScreen(
         },
         modifier = Modifier
             .fillMaxSize()
-            .safeDrawingPadding(),
         ) {
-        Column(
+        LazyColumn(
             modifier = modifier
                 .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            contentPadding = WindowInsets.systemBars.asPaddingValues()
         ) {
             if (error != null) {
-                ErrorCard(error = error!!)
+                item {
+                    ErrorCard(error = error!!)
+                }
             }
 
             if (marks.isNotEmpty()) {
-                MarksList(marks = marks, onMarkClick = { mark ->
+                marksList(marks = marks, onMarkClick = { mark ->
                     onNavigateToRevealMark(mark.grade)
                 })
             } else if (error == null && !isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Keine Noten für diesen Kurs gefunden",
-                        modifier = Modifier.padding(16.dp),
-                        textAlign = TextAlign.Center
-                    )
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Keine Noten für diesen Kurs gefunden",
+                            modifier = Modifier.padding(16.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }
     }
 }
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun MarksList(
+fun LazyListScope.marksList(
     marks: List<UserMark>,
     onMarkClick: (UserMark) -> Unit
 ) {
     val groupedMarks = marks.groupBy { it.half_year }
 
-    LazyColumn {
-        item(key = "header") {
+    item(key = "header") {
+        Text(
+            text = "Kursnoten",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+    }
+
+    // TODO: manchmal falsche Reihenfolge
+    groupedMarks.forEach { (halfYear, marksInGroup) ->
+        item(key = "halfYear_$halfYear") {
             Text(
-                text = "Kursnoten",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
+                text = "Halbjahr: $halfYear",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
             )
         }
 
-        // TODO: manchmal falsche Reihenfolge
-        groupedMarks.forEach { (halfYear, marksInGroup) ->
-            item(key = "halfYear_$halfYear") {
-                Text(
-                    text = "Halbjahr: $halfYear",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-                )
-            }
+        markList(
+            marksInGroup = marksInGroup.filter { mark -> !mark.isDeleted },
+            onMarkClick = onMarkClick,
+        )
 
-            markList(
-                marksInGroup = marksInGroup.filter { mark -> !mark.isDeleted },
-                onMarkClick = onMarkClick,
-            )
-
-            item {
-                Text(
-                    text = "gelöscht",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                )
-            }
-
-            markList(
-                marksInGroup = marksInGroup.filter { mark -> mark.isDeleted },
-                onMarkClick = onMarkClick,
-                isDeleted = true
+        item {
+            Text(
+                text = "gelöscht",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
             )
         }
+
+        markList(
+            marksInGroup = marksInGroup.filter { mark -> mark.isDeleted },
+            onMarkClick = onMarkClick,
+            isDeleted = true
+        )
     }
 }
 

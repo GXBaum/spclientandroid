@@ -5,13 +5,15 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.gms.google-services")
+    alias(libs.plugins.google.services)
+
+    //alias(libs.plugins.hilt.android) // TODO: error weil es schon in classpath im anderen build.gradle ist
     id("dagger.hilt.android.plugin")
 
     // Navigation Compose
     alias(libs.plugins.kotlin.serialization)
 
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.ksp)
 }
 
 
@@ -23,8 +25,8 @@ android {
         applicationId = "de.rafaelbeckmann.hvkclient"
         minSdk = 31
         targetSdk = 36
-        versionCode = 5
-        versionName = "0.1.0-alpha.5"
+        versionCode = 6
+        versionName = "0.1.0-alpha.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
