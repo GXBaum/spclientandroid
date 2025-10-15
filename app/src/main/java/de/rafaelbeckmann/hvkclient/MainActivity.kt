@@ -59,8 +59,6 @@ class MainActivity : ComponentActivity() {
                 // TODO: inject with Hilt
                 MainScreen(
                     settingsRepository = settingsRepository,
-                    prefUtils = prefUtils,
-                    intent = intent
                 )
             }
         }

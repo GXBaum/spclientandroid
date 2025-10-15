@@ -49,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
+import de.rafaelbeckmann.hvkclient.ui.common.DebugMenu
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
@@ -144,6 +145,13 @@ fun VpScreen(
                                 .fillMaxSize()
                                 .padding(horizontal = 16.dp)
                         ) {
+                            // Debug Menu // TODO: weird loading / jump effect when navigating to it, nut not an issue since its just for debug
+                            if (courseName == "_DEBUG") {
+                                item {
+                                    DebugMenu()
+                                }
+                            }
+
                             sections.forEach { (title, list) ->
                                 item(key = "header_${courseName}_$title") {
                                     Text(
@@ -160,8 +168,8 @@ fun VpScreen(
                                     else -> null
                                 }
                                 val filteredInfo = state.vpInfo?.info
-                                ?.filter { it.day == dayKey }
-                                ?.filter { !(it.data.isNullOrBlank() && it.summary.isNullOrBlank()) }
+                                    ?.filter { it.day == dayKey }
+                                    ?.filter { !(it.data.isNullOrBlank() && it.summary.isNullOrBlank()) }
                                     .orEmpty()
 
                                 if (filteredInfo.isNotEmpty()){

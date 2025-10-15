@@ -3,7 +3,6 @@ package de.rafaelbeckmann.hvkclient.ui.settings
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,13 +19,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,7 +33,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -47,13 +43,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import de.rafaelbeckmann.hvkclient.SnackbarController
-import de.rafaelbeckmann.hvkclient.SnackbarEvent
-import de.rafaelbeckmann.hvkclient.ui.common.CopyTokenButton
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 import kotlinx.coroutines.android.awaitFrame
-import kotlinx.coroutines.launch
 
 sealed class CourseListItem {
     data class Course(val name: String) : CourseListItem()
@@ -65,17 +57,11 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
-    val isDeveloper by viewModel.isDeveloper
-    val userId by viewModel.userId
     val vpSelectedCourse by viewModel.vpSelectedCourse.collectAsState()
     val courseSearch by viewModel.courseSearch.collectAsState()
     var showAddCourseDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-
-    val scope = rememberCoroutineScope()
-
-    var userIdString by remember { mutableStateOf(userId?.toString() ?: "") }
 
     if (showAddCourseDialog) {
         AddCourseDialog(
@@ -105,74 +91,7 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier
                     .padding(vertical = 8.dp)
-                    .clickable { viewModel.toggleDeveloperMode(context) },
             )
-        }
-
-        if (isDeveloper) {
-            item {
-                OutlinedTextField(
-                    value = userIdString,
-                    onValueChange = { newValue ->
-                        userIdString = newValue
-                    },
-                    label = { Text("SP User ID") },
-                    trailingIcon = {
-                        IconButton(
-                            onClick = {
-                                val parsedId = userIdString.toIntOrNull()
-                                if (parsedId != null) {
-                                    viewModel.saveUsername(parsedId)
-                                    Toast.makeText(context, "User ID gespeichert", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    Toast.makeText(context, "Ungültige User ID", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Save,
-                                contentDescription = "ID speichern"
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Column {
-                    OutlinedButton(
-                        onClick = { viewModel.resetOnboardingCompleted() },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Onboarding Completed zurücksetzen") }
-
-                    OutlinedButton(
-                        onClick = { viewModel.clearCache(context) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Cache leeren") }
-
-                    OutlinedButton(
-                        onClick = { viewModel.deleteAccessToken() },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Access Token löschen") }
-
-                    OutlinedButton(
-                        onClick = { viewModel.deleteRefreshToken() },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Refresh Token löschen") }
-
-                    OutlinedButton(
-                        onClick = {
-                            scope.launch {
-                                SnackbarController.sendEvent(
-                                    event = SnackbarEvent(
-                                        message = "Hello World!"
-                                    )
-                                )
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Snackbar testen") }
-                }
-            }
         }
 
         item {
@@ -195,10 +114,6 @@ fun SettingsScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth()
             )
-        }
-
-        if (isDeveloper) {
-            item { CopyTokenButton() }
         }
 
         val courseListItems =
@@ -271,7 +186,7 @@ private fun AddCourseDialog(
         focusRequester.requestFocus()
     }*/
     LaunchedEffect(focusRequester) {
-        awaitFrame() // wait until dialog is there as the focus doesnt work TODO: check if a new version fixes it
+        awaitFrame() // wait until dialog is there as the focus doesn't work TODO: check if a new version fixes it
         focusRequester.requestFocus()
     }
 

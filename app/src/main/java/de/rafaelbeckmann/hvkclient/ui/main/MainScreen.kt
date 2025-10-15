@@ -1,6 +1,5 @@
 package de.rafaelbeckmann.hvkclient.ui.main
 
-import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -28,7 +27,6 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import de.rafaelbeckmann.hvkclient.ObserveAsEvents
-import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.ui.navigation.AppNavHost
@@ -41,8 +39,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(
     settingsRepository: SettingsRepository,
-    prefUtils: PrefUtils,
-    intent: Intent
 ) {
     val scope = rememberCoroutineScope()
 
@@ -121,8 +117,6 @@ fun MainScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding),
-            scope = scope,
-            prefUtils = prefUtils
         )
     }
 }

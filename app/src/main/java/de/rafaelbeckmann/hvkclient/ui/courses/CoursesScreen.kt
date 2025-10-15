@@ -43,8 +43,7 @@ fun CoursesScreen(
         userId = savedUsername
         userId?.let { viewModel.fetchCourses(it) }
 
-        // TODO: warum ist das überhaupt da?
-        val isDeveloper = viewModel.isDeveloper()
+        isDeveloper = viewModel.isDeveloper()
     }
 
     Surface(

@@ -20,7 +20,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
-import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.ui.coursedetail.CourseDetailScreen
 import de.rafaelbeckmann.hvkclient.ui.courses.CoursesScreen
 import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreen
@@ -30,7 +29,6 @@ import de.rafaelbeckmann.hvkclient.ui.revealmark.RevealMarkScreen
 import de.rafaelbeckmann.hvkclient.ui.settings.SettingsScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpWebView
-import kotlinx.coroutines.CoroutineScope
 
 // TODO: inject via Hilt
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -39,8 +37,6 @@ fun AppNavHost(
     navController: NavHostController,
     startDestination: Any,
     modifier: Modifier = Modifier,
-    scope: CoroutineScope,
-    prefUtils: PrefUtils
 ) {
     NavHost(
         navController = navController,
