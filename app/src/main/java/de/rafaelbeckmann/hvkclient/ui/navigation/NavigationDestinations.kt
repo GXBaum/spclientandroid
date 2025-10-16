@@ -47,6 +47,9 @@ object OnboardingScreenSetup
 object OnboardingScreenLogin
 
 @Serializable
+object AddCourseScreen
+
+@Serializable
 object VpWebView
 
 

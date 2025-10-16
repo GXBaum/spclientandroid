@@ -1,7 +1,6 @@
 package de.rafaelbeckmann.hvkclient.ui.common
 
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
@@ -11,6 +10,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,11 +37,13 @@ fun DebugMenu(
     var userIdString by remember { mutableStateOf(userId?.toString() ?: "") }
 
     Column {
-        Text (
-            text = "nichts außer Leere...",
-            modifier = Modifier
-                .clickable { viewModel.toggleDeveloperMode(context) }
-        )
+        TextButton(
+            onClick = { viewModel.toggleDeveloperMode(context) }
+        ) {
+            Text (
+                text = if(!isDeveloper) "nichts außer Leere..." else "Tippen, um den Entwicklermodus zu deaktivieren.",
+            )
+        }
 
         if (isDeveloper){
             OutlinedTextField(

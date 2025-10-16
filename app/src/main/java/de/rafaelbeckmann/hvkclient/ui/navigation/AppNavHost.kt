@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
+import de.rafaelbeckmann.hvkclient.ui.common.AddCourseScreen
 import de.rafaelbeckmann.hvkclient.ui.coursedetail.CourseDetailScreen
 import de.rafaelbeckmann.hvkclient.ui.courses.CoursesScreen
 import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreen
@@ -205,7 +206,14 @@ fun AppNavHost(
         ) {
             composable<SettingsScreen> {
                 SettingsScreen(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    onAddCourse = { navController.navigate(AddCourseScreen) }
+                )
+            }
+            composable<AddCourseScreen> {
+                AddCourseScreen(
+                    onBack = { navController.popBackStack() },
+                    onContinue = { navController.popBackStack() }
                 )
             }
         }
@@ -233,7 +241,11 @@ fun AppNavHost(
                             popUpTo(OnboardingGraph) {
                                 inclusive = true
                             }
-                        }                    }
+                        }
+                    },
+                    onBackClicked = {
+                        navController.popBackStack()
+                    }
                 )
             }
             composable<OnboardingScreenLogin> {

@@ -87,6 +87,10 @@ fun CoursesScreen(
                             }
                         )
                     }
+                } else {
+                    item{
+                        Text("Hier gibt es noch nichts zu tun.")
+                    }
                 }
             }
         }

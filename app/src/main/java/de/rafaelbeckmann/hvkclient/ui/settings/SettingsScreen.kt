@@ -56,6 +56,7 @@ sealed class CourseListItem {
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
+    onAddCourse: () -> Unit = {}
 ) {
     val vpSelectedCourse by viewModel.vpSelectedCourse.collectAsState()
     val courseSearch by viewModel.courseSearch.collectAsState()
@@ -135,6 +136,7 @@ fun SettingsScreen(
             }
         ) { item ->
             when (item) {
+                // TODO: maybe change to AddCourseScreen
                 is CourseListItem.AddButton -> {
                     RoundedListItem(
                         text = "Kurs hinzufügen",
@@ -169,6 +171,15 @@ fun SettingsScreen(
                 }
             }
         }
+        /*
+        item {
+            Button(
+                onClick = onAddCourse
+            ) {
+                Text("Kurs hinzufügen 2")
+            }
+        }
+        */
     }
 }
 
