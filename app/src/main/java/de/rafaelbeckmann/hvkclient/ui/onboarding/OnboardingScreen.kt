@@ -60,9 +60,12 @@ fun OnboardingScreen(
     val loginState by viewModel.loginState.collectAsState()
     var isNotificationEnabled by rememberSaveable { mutableStateOf(true) }
 
+    var didNavigate by rememberSaveable{ mutableStateOf(false) }
+
     // Navigate after the account exists and userId is persisted.
     LaunchedEffect(loginState) {
-        if (loginState is LoginState.Success) {
+        if (!didNavigate && loginState is LoginState.Success) {
+            didNavigate = true
             onContinueClicked()
         }
     }
@@ -181,6 +184,16 @@ fun OnboardingScreen(
                 }
                 is LoginState.Success -> {
                     Text("Setup erfolgreich!", color = MaterialTheme.colorScheme.primary)
+
+                    Button(
+                        onClick = {
+                            onContinueClicked()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        Text(text = "Weiter")
+                    }
                 }
                 is LoginState.Error -> {
                     val error = (loginState as LoginState.Error).message
