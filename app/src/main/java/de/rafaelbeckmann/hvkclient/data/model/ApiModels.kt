@@ -118,7 +118,9 @@ data class VpSubstitution(
 
 data class VpClass(
     val today: List<VpSubstitution> = emptyList(),
-    val tomorrow: List<VpSubstitution> = emptyList()
+    val tomorrow: List<VpSubstitution> = emptyList(),
+    val roomsToday: List<VpSubstitution> = emptyList(),
+    val roomsTomorrow: List<VpSubstitution> = emptyList()
 )
 
 data class VpResponse(

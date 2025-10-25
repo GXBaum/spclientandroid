@@ -20,6 +20,7 @@ fun <T> LazyListScope.roundedListItems(
     onItemClick: ((T) -> Unit)? = null,
     cornerRadius: Dp = 16.dp,
     innerRadius: Dp = 4.dp,
+    animatePlacement: Boolean = true,
     itemContent: @Composable (item: T) -> Unit
 ) {
     items.forEachIndexed { index, item ->
@@ -38,12 +39,14 @@ fun <T> LazyListScope.roundedListItems(
         }
 
         item(key = key?.invoke(item)) {
+            val base = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 1.dp)
+            val itemModifier = if (animatePlacement) base.animateItem() else base
+
             if (onClickLambda != null) {
                 Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 1.dp)
-                        .animateItem(),
+                    modifier = itemModifier,
                     onClick = onClickLambda, // only when not null
                     shape = shape,
                     color = MaterialTheme.colorScheme.surfaceContainer,
@@ -52,10 +55,7 @@ fun <T> LazyListScope.roundedListItems(
                 }
             } else {
                 Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 1.dp)
-                        .animateItem(),
+                    modifier = itemModifier,
                     shape = shape,
                     color = MaterialTheme.colorScheme.surfaceContainer,
                 ) {

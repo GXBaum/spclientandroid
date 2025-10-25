@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -37,7 +39,8 @@ fun OnboardingScreenSetup(
             ) {
                 OutlinedButton(
                     onClick = onContinueClicked,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(MaterialTheme.colorScheme.surface)
                 ) {
                     Text(text = "Vorerst überspringen")
                 }
@@ -48,7 +51,6 @@ fun OnboardingScreenSetup(
         AddCourseScreen(
             modifier = modifier
                 .fillMaxSize()
-                .safeDrawingPadding()
                 .padding(innerPadding),
             onBack = onBackClicked,
             onContinue = onContinueClicked

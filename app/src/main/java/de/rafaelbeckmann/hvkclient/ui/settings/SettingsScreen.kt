@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import de.rafaelbeckmann.hvkclient.ui.common.DebugMenu
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 import kotlinx.coroutines.android.awaitFrame
@@ -180,6 +181,11 @@ fun SettingsScreen(
             }
         }
         */
+        if (vpSelectedCourse.contains("_DEBUG")) {
+            item {
+                DebugMenu()
+            }
+        }
     }
 }
 
@@ -200,10 +206,6 @@ private fun AddCourseDialog(
         awaitFrame() // wait until dialog is there as the focus doesn't work TODO: check if a new version fixes it
         focusRequester.requestFocus()
     }
-
-    /*ModalBottomSheet(
-        onDismissRequest = onDismissRequest
-    ) {*/
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -260,5 +262,5 @@ private fun AddCourseDialog(
                 Text("Abbrechen")
             }
         }
-    )/*}*/
+    )
 }

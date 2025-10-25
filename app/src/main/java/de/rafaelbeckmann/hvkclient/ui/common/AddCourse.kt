@@ -3,6 +3,7 @@ package de.rafaelbeckmann.hvkclient.ui.common
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -67,6 +68,7 @@ fun AddCourseScreen(
 
     Scaffold(
         modifier = Modifier.padding(horizontal = 16.dp),
+        contentWindowInsets = WindowInsets(0.dp),
 
         topBar = {
             TopAppBar(

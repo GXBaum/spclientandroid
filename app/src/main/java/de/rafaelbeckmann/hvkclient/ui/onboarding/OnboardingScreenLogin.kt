@@ -134,6 +134,8 @@ fun OnboardingScreenLogin(
                 LoadingIndicator()
             }
             is LoginState.Success -> {
+                onContinueClicked()
+
                 Text("Login erfolgreich!", color = MaterialTheme.colorScheme.primary)
 
                 Spacer(modifier = Modifier.height(16.dp))

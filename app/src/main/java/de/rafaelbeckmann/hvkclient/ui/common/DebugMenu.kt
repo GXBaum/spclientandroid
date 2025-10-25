@@ -51,7 +51,7 @@ fun DebugMenu(
                 onValueChange = { newValue ->
                     userIdString = newValue
                 },
-                label = { Text("SP User ID") },
+                label = { Text("User ID") },
                 trailingIcon = {
                     IconButton(
                         onClick = {

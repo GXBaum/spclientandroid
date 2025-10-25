@@ -142,19 +142,21 @@ fun LazyListScope.marksList(
             onMarkClick = onMarkClick,
         )
 
-        item {
-            Text(
-                text = "gelöscht",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+        if (marksInGroup.any { mark -> mark.isDeleted }) {
+            item {
+                Text(
+                    text = "gelöscht",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                )
+            }
+
+            markList(
+                marksInGroup = marksInGroup.filter { mark -> mark.isDeleted },
+                onMarkClick = onMarkClick,
+                isDeleted = true
             )
         }
-
-        markList(
-            marksInGroup = marksInGroup.filter { mark -> mark.isDeleted },
-            onMarkClick = onMarkClick,
-            isDeleted = true
-        )
     }
 }
 

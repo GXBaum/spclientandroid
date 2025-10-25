@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -35,8 +36,10 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -49,18 +52,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
-import de.rafaelbeckmann.hvkclient.ui.common.DebugMenu
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 import kotlinx.coroutines.launch
 
-/*
-     TODO: this crashes when the user deletes a course in settings and then goes back to the vp screen:
-    FATAL EXCEPTION: main
-    Process: de.rafaelbeckmann.hvkclient, PID: 23761
-    java.lang.IndexOutOfBoundsException: Index 14 out of bounds for length 14
-*/
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VpScreen(
@@ -108,21 +104,45 @@ fun VpScreen(
             Column(modifier = modifier.fillMaxSize()) {
                 if (state.selectedCourses.isNotEmpty()) {
 
-                    // Jump to tab from navigation arg once courses loaded
-                    LaunchedEffect(state.selectedCourses, course) {
-                        val index = course?.let { state.selectedCourses.indexOf(it) } ?: -1
-                        if (index >= 0) pagerState.scrollToPage(index)
+                    // Safe index for composition to avoid TabRow crash when tabs shrink
+                    val pageCount = state.selectedCourses.size
+                    val lastIndex = (pageCount - 1).coerceAtLeast(0)
+                    val safeSelectedIndex by remember {
+                        derivedStateOf { pagerState.currentPage.coerceIn(0, lastIndex) }
                     }
 
-                    PrimaryScrollableTabRow(selectedTabIndex = pagerState.currentPage) {
+                    // Jump to tab from navigation arg once courses loaded
+                    LaunchedEffect(state.selectedCourses, course) {
+                        val target = course?.let { state.selectedCourses.indexOf(it) } ?: -1
+                        if (target >= 0) pagerState.scrollToPage(target.coerceAtMost(lastIndex))
+                    }
+
+                    // Correct pager when page count shrinks and current page is out-of-range
+                    LaunchedEffect(pageCount) {
+                        if (pagerState.currentPage > lastIndex) {
+                            pagerState.scrollToPage(lastIndex)
+                        }
+                    }
+
+                    @Composable
+                    fun TabsContent(){
                         state.selectedCourses.forEachIndexed { index, courseName ->
                             Tab(
-                                selected = pagerState.currentPage == index,
-                                onClick = {
-                                    scope.launch { pagerState.animateScrollToPage(index) }
-                                },
+                                selected = safeSelectedIndex == index,
+                                onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
                                 text = { Text(courseName) }
                             )
+                        }
+                    }
+
+                    // dynamic TabRow using clamped index
+                    if (state.selectedCourses.size <= 4) {
+                        PrimaryTabRow(selectedTabIndex = safeSelectedIndex) {
+                            TabsContent()
+                        }
+                    } else {
+                        PrimaryScrollableTabRow(selectedTabIndex = safeSelectedIndex) {
+                            TabsContent()
                         }
                     }
 
@@ -145,13 +165,6 @@ fun VpScreen(
                                 .fillMaxSize()
                                 .padding(horizontal = 16.dp)
                         ) {
-                            // Debug Menu // TODO: weird loading / jump effect when navigating to it, nut not an issue since its just for debug
-                            if (courseName == "_DEBUG") {
-                                item {
-                                    DebugMenu()
-                                }
-                            }
-
                             sections.forEach { (title, list) ->
                                 item(key = "header_${courseName}_$title") {
                                     Text(
@@ -175,6 +188,7 @@ fun VpScreen(
                                 if (filteredInfo.isNotEmpty()){
                                     roundedListItems(
                                         items = filteredInfo,
+                                        animatePlacement = false
                                     ) { info ->
                                         var isSummaryExpanded by rememberSaveable { mutableStateOf(false)}
 
@@ -215,6 +229,22 @@ fun VpScreen(
                                 }
 
                                 vpTableItems(list)
+
+                                val roomsList = when (title) {
+                                    "Heute" -> substitutionsForCourse?.roomsToday.orEmpty()
+                                    "Nächster Schultag" -> substitutionsForCourse?.roomsTomorrow.orEmpty()
+                                    else -> emptyList()
+                                }
+                                if (roomsList.isNotEmpty()){
+                                    item(key = "rooms_header_${courseName}_$title") {
+                                        Text(
+                                            text = "Ersatzräume",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier.padding(top = 12.dp)
+                                        )
+                                    }
+                                    vpTableItems(roomsList)
+                                }
                             }
                         }
                     }
@@ -278,6 +308,7 @@ fun LazyListScope.vpTableItems(
     } else {
         roundedListItems(
             items = active,
+            animatePlacement = false
             //key = { sub -> sub.id }
         ) { sub ->
             Row(
