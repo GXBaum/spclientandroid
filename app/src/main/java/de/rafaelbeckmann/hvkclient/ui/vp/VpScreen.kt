@@ -60,10 +60,12 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VpScreen(
+//fun SharedTransitionScope.VpScreen(
     modifier: Modifier = Modifier,
     viewModel: VpViewModel = hiltViewModel(),
     course: String? = null,
-    onVpOpenClick: () -> Unit
+    onVpOpenClick: () -> Unit,
+    //animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val state by viewModel.vpScreenState.collectAsState()
     val scope = rememberCoroutineScope()
@@ -89,6 +91,15 @@ fun VpScreen(
                     )
                 },
                 text = { Text("Vertretungsplan") },
+                /*
+                modifier = Modifier
+                    .sharedBounds(
+                            sharedContentState = rememberSharedContentState(
+                                key = VP_FAB_EXPLODE_BOUND
+                            ),
+                        animatedVisibilityScope = animatedVisibilityScope
+                    )
+                */
             )
         }
     ) { innerPadding ->

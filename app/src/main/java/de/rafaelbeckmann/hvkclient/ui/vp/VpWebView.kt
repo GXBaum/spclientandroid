@@ -1,5 +1,6 @@
 package de.rafaelbeckmann.hvkclient.ui.vp
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.util.Base64
 import android.webkit.WebSettings
@@ -83,6 +84,7 @@ fun VpWebView(
 }
 
 
+@SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WebViewWithLoadingIndicator(url: String, modifier: Modifier = Modifier) {
@@ -139,10 +141,10 @@ fun WebViewWithLoadingIndicator(url: String, modifier: Modifier = Modifier) {
     val webView = remember {
         WebView(context).apply {
             settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.cacheMode = WebSettings.LOAD_DEFAULT
-            settings.builtInZoomControls = true
+            settings.cacheMode = WebSettings.LOAD_NO_CACHE
             settings.displayZoomControls = false
+
+            clearCache(true) // this should be unnecessary
         }
     }
 
@@ -188,7 +190,7 @@ fun WebViewWithLoadingIndicator(url: String, modifier: Modifier = Modifier) {
                 canGoBack = webView.canGoBack()
                 isLoading = false
             }
-            // TODO: check if reload problem is solved (old website)
+            // TODO: this should be unnecessary
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 view?.clearCache(true)

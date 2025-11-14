@@ -1,7 +1,6 @@
 package de.rafaelbeckmann.hvkclient.ui.navigation
 
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -11,6 +10,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,14 +31,18 @@ import de.rafaelbeckmann.hvkclient.ui.settings.SettingsScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpWebView
 
+
+//const val VP_FAB_EXPLODE_BOUND = "VP_FAB_EXPLODE_BOUND"
+
 // TODO: inject via Hilt
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+//@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     startDestination: Any,
     modifier: Modifier = Modifier,
 ) {
+//  SharedTransitionLayout {
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -130,6 +134,7 @@ fun AppNavHost(
                     onVpOpenClick = {
                         navController.navigate(VpWebView)
                     },
+                    //animatedVisibilityScope = this
                 )
             }
 
@@ -187,12 +192,19 @@ fun AppNavHost(
                 )
             ){
                 val args = it.toRoute<RevealMarkScreen>()
-                RevealMarkScreen(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White),
-                    grade = args.grade
-                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    RevealMarkScreen(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.White),
+                        grade = args.grade
+                    )
+                } else {
+                    Text(
+                        text = "Dieses Feature benötigt Android 14 oder höher.",
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
         }
 
@@ -259,6 +271,7 @@ fun AppNavHost(
                         }
                     }
                 )
+//              }
             }
         }
     }

@@ -25,8 +25,8 @@ android {
         applicationId = "de.rafaelbeckmann.hvkclient"
         minSdk = 31
         targetSdk = 36
-        versionCode = 9
-        versionName = "0.1.0-alpha.9"
+        versionCode = 10
+        versionName = "0.1.0-alpha.10"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -41,6 +41,9 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("debug")
+
+            // TODO: hat nicht funktioniert
+            ndk.debugSymbolLevel = "FULL" // oder "SYMBOL_TABLE" // Play Store Warnung "This app bundle contains native code, and you've not uploaded debug symbols."
         }
     }
     compileOptions {

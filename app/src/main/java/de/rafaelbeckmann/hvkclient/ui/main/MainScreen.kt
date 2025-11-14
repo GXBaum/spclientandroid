@@ -1,7 +1,5 @@
 package de.rafaelbeckmann.hvkclient.ui.main
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -35,7 +33,6 @@ import de.rafaelbeckmann.hvkclient.ui.navigation.RevealMarkScreen
 import de.rafaelbeckmann.hvkclient.ui.navigation.VpGraph
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
 fun MainScreen(
     settingsRepository: SettingsRepository,
