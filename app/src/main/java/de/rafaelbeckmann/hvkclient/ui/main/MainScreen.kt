@@ -1,16 +1,29 @@
 package de.rafaelbeckmann.hvkclient.ui.main
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,12 +31,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import de.rafaelbeckmann.hvkclient.ConnectivityViewModel
 import de.rafaelbeckmann.hvkclient.ObserveAsEvents
 import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
@@ -33,9 +50,11 @@ import de.rafaelbeckmann.hvkclient.ui.navigation.RevealMarkScreen
 import de.rafaelbeckmann.hvkclient.ui.navigation.VpGraph
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MainScreen(
     settingsRepository: SettingsRepository,
+    connectivityViewModel: ConnectivityViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
 
@@ -78,7 +97,6 @@ fun MainScreen(
     }
 
     Scaffold(
-        // TODO: regression in bottomPadding in VpWebView.kt (falsely adds navigation bar padding even though i have a NavBar Component in use, which consumes that space)
         contentWindowInsets = WindowInsets(0.dp),
 
         snackbarHost = {
@@ -91,17 +109,59 @@ fun MainScreen(
         bottomBar = {
             val showBottomBar = !isOnboarding && !isRevealMarkScreen
 
-            AnimatedVisibility(
-                visible = showBottomBar,
-                enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(targetOffsetY = { it })
-            ) {
+            // Connectivity state must be known before composing the bottom app bar
+            val isConnected by connectivityViewModel.isConnected.collectAsStateWithLifecycle()
+            val bannerVisible = !isConnected
+            val message = if (bannerVisible) "kein Internet" else null
 
-                // TODO: kann man das auch injecten?
-                AppBottomNavigation(
-                    navController = navController,
-                    currentDestination = currentDestination
-                )
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                AnimatedVisibility(
+                    visible = showBottomBar,
+                    enter = expandVertically(expandFrom = Alignment.Bottom, animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()) +
+                            slideInVertically(initialOffsetY = { it }, animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()),
+                    exit = shrinkVertically(shrinkTowards = Alignment.Bottom) +
+                            slideOutVertically(targetOffsetY = { it })
+                ) {
+
+                    // TODO: kann man das auch injecten?
+                    AppBottomNavigation(
+                        navController = navController,
+                        currentDestination = currentDestination,
+                        // Disable nav bar padding when the banner consumes it; otherwise keep it
+                        windowInsets = if (bannerVisible)
+                            WindowInsets(0.dp)
+                        else
+                            WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
+                    )
+                }
+
+
+                AnimatedVisibility(
+                    visible = message != null,
+                    enter = expandVertically(expandFrom = Alignment.Bottom, animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()) +
+                            slideInVertically(initialOffsetY = { it }, animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()),
+                    exit = shrinkVertically(shrinkTowards = Alignment.Bottom) +
+                            slideOutVertically(targetOffsetY = { it })
+                ) {
+                //if (message != null) {
+                    Box(
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .fillMaxWidth()
+                            .windowInsetsPadding(
+                                WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "kein Internet",
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
             }
         }
     ) { innerPadding ->
