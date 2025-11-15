@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.ui.main.MainScreen
@@ -26,6 +27,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Show splash screen on all Android versions
+        installSplashScreen() // only useful when customizing the splash screen
         enableEdgeToEdge()
 
         requestNotificationPermission()

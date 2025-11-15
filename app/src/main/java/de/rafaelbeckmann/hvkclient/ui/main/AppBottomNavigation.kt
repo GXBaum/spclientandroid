@@ -65,10 +65,10 @@ fun AppBottomNavigation(
                 onClick = {
                     navController.navigate(navItem.screenObject) {
                         popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
+                            saveState = false // set both to true to preserve individual back stacks
                         }
                         launchSingleTop = true
-                        restoreState = true
+                        restoreState = false // set both to true to preserve individual back stacks
                     }
                 }
             )

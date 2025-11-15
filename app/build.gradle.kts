@@ -23,10 +23,10 @@ android {
 
     defaultConfig {
         applicationId = "de.rafaelbeckmann.hvkclient"
-        minSdk = 31
+        minSdk = 29
         targetSdk = 36
-        versionCode = 11
-        versionName = "0.1.0-alpha.11"
+        versionCode = 12
+        versionName = "0.1.0-alpha.12"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -124,4 +124,8 @@ dependencies {
 
     // für SplashScreen (Theme.Material3.DayNight.NoActionBar)
     implementation(libs.material)
+
+    // splash screen compat for API <30
+    implementation(libs.androidx.core.splashscreen)
+
 }
