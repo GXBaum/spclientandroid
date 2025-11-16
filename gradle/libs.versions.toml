@@ -31,6 +31,7 @@ serialization = "1.9.0"
 room = "2.8.3"
 
 moshiKotlin = "1.15.2"
+aboutLibraries = "13.1.0"
 
 
 [libraries]
@@ -75,6 +76,8 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshiKotlin" }
 
+aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -84,3 +87,4 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 google-services = { id = "com.google.gms.google-services", version = "4.4.4" }
 ksp = { id = "com.google.devtools.ksp", version = "2.2.0-2.0.2" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hiltAndroid" }
+aboutlibraries-plugin-android = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutLibraries" }

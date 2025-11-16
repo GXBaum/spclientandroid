@@ -9,9 +9,11 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
@@ -23,10 +25,12 @@ import androidx.navigation.toRoute
 import de.rafaelbeckmann.hvkclient.ui.common.AddCourseScreen
 import de.rafaelbeckmann.hvkclient.ui.coursedetail.CourseDetailScreen
 import de.rafaelbeckmann.hvkclient.ui.courses.CoursesScreen
+import de.rafaelbeckmann.hvkclient.ui.onboarding.NotificationPermissionPromptScreen
 import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreen
 import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreenLogin
 import de.rafaelbeckmann.hvkclient.ui.onboarding.OnboardingScreenSetup
 import de.rafaelbeckmann.hvkclient.ui.revealmark.RevealMarkScreen
+import de.rafaelbeckmann.hvkclient.ui.settings.LibrariesScreen
 import de.rafaelbeckmann.hvkclient.ui.settings.SettingsScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpWebView
@@ -200,10 +204,12 @@ fun AppNavHost(
                         grade = args.grade
                     )
                 } else {
-                    Text(
-                        text = "Dieses Feature benötigt Android 14 oder höher.",
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "Dieses Feature benötigt Android 14 oder höher.")
+                    }
                 }
             }
         }
@@ -219,7 +225,8 @@ fun AppNavHost(
             composable<SettingsScreen> {
                 SettingsScreen(
                     modifier = Modifier.fillMaxSize(),
-                    onAddCourse = { navController.navigate(AddCourseScreen) }
+                    onAddCourseClick = { navController.navigate(AddCourseScreen) },
+                    onLibrariesClick = { navController.navigate(LibrariesScreen) }
                 )
             }
             composable<AddCourseScreen> {
@@ -228,10 +235,15 @@ fun AppNavHost(
                     onContinue = { navController.popBackStack() }
                 )
             }
+            composable<LibrariesScreen>{
+                LibrariesScreen()
+            }
         }
 
         navigation<OnboardingGraph>(
-            startDestination = OnboardingScreen
+            // TODO: das ist nur provisorisch
+            //startDestination = OnboardingScreen
+            startDestination = NotificationPermissionPromptScreen
         ) {
             composable<OnboardingScreen> {
                 OnboardingScreen(
@@ -271,7 +283,13 @@ fun AppNavHost(
                         }
                     }
                 )
-//              }
+            }
+            composable<NotificationPermissionPromptScreen> {
+                NotificationPermissionPromptScreen(
+                    onProceed = {
+                        navController.navigate(OnboardingScreen)
+                    }
+                )
             }
         }
     }

@@ -47,10 +47,16 @@ object OnboardingScreenSetup
 object OnboardingScreenLogin
 
 @Serializable
+object NotificationPermissionPromptScreen
+
+@Serializable
 object AddCourseScreen
 
 @Serializable
 object VpWebView
+
+@Serializable
+object LibrariesScreen
 
 
 data class NavItem(

@@ -3,6 +3,7 @@ package de.rafaelbeckmann.hvkclient.data.repository
 import android.util.Log
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 object PreferenceKeys {
@@ -11,6 +12,7 @@ object PreferenceKeys {
     const val IS_ONBOARDING_COMPLETED = "is_onboarding_completed"
     const val ACCESS_TOKEN = "access_token"
     const val REFRESH_TOKEN = "refresh_token"
+    const val USE_DYNAMIC_COLOR = "use_dynamic_color"
 }
 
 class SettingsRepositoryImpl @Inject constructor(
@@ -59,5 +61,13 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun getRefreshToken(): String? {
         Log.d("SettingsRepository", "Refresh token retrieved: ${prefUtils.getString(PreferenceKeys.REFRESH_TOKEN)}")
         return prefUtils.getString(PreferenceKeys.REFRESH_TOKEN)
+    }
+
+    override fun useDynamicColorFlow(): Flow<Boolean> {
+        return prefUtils.booleanFlow(PreferenceKeys.USE_DYNAMIC_COLOR, default = true)
+    }
+
+    override suspend fun setUseDynamicColor(enabled: Boolean) {
+        prefUtils.saveString(PreferenceKeys.USE_DYNAMIC_COLOR, enabled.toString())
     }
 }

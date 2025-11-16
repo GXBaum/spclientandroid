@@ -1,82 +1,111 @@
 package de.rafaelbeckmann.hvkclient.ui.settings
 
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.rounded.Feedback
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.ui.common.DebugMenu
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
-import kotlinx.coroutines.android.awaitFrame
 
 sealed class CourseListItem {
     data class Course(val name: String) : CourseListItem()
     object AddButton : CourseListItem()
 }
 
+// TODO: having both seems weird
+class SettingsEntry(
+    val text: String,
+    val icon: ImageVector,
+    val onClick: () -> Unit
+)
+class SettingsSwitchEntry(
+    val text: String,
+    val checked: Boolean,
+    val onCheckedChange: (Boolean) -> Unit
+)
+
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
-    onAddCourse: () -> Unit = {}
+    onAddCourseClick: () -> Unit = {},
+    onLibrariesClick: () -> Unit = {}
 ) {
     val vpSelectedCourse by viewModel.vpSelectedCourse.collectAsState()
-    val courseSearch by viewModel.courseSearch.collectAsState()
-    var showAddCourseDialog by remember { mutableStateOf(false) }
+    val useDynamicColor by viewModel.useDynamicColor.collectAsState()
 
     val context = LocalContext.current
 
-    if (showAddCourseDialog) {
-        AddCourseDialog(
-            onDismissRequest = { showAddCourseDialog = false },
-            onConfirm = { courseName ->
-                if (courseName.isNotBlank()) {
-                    viewModel.postVpSelectedCourse(courseName)
-                    Log.d("SettingsScreen", "Neuer Kurs: $courseName")
-                }
-                showAddCourseDialog = false
+
+    // Get the PackageInfo object for the current application package
+    val packageInfo = remember(context) {
+        context.packageManager.getPackageInfo(context.packageName, 0)
+    }
+    val appVersion = remember(packageInfo) { packageInfo.versionName }
+    val appVersionCode = remember(packageInfo) { packageInfo.longVersionCode.toString() }
+    val androidSdkVersion = remember { Build.VERSION.SDK_INT }
+    val device = remember { "${Build.MANUFACTURER} ${Build.MODEL} (${Build.DEVICE})" }
+
+    val entries = remember(context, appVersion, appVersionCode, androidSdkVersion, device) {
+        listOf(
+            SettingsEntry("Feedback", Icons.Rounded.Feedback) {
+                val body =
+                    "Version: $appVersion (versionCode: $appVersionCode)\nOS: Android SDK Version $androidSdkVersion\nGerät: $device\n\n--- Den oberen Text nicht löschen! ---\n\n\n"
+                val subject = "App Feedback: "
+                val mailto = "mailto:rafaelbeckmanndev@outlook.com" +
+                        "?subject=${Uri.encode(subject)}" +
+                        "&body=${Uri.encode(body)}"
+
+                val intent = Intent(Intent.ACTION_SENDTO, mailto.toUri())
+                context.startActivity(
+                    Intent.createChooser(
+                        intent,
+                        "Mail App auswählen:"
+                    )
+                )
             },
-            onQueryChanged = { q -> viewModel.searchCourses(q) },
-            suggestions = courseSearch
+            SettingsEntry("Diese App weiterempfehlen", Icons.Rounded.Share) {
+                val shareText =
+                    "Benachrichtigungen für den Vertretungsplan. Jetzt im Play Store herunterladen.\n\nhttps://play.google.com/store/apps/details?id=de.rafaelbeckmann.hvkclient"
+                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                    putExtra(Intent.EXTRA_TEXT, shareText)
+                    type = "text/plain"
+                }
+                context.startActivity(Intent.createChooser(sendIntent, null))
+            }
         )
     }
 
@@ -90,10 +119,12 @@ fun SettingsScreen(
         item {
             Text(
                 text = "Einstellungen",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier
-                    .padding(vertical = 8.dp)
+                style = MaterialTheme.typography.titleLarge
             )
+        }
+
+        item {
+            Spacer(Modifier.padding(vertical = 8.dp))
         }
 
         item {
@@ -111,11 +142,7 @@ fun SettingsScreen(
         }
 
         item {
-            Text(
-                text = "Server Einstellungen",
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth()
-            )
+            Spacer(Modifier.padding(vertical = 8.dp))
         }
 
         val courseListItems =
@@ -131,19 +158,18 @@ fun SettingsScreen(
             },
             onItemClick = { item ->
                 when (item) {
-                    is CourseListItem.AddButton -> showAddCourseDialog = true
+                    is CourseListItem.AddButton -> onAddCourseClick()
                     is CourseListItem.Course -> {}
                 }
             }
         ) { item ->
             when (item) {
-                // TODO: maybe change to AddCourseScreen
                 is CourseListItem.AddButton -> {
                     RoundedListItem(
                         text = "Kurs hinzufügen",
                         trailingIcon = {
                             IconButton(onClick = {
-                                showAddCourseDialog = true
+                                onAddCourseClick()
                             }) {
                                 Icon(
                                     imageVector = Icons.Rounded.Add,
@@ -172,95 +198,106 @@ fun SettingsScreen(
                 }
             }
         }
-        /*
+
         item {
-            Button(
-                onClick = onAddCourse
-            ) {
-                Text("Kurs hinzufügen 2")
-            }
+            Spacer(Modifier.padding(vertical = 8.dp))
         }
-        */
+
+        roundedListItems(
+            items = entries,
+            onItemClick = { it.onClick() }
+        ) { item ->
+            RoundedListItem(
+                text = item.text,
+                trailingIcon = {
+                    IconButton( onClick = {
+                        item.onClick()
+                    }) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            )
+        }
+
+        item {
+            Spacer(Modifier.padding(vertical = 16.dp))
+        }
+
+        val libraryEntries = listOf(
+            SettingsEntry(
+                text = "Bibliotheken",
+                icon = Icons.AutoMirrored.Rounded.LibraryBooks,
+                onClick = onLibrariesClick
+            )
+        )
+
+        // TODO should be a composable
+        roundedListItems(
+            items = libraryEntries,
+            onItemClick = { it.onClick() }
+        ) { item ->
+            RoundedListItem(
+                text = item.text,
+                trailingIcon = {
+                    IconButton(onClick = {
+                        item.onClick()
+                    }) {
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            )
+        }
+
         if (vpSelectedCourse.contains("_DEBUG")) {
             item {
                 DebugMenu()
+            }
+
+            // Adaptive Color on Android 12+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                roundedListItems(
+                    items = listOf(
+                        SettingsSwitchEntry(
+                            text = "Systemfarben verwenden",
+                            checked = useDynamicColor
+                        ) { it -> viewModel.toggleDynamicColor(it) }
+                    )
+                ) {
+                    SettingsSwitch(
+                        text = it.text,
+                        checked = it.checked,
+                        onCheckedChange = it.onCheckedChange
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun AddCourseDialog(
-    onDismissRequest: () -> Unit,
-    onConfirm: (String) -> Unit,
-    onQueryChanged: (String) -> Unit,
-    suggestions: List<String>
+fun SettingsSwitch(
+    modifier: Modifier = Modifier,
+    text: String,
+    checked: Boolean,
+    onCheckedChange: ((Boolean) -> Unit)?
 ) {
-    var courseName by rememberSaveable { mutableStateOf("") }
-    val focusRequester = remember { FocusRequester() }
-
-    /*LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }*/
-    LaunchedEffect(focusRequester) {
-        awaitFrame() // wait until dialog is there as the focus doesn't work TODO: check if a new version fixes it
-        focusRequester.requestFocus()
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text("Kurs hinzufügen") },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = courseName,
-                    onValueChange = {
-                        courseName = it
-                        onQueryChanged(it)
-                    },
-                    label = { Text("Kursname (z.B. \"G10b\" oder \"E1/E2\"") },
-                    singleLine = true,
-                    modifier = Modifier.focusRequester(focusRequester),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = { onConfirm(courseName) }
-                    )
-                )
-                Spacer(Modifier.height(8.dp))
-                if (suggestions.isNotEmpty()) {
-                    Text(
-                        "Vorschläge",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    LazyColumn {
-                        roundedListItems(
-                            items = suggestions,
-                            key = { suggestion -> suggestion }
-                        ) { suggestion ->
-                            RoundedListItem(
-                                text = suggestion,
-                                modifier = Modifier.clickable {
-                                    courseName = suggestion
-                                    onConfirm(courseName)
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(courseName) },
-                enabled = courseName.isNotBlank()
-            ) { Text("Hinzufügen") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Abbrechen")
-            }
+    RoundedListItem(
+        modifier = modifier.clickable { onCheckedChange?.invoke(!checked) },
+        text = text,
+        trailingIcon = {
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                modifier = Modifier.padding(end = 16.dp)
+            )
         }
     )
 }

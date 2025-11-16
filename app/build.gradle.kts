@@ -14,6 +14,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 
     alias(libs.plugins.ksp)
+
+    alias(libs.plugins.aboutlibraries.plugin.android)
 }
 
 
@@ -25,8 +27,8 @@ android {
         applicationId = "de.rafaelbeckmann.hvkclient"
         minSdk = 29
         targetSdk = 36
-        versionCode = 12
-        versionName = "0.1.0-alpha.12"
+        versionCode = 13
+        versionName = "0.1.0-alpha.13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -127,5 +129,8 @@ dependencies {
 
     // splash screen compat for API <30
     implementation(libs.androidx.core.splashscreen)
+
+    // AboutLibraries
+    implementation(libs.aboutlibraries.compose.m3)
 
 }

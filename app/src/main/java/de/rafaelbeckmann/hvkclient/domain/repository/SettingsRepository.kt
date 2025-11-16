@@ -1,5 +1,7 @@
 package de.rafaelbeckmann.hvkclient.domain.repository
 
+import kotlinx.coroutines.flow.Flow
+
 interface SettingsRepository {
     suspend fun setUserId(userId: Int)
     suspend fun getUserId(): Int?
@@ -22,4 +24,8 @@ interface SettingsRepository {
 
     suspend fun setRefreshToken(token: String)
     suspend fun getRefreshToken(): String?
+
+
+    fun useDynamicColorFlow(): Flow<Boolean>
+    suspend fun setUseDynamicColor(enabled: Boolean)
 }

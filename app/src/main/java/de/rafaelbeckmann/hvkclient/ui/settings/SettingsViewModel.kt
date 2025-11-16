@@ -13,10 +13,12 @@ import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -41,6 +43,11 @@ open class SettingsViewModel @Inject constructor(
 
     var isDeveloper = mutableStateOf(false)
     var userId = mutableStateOf<Int?>(null)
+
+    // TODO ich verstehe .stateIn nicht
+    val useDynamicColor: StateFlow<Boolean> = settingsRepository
+        .useDynamicColorFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
     init {
         viewModelScope.launch {
@@ -219,6 +226,12 @@ open class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             settingsRepository.setRefreshToken("")
             Log.d("SettingsViewModel", "Refresh token deleted")
+        }
+    }
+
+    fun toggleDynamicColor(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setUseDynamicColor(enabled)
         }
     }
 
