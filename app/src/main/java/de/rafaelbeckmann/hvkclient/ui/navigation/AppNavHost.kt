@@ -116,7 +116,7 @@ fun AppNavHost(
     ) {
         // TODO: vlt müssen die deepLinks sinnvoller benannt werden
         navigation<VpGraph>(
-            startDestination = VpScreen(""),
+            startDestination = VpGraph.startDestination(),
             deepLinks = listOf(
                 navDeepLink { uriPattern = "hvkclient://vp" },
                 //navDeepLink { uriPattern = "https://rafaelbeckmann.de/hvkclient/vp" }
@@ -158,7 +158,7 @@ fun AppNavHost(
         }
 
         navigation<CoursesGraph>(
-            startDestination = CoursesScreen
+            startDestination = CoursesGraph.startDestination()
         ) {
             composable<CoursesScreen> {
                 CoursesScreen(
@@ -215,7 +215,7 @@ fun AppNavHost(
         }
 
         navigation<SettingsGraph>(
-            startDestination = SettingsScreen,
+            startDestination = SettingsGraph.startDestination(),
             deepLinks = listOf(
                 navDeepLink<SettingsGraph>(
                     basePath = "hvkclient://settings"
@@ -243,7 +243,7 @@ fun AppNavHost(
         navigation<OnboardingGraph>(
             // TODO: das ist nur provisorisch
             //startDestination = OnboardingScreen
-            startDestination = NotificationPermissionPromptScreen
+            startDestination = OnboardingGraph.startDestination()
         ) {
             composable<OnboardingScreen> {
                 OnboardingScreen(

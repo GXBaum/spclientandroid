@@ -3,17 +3,30 @@ package de.rafaelbeckmann.hvkclient.ui.navigation
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
 
-@Serializable
-object VpGraph
+
+interface NavGraphSpec {
+    fun startDestination() : Any
+}
 
 @Serializable
-object CoursesGraph
+object VpGraph : NavGraphSpec {
+    override fun startDestination() = VpScreen()
+}
 
 @Serializable
-object SettingsGraph
+object CoursesGraph : NavGraphSpec {
+    override fun startDestination() = CoursesScreen
+}
 
 @Serializable
-object OnboardingGraph
+object SettingsGraph : NavGraphSpec {
+    override fun startDestination() = SettingsScreen
+}
+
+@Serializable
+object OnboardingGraph : NavGraphSpec {
+    override fun startDestination() = NotificationPermissionPromptScreen // TODO: das ist nur provisorisch
+}
 
 @Serializable
 object CoursesScreen
@@ -61,7 +74,8 @@ object LibrariesScreen
 
 data class NavItem(
     val label: String,
-    val icon: ImageVector,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
     val badgeCount: Int,
     val screenObject: Any
 )

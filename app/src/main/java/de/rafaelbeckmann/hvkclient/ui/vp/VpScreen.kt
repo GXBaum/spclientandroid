@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -38,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,6 +48,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -71,10 +75,13 @@ fun VpScreen(
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { state.selectedCourses.size })
 
+    var fabHeight by remember { mutableIntStateOf(0) }
+    val fabHeightDp = with(LocalDensity.current) { fabHeight.toDp() }
+
     // Animate FAB collapse
     var fabExpanded by rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(4_000)
+        kotlinx.coroutines.delay(8_000)
         fabExpanded = false
     }
 
@@ -91,6 +98,10 @@ fun VpScreen(
                     )
                 },
                 text = { Text("Vertretungsplan") },
+                modifier = Modifier
+                    .onGloballyPositioned { // calculate FAB height
+                        fabHeight = it.size.height
+                    }
                 /*
                 modifier = Modifier
                     .sharedBounds(
@@ -172,6 +183,7 @@ fun VpScreen(
                         )
 
                         LazyColumn(
+                            contentPadding = PaddingValues(bottom = fabHeightDp + 16.dp), // FAB height + Android hard-coded FAB offset
                             modifier = Modifier
                                 .fillMaxSize()
                                 .padding(horizontal = 16.dp)

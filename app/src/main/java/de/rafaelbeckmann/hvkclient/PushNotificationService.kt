@@ -138,8 +138,7 @@ class PushNotificationService : FirebaseMessagingService() {
 
         val title = message.data["title"] ?: "unbekannte Benachrichtigung"
         val body = message.data["body"] ?: "bitte gib Bescheid, um das Problem zu beheben"
-
-
+        val notificationId = message.data["notification_id"]?.toIntOrNull()?: (System.currentTimeMillis() % 10000).toInt()
         // TODO: hvkclient://app ist vlt dumm
         val deepLinkUri = (message.data["deepLink"] ?: "hvkclient://app").toUri()
 
@@ -151,8 +150,12 @@ class PushNotificationService : FirebaseMessagingService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Build notification
-        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+        val builder = buildNotification(channelId, title, body, pendingIntent)
+        showNotification(builder, notificationId)
+    }
+
+    private fun buildNotification(channelId: String, title: String, body: String, pendingIntent: PendingIntent): NotificationCompat.Builder {
+        return NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_notification) // TODO: maybe make this adaptable?
             .setContentTitle(title)
             .setContentText(body)
@@ -161,13 +164,9 @@ class PushNotificationService : FirebaseMessagingService() {
             .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION) // TODO: changed to fix Android System Intelligence recommendations (open Map) // TODO: muss das anders sein bei nicht-Nachrichten
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-
-        showNotification(notificationBuilder)
     }
-
-    private fun showNotification(builder: NotificationCompat.Builder) {
+    private fun showNotification(builder: NotificationCompat.Builder, notificationId: Int) {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        val notificationId = (System.currentTimeMillis() % 10000).toInt()
         notificationManager.notify(notificationId, builder.build())
     }
 }
