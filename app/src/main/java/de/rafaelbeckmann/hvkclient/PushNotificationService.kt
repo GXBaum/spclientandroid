@@ -7,6 +7,11 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,9 +38,9 @@ class PushNotificationService : FirebaseMessagingService() {
         private const val TAG = "PushNotificationService"
 
         // Notification channels
-        private const val CHANNEL_GRADES = "grade_notifications"
-        private const val CHANNEL_VP_UPDATES = "vp_updates"
-        private const val CHANNEL_OTHER = "other_notifications"
+        const val CHANNEL_GRADES = "grade_notifications"
+        const val CHANNEL_VP_UPDATES = "vp_updates"
+        const val CHANNEL_OTHER = "other_notifications"
     }
 
     override fun onNewToken(token: String) {
@@ -136,6 +141,9 @@ class PushNotificationService : FirebaseMessagingService() {
             else -> CHANNEL_OTHER
         }
 
+        // update local database to the newest data (otherwise data will only load on app start, and without connection this will be older than this notification
+        scheduleSyncUserDataTask(channelId)
+
         val title = message.data["title"] ?: "unbekannte Benachrichtigung"
         val body = message.data["body"] ?: "bitte gib Bescheid, um das Problem zu beheben"
         val notificationId = message.data["notification_id"]?.toIntOrNull()?: (System.currentTimeMillis() % 10000).toInt()
@@ -168,5 +176,23 @@ class PushNotificationService : FirebaseMessagingService() {
     private fun showNotification(builder: NotificationCompat.Builder, notificationId: Int) {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(notificationId, builder.build())
+    }
+
+    fun scheduleSyncUserDataTask(channelId: String) {
+
+        // TODO: the worker may for example be skipped in battery saver. unsure if this is good or not
+        val inputData = workDataOf("channel_id" to channelId)
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val syncWorkRequest = OneTimeWorkRequestBuilder<NotificationDataSyncWorker>()
+            .setConstraints(constraints)
+            .setInputData(inputData)
+            .build()
+
+        val workManager = WorkManager.getInstance(this)
+        workManager.enqueue(syncWorkRequest)
     }
 }

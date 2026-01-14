@@ -1,6 +1,9 @@
 package de.rafaelbeckmann.hvkclient.ui.settings
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -25,16 +28,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import de.rafaelbeckmann.hvkclient.ui.common.DebugMenu
+import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 
@@ -43,18 +54,20 @@ sealed class CourseListItem {
     object AddButton : CourseListItem()
 }
 
-sealed class SettingsItem{
+sealed class SettingsItem {
     class Entry(
         val text: String,
         val icon: ImageVector,
         val onClick: () -> Unit
     ) : SettingsItem()
+
     class Switch(
         val text: String,
-        val checked: Boolean,
+        val checked: Boolean?,
         val onCheckedChange: (Boolean) -> Unit
     ) : SettingsItem()
 }
+
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
@@ -76,6 +89,37 @@ fun SettingsScreen(
     val appVersionCode = remember(packageInfo) { packageInfo.longVersionCode.toString() }
     val androidSdkVersion = remember { Build.VERSION.SDK_INT }
     val device = remember { "${Build.MANUFACTURER} ${Build.MODEL} (${Build.DEVICE})" }
+
+    fun checkNotificationPermission(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    var hasNotificationPermission by remember {
+        mutableStateOf(
+            checkNotificationPermission(context)
+        )
+    }
+
+    // Observe lifecycle to update permission on resume
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                hasNotificationPermission = checkNotificationPermission(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     val shareEntries = remember(context, appVersion, appVersionCode, androidSdkVersion, device) {
         listOf(
@@ -119,6 +163,14 @@ fun SettingsScreen(
                 text = "Einstellungen",
                 style = MaterialTheme.typography.titleLarge
             )
+        }
+        // TODO: das schöner machen (mit tippen zu den Einstellungen geleitet werden)
+        item {
+            if (!hasNotificationPermission) {
+                ErrorCard(
+                    "Benachrichtigungen sind nicht aktiviert."
+                )
+            }
         }
 
         item {
@@ -179,7 +231,6 @@ fun SettingsScreen(
             }
         }
 
-
         item {
             Spacer(Modifier.padding(vertical = 8.dp))
         }
@@ -188,7 +239,7 @@ fun SettingsScreen(
             SettingsItem.Entry(
                 text = "Benachrichtigungseinstellungen",
                 icon = Icons.Rounded.EditNotifications
-            ){
+            ) {
                 val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
                     putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                 }
@@ -222,7 +273,6 @@ fun SettingsScreen(
                 )
             }
         }
-
 
         item {
             Spacer(Modifier.padding(vertical = 8.dp))
@@ -264,18 +314,20 @@ fun SettingsScreen(
 fun SettingsSwitch(
     modifier: Modifier = Modifier,
     text: String,
-    checked: Boolean,
+    checked: Boolean?,
     onCheckedChange: ((Boolean) -> Unit)?
 ) {
     RoundedListItem(
-        modifier = modifier.clickable { onCheckedChange?.invoke(!checked) },
+        modifier = modifier.clickable { checked?.let { onCheckedChange?.invoke(!it) } },
         text = text,
         trailingIcon = {
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-                modifier = Modifier.padding(end = 16.dp)
-            )
+            if (checked != null) {
+                Switch(
+                    checked = checked,
+                    onCheckedChange = onCheckedChange,
+                    modifier = Modifier.padding(end = 16.dp)
+                )
+            }
         }
     )
 }
@@ -294,6 +346,7 @@ fun LazyListScope.settingsMenu(
         SettingsMenuItem(entry)
     }
 }
+
 @Composable
 private fun SettingsMenuItem(
     entry: SettingsItem.Entry,

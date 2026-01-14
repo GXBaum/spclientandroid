@@ -1,6 +1,8 @@
 package de.rafaelbeckmann.hvkclient.ui.navigation
 
 import android.os.Build
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -36,260 +38,261 @@ import de.rafaelbeckmann.hvkclient.ui.vp.VpScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpWebView
 
 
-//const val VP_FAB_EXPLODE_BOUND = "VP_FAB_EXPLODE_BOUND"
+const val VP_FAB_EXPLODE_BOUND = "VP_FAB_EXPLODE_BOUND"
 
 // TODO: inject via Hilt
-//@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
     startDestination: Any,
     modifier: Modifier = Modifier,
 ) {
-//  SharedTransitionLayout {
-    NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        modifier = modifier,
-
-        /*
-        enterTransition = {
-            fadeIn() + slideInHorizontally(initialOffsetX = { it * 1 / 3 })
-        },
-        exitTransition = {
-            fadeOut() + slideOutHorizontally(targetOffsetX = { -it * 1 / 3 })
-        },
-        popEnterTransition = {
-            fadeIn() + slideInHorizontally(initialOffsetX = { -it * 1 / 3 })
-        },
-        popExitTransition = {
-           fadeOut() + slideOutHorizontally(targetOffsetX = { it * 1 / 3 })
-
-            /*scaleOut(
-                targetScale = 0.9f,
-                transformOrigin = TransformOrigin(pivotFractionX = 0.5f, pivotFractionY = 0.5f)
-            )*/
-        }
-        */
-
-        enterTransition = {
-            fadeIn(animationSpec = tween(durationMillis = 100))
+    SharedTransitionLayout {
+        NavHost(
+            navController = navController,
+            startDestination = startDestination,
+            modifier = modifier,
 
             /*
-            fadeIn(animationSpec = tween(durationMillis = 200)) +
-                    slideInHorizontally(
-                        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-                        initialOffsetX = { fullWidth -> fullWidth / 3 }
-                    ) +
-                    scaleIn(animationSpec = tween(durationMillis = 200), initialScale = 0.95f)
-             */
-        },
-        exitTransition = {
-            fadeOut(animationSpec = tween(durationMillis = 100))
+            enterTransition = {
+                fadeIn() + slideInHorizontally(initialOffsetX = { it * 1 / 3 })
+            },
+            exitTransition = {
+                fadeOut() + slideOutHorizontally(targetOffsetX = { -it * 1 / 3 })
+            },
+            popEnterTransition = {
+                fadeIn() + slideInHorizontally(initialOffsetX = { -it * 1 / 3 })
+            },
+            popExitTransition = {
+               fadeOut() + slideOutHorizontally(targetOffsetX = { it * 1 / 3 })
 
-
-            /*
-            fadeOut(animationSpec = tween(durationMillis = 200)) +
-                    slideOutHorizontally(
-                        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-                        targetOffsetX = { fullWidth -> -fullWidth / 3 }
-                    )// +
-            //scaleOut(animationSpec = tween(durationMillis = 200), targetScale = 0.95f)
+                /*scaleOut(
+                    targetScale = 0.9f,
+                    transformOrigin = TransformOrigin(pivotFractionX = 0.5f, pivotFractionY = 0.5f)
+                )*/
+            }
             */
-        },
-        popEnterTransition = {
-            fadeIn(animationSpec = tween(durationMillis = 200)) +
-                    slideInHorizontally(
-                        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-                        initialOffsetX = { fullWidth -> -fullWidth / 3 }
-                    ) +
-                    scaleIn(animationSpec = tween(durationMillis = 200), initialScale = 0.95f)
-        },
-        popExitTransition = {
-            fadeOut(animationSpec = tween(durationMillis = 200)) +
-                    slideOutHorizontally(
-                        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-                        targetOffsetX = { fullWidth -> fullWidth / 3 }
-                    )// +
-            //scaleOut(animationSpec = tween(durationMillis = 200), targetScale = 0.95f)
-        }
-    ) {
-        // TODO: vlt müssen die deepLinks sinnvoller benannt werden
-        navigation<VpGraph>(
-            startDestination = VpGraph.startDestination(),
-            deepLinks = listOf(
-                navDeepLink { uriPattern = "hvkclient://vp" },
-                //navDeepLink { uriPattern = "https://rafaelbeckmann.de/hvkclient/vp" }
-            )
+
+            enterTransition = {
+                fadeIn(animationSpec = tween(durationMillis = 100))
+
+                /*
+                fadeIn(animationSpec = tween(durationMillis = 200)) +
+                        slideInHorizontally(
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                            initialOffsetX = { fullWidth -> fullWidth / 3 }
+                        ) +
+                        scaleIn(animationSpec = tween(durationMillis = 200), initialScale = 0.95f)
+                 */
+            },
+            exitTransition = {
+                fadeOut(animationSpec = tween(durationMillis = 100))
+
+
+                /*
+                fadeOut(animationSpec = tween(durationMillis = 200)) +
+                        slideOutHorizontally(
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                            targetOffsetX = { fullWidth -> -fullWidth / 3 }
+                        )// +
+                //scaleOut(animationSpec = tween(durationMillis = 200), targetScale = 0.95f)
+                */
+            },
+            popEnterTransition = {
+                fadeIn(animationSpec = tween(durationMillis = 200)) +
+                        slideInHorizontally(
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                            initialOffsetX = { fullWidth -> -fullWidth / 3 }
+                        ) +
+                        scaleIn(animationSpec = tween(durationMillis = 200), initialScale = 0.95f)
+            },
+            popExitTransition = {
+                fadeOut(animationSpec = tween(durationMillis = 200)) +
+                        slideOutHorizontally(
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
+                            targetOffsetX = { fullWidth -> fullWidth / 3 }
+                        )// +
+                //scaleOut(animationSpec = tween(durationMillis = 200), targetScale = 0.95f)
+            }
         ) {
-            composable<VpScreen> (
+            // TODO: vlt müssen die deepLinks sinnvoller benannt werden
+            navigation<VpGraph>(
+                startDestination = VpGraph.startDestination(),
                 deepLinks = listOf(
-                    navDeepLink<VpScreen>(
-                        basePath = "hvkclient://vpScreen"
-                    )
+                    navDeepLink { uriPattern = "hvkclient://vp" },
+                    //navDeepLink { uriPattern = "https://rafaelbeckmann.de/hvkclient/vp" }
                 )
-            ){
-                val args = it.toRoute<VpScreen>()
-
-                VpScreen(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    course = args.course,
-                    onVpOpenClick = {
-                        navController.navigate(VpWebView)
-                    },
-                    //animatedVisibilityScope = this
-                )
-            }
-
-            // TODO: makes vpWebView shit again, but animations would be nice
-            composable<VpWebView> {
-                VpWebView(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        /*.sharedBounds(
-                            sharedContentState = rememberSharedContentState(
-                                key = VP_FAB_EXPLODE_BOUND
-                            ),
-                            animatedVisibilityScope = this
-                        )*/
-                )
-            }
-        }
-
-        navigation<CoursesGraph>(
-            startDestination = CoursesGraph.startDestination()
-        ) {
-            composable<CoursesScreen> {
-                CoursesScreen(
-                    onCourseClick = { course ->
-                        navController.navigate(
-                            CourseDetailsScreen(
-                                name = course.name,
-                                courseId = course.courseId,
-                            )
+            ) {
+                composable<VpScreen> (
+                    deepLinks = listOf(
+                        navDeepLink<VpScreen>(
+                            basePath = "hvkclient://vpScreen"
                         )
-                    }
-                )
-            }
-
-            composable<CourseDetailsScreen> {
-                val args = it.toRoute<CourseDetailsScreen>()
-
-                CourseDetailScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    courseId = args.courseId,
-                    onNavigateToRevealMark = { grade ->
-                        navController.navigate(
-                            RevealMarkScreen(grade)
-                        )
-                    }
-                )
-            }
-
-            // TODO: soll die Note ein query argument sein?
-            composable<RevealMarkScreen> (
-                deepLinks = listOf(
-                    navDeepLink<RevealMarkScreen>(
-                        basePath = "hvkclient://revealmark"
                     )
-                )
-            ){
-                val args = it.toRoute<RevealMarkScreen>()
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    RevealMarkScreen(
+                ) {
+                    val args = it.toRoute<VpScreen>()
+
+                    VpScreen(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        course = args.course,
+                        onVpOpenClick = {
+                            navController.navigate(VpWebView)
+                        },
+                        animatedVisibilityScope = this
+                    )
+                }
+
+                // TODO: makes vpWebView shit again, but animations would be nice
+                composable<VpWebView> {
+                    VpWebView(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.White),
-                        grade = args.grade
+                            .sharedBounds(
+                                sharedContentState = rememberSharedContentState(
+                                    key = VP_FAB_EXPLODE_BOUND
+                                ),
+                                animatedVisibilityScope = this
+                            )
                     )
-                } else {
-                    Box(
+                }
+            }
+
+            navigation<CoursesGraph>(
+                startDestination = CoursesGraph.startDestination()
+            ) {
+                composable<CoursesScreen> {
+                    CoursesScreen(
+                        onCourseClick = { course ->
+                            navController.navigate(
+                                CourseDetailsScreen(
+                                    name = course.name,
+                                    courseId = course.courseId,
+                                )
+                            )
+                        }
+                    )
+                }
+
+                composable<CourseDetailsScreen> {
+                    val args = it.toRoute<CourseDetailsScreen>()
+
+                    CourseDetailScreen(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = "Dieses Feature benötigt Android 14 oder höher.")
+                        courseId = args.courseId,
+                        onNavigateToRevealMark = { grade ->
+                            navController.navigate(
+                                RevealMarkScreen(grade)
+                            )
+                        }
+                    )
+                }
+
+                // TODO: soll die Note ein query argument sein?
+                composable<RevealMarkScreen> (
+                    deepLinks = listOf(
+                        navDeepLink<RevealMarkScreen>(
+                            basePath = "hvkclient://revealmark"
+                        )
+                    )
+                ) {
+                    val args = it.toRoute<RevealMarkScreen>()
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                        RevealMarkScreen(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.White),
+                            grade = args.grade
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "Dieses Feature benötigt Android 14 oder höher.")
+                        }
                     }
                 }
             }
-        }
 
-        navigation<SettingsGraph>(
-            startDestination = SettingsGraph.startDestination(),
-            deepLinks = listOf(
-                navDeepLink<SettingsGraph>(
-                    basePath = "hvkclient://settings"
+            navigation<SettingsGraph>(
+                startDestination = SettingsGraph.startDestination(),
+                deepLinks = listOf(
+                    navDeepLink<SettingsGraph>(
+                        basePath = "hvkclient://settings"
+                    )
                 )
-            )
-        ) {
-            composable<SettingsScreen> {
-                SettingsScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    onAddCourseClick = { navController.navigate(AddCourseScreen) },
-                    onLibrariesClick = { navController.navigate(LibrariesScreen) }
-                )
+            ) {
+                composable<SettingsScreen> {
+                    SettingsScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onAddCourseClick = { navController.navigate(AddCourseScreen) },
+                        onLibrariesClick = { navController.navigate(LibrariesScreen) }
+                    )
+                }
+                composable<AddCourseScreen> {
+                    AddCourseScreen(
+                        onBack = { navController.popBackStack() },
+                        onContinue = { navController.popBackStack() }
+                    )
+                }
+                composable<LibrariesScreen> {
+                    LibrariesScreen()
+                }
             }
-            composable<AddCourseScreen> {
-                AddCourseScreen(
-                    onBack = { navController.popBackStack() },
-                    onContinue = { navController.popBackStack() }
-                )
-            }
-            composable<LibrariesScreen>{
-                LibrariesScreen()
-            }
-        }
 
-        navigation<OnboardingGraph>(
-            // TODO: das ist nur provisorisch
-            //startDestination = OnboardingScreen
-            startDestination = OnboardingGraph.startDestination()
-        ) {
-            composable<OnboardingScreen> {
-                OnboardingScreen(
-                    onContinueClicked = {
-                        navController.navigate(OnboardingScreenSetup)
-                    },
-                    onLoginClicked = {
-                        navController.navigate(OnboardingScreenLogin)
-                    },
-                    modifier = Modifier
-                        .fillMaxSize()
-                )
-            }
-            composable<OnboardingScreenSetup> {
-                OnboardingScreenSetup(
-                    modifier = Modifier.fillMaxSize(),
-                    onContinueClicked = {
-                        navController.navigate(VpGraph) {
-                            popUpTo(OnboardingGraph) {
-                                inclusive = true
+            navigation<OnboardingGraph>(
+                // TODO: das ist nur provisorisch
+                //startDestination = OnboardingScreen
+                startDestination = OnboardingGraph.startDestination()
+            ) {
+                composable<OnboardingScreen> {
+                    OnboardingScreen(
+                        onContinueClicked = {
+                            navController.navigate(OnboardingScreenSetup)
+                        },
+                        onLoginClicked = {
+                            navController.navigate(OnboardingScreenLogin)
+                        },
+                        modifier = Modifier
+                            .fillMaxSize()
+                    )
+                }
+                composable<OnboardingScreenSetup> {
+                    OnboardingScreenSetup(
+                        modifier = Modifier.fillMaxSize(),
+                        onContinueClicked = {
+                            navController.navigate(VpGraph) {
+                                popUpTo(OnboardingGraph) {
+                                    inclusive = true
+                                }
+                            }
+                        },
+                        onBackClicked = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+                composable<OnboardingScreenLogin> {
+                    OnboardingScreenLogin(
+                        modifier = Modifier.fillMaxSize(),
+                        onContinueClicked = {
+                            navController.navigate(VpGraph) {
+                                popUpTo(OnboardingGraph) {
+                                    inclusive = true
+                                }
                             }
                         }
-                    },
-                    onBackClicked = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-            composable<OnboardingScreenLogin> {
-                OnboardingScreenLogin(
-                    modifier = Modifier.fillMaxSize(),
-                    onContinueClicked = {
-                        navController.navigate(VpGraph) {
-                            popUpTo(OnboardingGraph) {
-                                inclusive = true
-                            }
+                    )
+                }
+                composable<NotificationPermissionPromptScreen> {
+                    NotificationPermissionPromptScreen(
+                        onProceed = {
+                            navController.navigate(OnboardingScreen)
                         }
-                    }
-                )
-            }
-            composable<NotificationPermissionPromptScreen> {
-                NotificationPermissionPromptScreen(
-                    onProceed = {
-                        navController.navigate(OnboardingScreen)
-                    }
-                )
+                    )
+                }
             }
         }
     }

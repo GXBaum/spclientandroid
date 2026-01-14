@@ -1,5 +1,8 @@
 package de.rafaelbeckmann.hvkclient.ui.vp
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -54,22 +57,23 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
+import de.rafaelbeckmann.hvkclient.ui.navigation.VP_FAB_EXPLODE_BOUND
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
-fun VpScreen(
-//fun SharedTransitionScope.VpScreen(
+//fun VpScreen(
+fun SharedTransitionScope.VpScreen(
     modifier: Modifier = Modifier,
     viewModel: VpViewModel = hiltViewModel(),
     course: String? = null,
     onVpOpenClick: () -> Unit,
-    //animatedVisibilityScope: AnimatedVisibilityScope
+    animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val state by viewModel.vpScreenState.collectAsState()
     val scope = rememberCoroutineScope()
@@ -102,15 +106,12 @@ fun VpScreen(
                     .onGloballyPositioned { // calculate FAB height
                         fabHeight = it.size.height
                     }
-                /*
-                modifier = Modifier
                     .sharedBounds(
-                            sharedContentState = rememberSharedContentState(
-                                key = VP_FAB_EXPLODE_BOUND
-                            ),
+                        sharedContentState = rememberSharedContentState(
+                            key = VP_FAB_EXPLODE_BOUND
+                        ),
                         animatedVisibilityScope = animatedVisibilityScope
                     )
-                */
             )
         }
     ) { innerPadding ->
@@ -203,6 +204,8 @@ fun VpScreen(
                                     "Nächster Schultag" -> "tomorrow"
                                     else -> null
                                 }
+
+                                // VP Info
                                 val filteredInfo = state.vpInfo?.info
                                     ?.filter { it.day == dayKey }
                                     ?.filter { !(it.data.isNullOrBlank() && it.summary.isNullOrBlank()) }
@@ -225,18 +228,20 @@ fun VpScreen(
                                         RoundedListItem(
                                             text = infoText,
                                             trailingIcon = {
-                                                val rotation by animateFloatAsState(
-                                                    targetValue = if (isSummaryExpanded) 180f else 0f,
-                                                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
-                                                )
-                                                IconButton(
-                                                    onClick = { isSummaryExpanded = !isSummaryExpanded }
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.Rounded.KeyboardArrowDown,
-                                                        contentDescription = null,
-                                                        modifier = Modifier.rotate(rotation)
+                                                if(info.summary != info.data){
+                                                    val rotation by animateFloatAsState(
+                                                        targetValue = if (isSummaryExpanded) 180f else 0f,
+                                                        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
                                                     )
+                                                    IconButton(
+                                                        onClick = { isSummaryExpanded = !isSummaryExpanded }
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.Rounded.KeyboardArrowDown,
+                                                            contentDescription = null,
+                                                            modifier = Modifier.rotate(rotation)
+                                                        )
+                                                    }
                                                 }
                                             },
                                             modifier = Modifier
@@ -301,7 +306,7 @@ fun RowScope.TableCell(
         textAlign = TextAlign.Start,
         modifier = Modifier
             .weight(weight)
-            .padding(4.dp)
+            .padding(2.dp)
     )
 }
 
@@ -353,6 +358,7 @@ fun LazyListScope.vpTableItems(
         }
         roundedListItems(
             items = deleted,
+            animatePlacement = false
         ) { sub ->
             Row(
                 modifier = Modifier

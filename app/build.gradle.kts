@@ -27,8 +27,8 @@ android {
         applicationId = "de.rafaelbeckmann.hvkclient"
         minSdk = 29
         targetSdk = 36
-        versionCode = 14
-        versionName = "0.2.0-beta.1"
+        versionCode = 15
+        versionName = "0.3.0-beta.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -74,6 +74,7 @@ dependencies {
 
     //implementation(libs.androidx.material3)
     implementation(libs.material3)
+    implementation(libs.androidx.compose.animation)
 
 
     testImplementation(libs.junit)
@@ -133,4 +134,10 @@ dependencies {
     // AboutLibraries
     implementation(libs.aboutlibraries.compose.m3)
 
+    // Work manager
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+
+    // Jsoup (HTML parsing)
+    implementation(libs.jsoup)
 }

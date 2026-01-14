@@ -34,7 +34,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.ui.settings.SettingsViewModel
 import kotlinx.coroutines.android.awaitFrame
 
@@ -106,7 +106,7 @@ fun AddCourseScreen(
                         courseName = it
                         viewModel.searchCourses(it)
                     },
-                    label = { Text("Kursname (z.B. \"G10b\" oder \"E1/E2\"") },
+                    label = { Text("Kursname, z.B. \"G10b\" oder \"E1/E2\"") },
                     singleLine = true,
                     modifier = Modifier
                         .focusRequester(focusRequester)

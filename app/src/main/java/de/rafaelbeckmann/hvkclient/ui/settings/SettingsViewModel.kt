@@ -45,9 +45,9 @@ open class SettingsViewModel @Inject constructor(
     var userId = mutableStateOf<Int?>(null)
 
     // TODO ich verstehe .stateIn nicht
-    val useDynamicColor: StateFlow<Boolean> = settingsRepository
+    val useDynamicColor: StateFlow<Boolean?> = settingsRepository
         .useDynamicColorFlow()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     init {
         viewModelScope.launch {

@@ -19,6 +19,7 @@ import de.rafaelbeckmann.hvkclient.data.model.createAccountRequest
 import de.rafaelbeckmann.hvkclient.data.model.createAccountResponse
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
@@ -49,25 +50,27 @@ class HvkRepositoryImpl(
         val data = query().first()
         emit(Resource.Loading(data))
 
-        if (shouldFetch(data)) {
-            try {
-                val response = fetch()
-                if (response.isSuccessful) {
-                    response.body()?.let { saveFetchResult(it) }
-                    // Query again after saving to get the updated data
-                    emitAll(query().map { Resource.Success(it) })
-                } else {
-                    val error = "API Error: ${response.code()} ${response.message()}"
-                    // On error, emit the error but continue listening to the cache
-                    emitAll(query().map { Resource.Error(error, it) })
-                }
-            } catch (e: Exception) {
-                // On exception, emit the error but continue listening to the cache
-                emitAll(query().map { Resource.Error(e.message ?: "Unknown error", it) })
-            }
-        } else {
-            // Data is fresh, just emit from cache
+        if (!shouldFetch(data)) {
             emitAll(query().map { Resource.Success(it) })
+            return@flow
+        }
+
+        try {
+            val response = fetch()
+            if (response.isSuccessful) {
+                response.body()?.let { saveFetchResult(it) }
+                // Query again after saving to get the updated data
+                emitAll(query().map { Resource.Success(it) })
+            } else {
+                val error = "API Error: ${response.code()} ${response.message()}"
+                // On error, emit the error but continue listening to the cache
+                emitAll(query().map { Resource.Error(error, it) })
+            }
+        } catch (ce: CancellationException) {
+            // cancellation is not an error; propagate it.
+            throw ce
+        } catch (e: Exception) {
+            emitAll(query().map { Resource.Error(e.message ?: "Unknown error", it) })
         }
     }
 

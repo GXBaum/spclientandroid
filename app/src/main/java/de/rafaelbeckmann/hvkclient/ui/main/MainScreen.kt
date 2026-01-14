@@ -34,7 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -57,10 +57,7 @@ fun MainScreen(
     connectivityViewModel: ConnectivityViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
-
     val navController = rememberNavController()
-
-    var isOnboardingCompleted by remember { mutableStateOf(false) }
 
     //TODO: change to real deep link handling (https://medium.com/androiddevelopers/type-safe-navigation-for-compose-105325a97657, https://developer.android.com/guide/navigation/design/deep-link)
 
@@ -112,7 +109,6 @@ fun MainScreen(
             // Connectivity state must be known before composing the bottom app bar
             val isConnected by connectivityViewModel.isConnected.collectAsStateWithLifecycle()
             val bannerVisible = !isConnected
-            val message = if (bannerVisible) "kein Internet" else null
 
             Column(
                 modifier = Modifier.fillMaxWidth()
@@ -124,7 +120,6 @@ fun MainScreen(
                     exit = shrinkVertically(shrinkTowards = Alignment.Bottom) +
                             slideOutVertically(targetOffsetY = { it })
                 ) {
-
                     // TODO: kann man das auch injecten?
                     AppBottomNavigation(
                         navController = navController,
@@ -139,13 +134,12 @@ fun MainScreen(
 
 
                 AnimatedVisibility(
-                    visible = message != null,
+                    visible = bannerVisible,
                     enter = expandVertically(expandFrom = Alignment.Bottom, animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()) +
                             slideInVertically(initialOffsetY = { it }, animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()),
                     exit = shrinkVertically(shrinkTowards = Alignment.Bottom) +
                             slideOutVertically(targetOffsetY = { it })
                 ) {
-                //if (message != null) {
                     Box(
                         modifier = Modifier
                             .background(MaterialTheme.colorScheme.errorContainer)
@@ -165,8 +159,6 @@ fun MainScreen(
             }
         }
     ) { innerPadding ->
-
-        // TODO: inject via Hilt
         AppNavHost(
             navController = navController,
             startDestination = startDestination,
