@@ -13,6 +13,7 @@ object VpStyle {
     }
 
     fun encoded(themeFg: Color, themeBg: Color, themeBgHighlight: Color, themeBorder: Color): String {
+        // TODO: test if just making p font size bigger is specific enough for "in Arbeit..."
         val css = """
             :is(html, body, body *) {
             text-align: center !important;
@@ -22,6 +23,9 @@ object VpStyle {
             }
             h3 {
             font-size: 18px !important;
+            }
+            p {
+            font-size: 30 // for "In Arbeit..."
             }
             table, th, td {
             margin: auto;

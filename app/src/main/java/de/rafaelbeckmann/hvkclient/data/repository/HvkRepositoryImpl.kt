@@ -2,6 +2,8 @@ package de.rafaelbeckmann.hvkclient.data.repository
 
 import android.app.Application
 import android.util.Log
+import de.rafaelbeckmann.hvkclient.SnackbarController
+import de.rafaelbeckmann.hvkclient.SnackbarEvent
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
@@ -62,6 +64,11 @@ class HvkRepositoryImpl(
                 // Query again after saving to get the updated data
                 emitAll(query().map { Resource.Success(it) })
             } else {
+                SnackbarController.sendEvent(
+                    event = SnackbarEvent(
+                        message = "Fehler beim Laden (${response.code()}): ${response.message()}"
+                    )
+                )
                 val error = "API Error: ${response.code()} ${response.message()}"
                 // On error, emit the error but continue listening to the cache
                 emitAll(query().map { Resource.Error(error, it) })
@@ -70,6 +77,11 @@ class HvkRepositoryImpl(
             // cancellation is not an error; propagate it.
             throw ce
         } catch (e: Exception) {
+            SnackbarController.sendEvent(
+                event = SnackbarEvent(
+                    message = "Fehler beim Laden: ${e.message}"
+                )
+            )
             emitAll(query().map { Resource.Error(e.message ?: "Unknown error", it) })
         }
     }

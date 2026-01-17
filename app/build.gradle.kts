@@ -27,8 +27,8 @@ android {
         applicationId = "de.rafaelbeckmann.hvkclient"
         minSdk = 29
         targetSdk = 36
-        versionCode = 15
-        versionName = "0.3.0-beta.1"
+        versionCode = 16
+        versionName = "0.3.0-beta.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
