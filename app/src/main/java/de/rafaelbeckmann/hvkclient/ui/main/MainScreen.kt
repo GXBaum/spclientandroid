@@ -98,7 +98,8 @@ fun MainScreen(
 
         snackbarHost = {
             SnackbarHost(
-                hostState = snackbarHostState
+                hostState = snackbarHostState,
+               // modifier = Modifier.safeDrawingPadding()
             )
         },
 

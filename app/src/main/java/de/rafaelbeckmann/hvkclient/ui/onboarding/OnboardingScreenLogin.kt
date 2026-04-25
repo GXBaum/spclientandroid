@@ -71,6 +71,7 @@ fun OnboardingScreenLogin(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // TODO: change to OutlinedSecureTextField
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },

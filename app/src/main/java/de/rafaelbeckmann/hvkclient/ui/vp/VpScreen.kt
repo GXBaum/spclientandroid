@@ -63,6 +63,7 @@ import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 import de.rafaelbeckmann.hvkclient.ui.navigation.VP_FAB_EXPLODE_BOUND
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
@@ -72,7 +73,7 @@ fun SharedTransitionScope.VpScreen(
     modifier: Modifier = Modifier,
     viewModel: VpViewModel = hiltViewModel(),
     course: String? = null,
-    onVpOpenClick: () -> Unit,
+    onVpOpenClick: (String?) -> Unit = {},
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val state by viewModel.vpScreenState.collectAsState()
@@ -85,16 +86,38 @@ fun SharedTransitionScope.VpScreen(
     // Animate FAB collapse
     var fabExpanded by rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(8_000)
+        delay(8_000)
         fabExpanded = false
     }
+
+
+    // Safe index for composition to avoid TabRow crash when tabs shrink
+    val pageCount = state.selectedCourses.size
+    val lastIndex = (pageCount - 1).coerceAtLeast(0)
+    val safeSelectedIndex by remember {
+        derivedStateOf { pagerState.currentPage.coerceIn(0, lastIndex) }
+    }
+
+    // Jump to tab from navigation arg once courses loaded
+    LaunchedEffect(state.selectedCourses, course) {
+        val target = course?.let { state.selectedCourses.indexOf(it) } ?: -1
+        if (target >= 0) pagerState.scrollToPage(target.coerceAtMost(lastIndex))
+    }
+
+    // Correct pager when page count shrinks and current page is out-of-range
+    LaunchedEffect(pageCount) {
+        if (pagerState.currentPage > lastIndex) {
+            pagerState.scrollToPage(lastIndex)
+        }
+    }
+
 
     Scaffold(
         modifier = Modifier.safeDrawingPadding(),
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 expanded = fabExpanded,
-                onClick = { onVpOpenClick() },
+                onClick = { onVpOpenClick(state.selectedCourses[safeSelectedIndex]) },
                 icon = {
                     Icon(
                         imageVector = Icons.Rounded.SwapHoriz,
@@ -126,26 +149,6 @@ fun SharedTransitionScope.VpScreen(
         ) {
             Column(modifier = modifier.fillMaxSize()) {
                 if (state.selectedCourses.isNotEmpty()) {
-
-                    // Safe index for composition to avoid TabRow crash when tabs shrink
-                    val pageCount = state.selectedCourses.size
-                    val lastIndex = (pageCount - 1).coerceAtLeast(0)
-                    val safeSelectedIndex by remember {
-                        derivedStateOf { pagerState.currentPage.coerceIn(0, lastIndex) }
-                    }
-
-                    // Jump to tab from navigation arg once courses loaded
-                    LaunchedEffect(state.selectedCourses, course) {
-                        val target = course?.let { state.selectedCourses.indexOf(it) } ?: -1
-                        if (target >= 0) pagerState.scrollToPage(target.coerceAtMost(lastIndex))
-                    }
-
-                    // Correct pager when page count shrinks and current page is out-of-range
-                    LaunchedEffect(pageCount) {
-                        if (pagerState.currentPage > lastIndex) {
-                            pagerState.scrollToPage(lastIndex)
-                        }
-                    }
 
                     @Composable
                     fun TabsContent(){
@@ -190,13 +193,29 @@ fun SharedTransitionScope.VpScreen(
                                 .padding(horizontal = 16.dp)
                         ) {
                             sections.forEach { (title, list) ->
+                                /*val text = if (list.isNotEmpty()) {
+                                    title + ", " + list[0].vp_date
+                                } else {
+                                    title
+                                }*/
                                 item(key = "header_${courseName}_$title") {
                                     Text(
+                                        //text = text,
                                         text = title,
                                         style = MaterialTheme.typography.titleLarge,
                                         modifier = Modifier.padding(top = 16.dp)
                                     )
                                 }
+                                // this is really fucking stupid since if you dont have entries it doesnt show the date. should be general metadata in the json response
+                                if(list.isNotEmpty()) {
+                                    item(key = "header_day_${courseName}_$title") {
+                                        Text(
+                                            text = list[0].vp_date,
+                                            style = MaterialTheme.typography.bodyMediumEmphasized
+                                        )
+                                    }
+                                }
+
 
                                 // TODO: horrible code, i think
                                 val dayKey = when (title) {

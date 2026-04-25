@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
 
 
+// TODO RENAME ALL SINGLE SCREENS TO ROUTE OR SOMETHING ELSE TO FIX AMBIGUITY BETWEEN THE COMPOSABLES
 interface NavGraphSpec {
     fun startDestination() : Any
 }
@@ -66,7 +67,9 @@ object NotificationPermissionPromptScreen
 object AddCourseScreen
 
 @Serializable
-object VpWebView
+data class VpWebViewRoute(
+    val course: String? = null
+)
 
 @Serializable
 object LibrariesScreen

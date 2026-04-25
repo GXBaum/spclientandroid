@@ -1,18 +1,22 @@
 package de.rafaelbeckmann.hvkclient.ui.vp
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Base64
+import android.webkit.JavascriptInterface
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -22,17 +26,21 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ContentPasteSearch
 import androidx.compose.material.icons.rounded.SignalWifiConnectedNoInternet4
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,12 +48,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
+import de.rafaelbeckmann.hvkclient.ui.vp.VpStyle.courseMatchClass
+import de.rafaelbeckmann.hvkclient.ui.vp.VpStyle.courseMatchHighlightClass
 import de.rafaelbeckmann.hvkclient.ui.vp.VpStyle.encoded
+import de.rafaelbeckmann.hvkclient.ui.vp.VpStyle.js
 import kotlinx.coroutines.launch
 import org.jsoup.Jsoup
 import java.io.ByteArrayInputStream
@@ -56,8 +69,9 @@ import java.io.ByteArrayInputStream
 // TODO: bug explanation (my theory): Adding a vertically scrollable WebView into a Horizontal Pager makes scrolling almost impossible, because it doesn't realise the WebView needs the vertical scroll, and treats it as a non-scrollable element. It therefore interprets everything as an horizontal swipe. Adding the .verticalScroll Modifier is a band-aid fix, as it scrolls the entire WebView Component and does not use the internal WebView scroll. These two sometimes conflict, resulting in the bug where it's sometimes impossible to scroll to the absolute top of the website, it treats some random point before that as the top. This is why I ignore the scrolling inside it. That's my (propably wrong) theory.
 // in this state, it is currently working as expected.
 @Composable
-fun VpWebView(
+fun VpWebViewScreen(
     modifier: Modifier = Modifier,
+    course: String? = null,
     url1: String = "https://www.kleist-schule.de/vertretungsplan/schueler/aktuelle%20plaene/1/vp.html",
     url2: String = "https://www.kleist-schule.de/vertretungsplan/schueler/aktuelle%20plaene/2/vp.html",
 ) {
@@ -92,6 +106,7 @@ fun VpWebView(
             ) {
                 WebViewWithLoadingIndicator(
                     url = pageUrl,
+                    course = course,
                     //modifier = Modifier.matchParentSize()
                     modifier = Modifier.fillMaxSize()
                 )
@@ -104,8 +119,17 @@ fun VpWebView(
 @SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun WebViewWithLoadingIndicator(url: String, modifier: Modifier = Modifier) {
+fun WebViewWithLoadingIndicator(
+    url: String,
+    course: String? = null,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
+
+    val scrollState = rememberScrollState()
+
+    val density = LocalDensity.current
+
 
     var isLoading by remember { mutableStateOf(true) }
     var canGoBack by remember { mutableStateOf(false) }
@@ -116,10 +140,33 @@ fun WebViewWithLoadingIndicator(url: String, modifier: Modifier = Modifier) {
     val themeFg = MaterialTheme.colorScheme.onBackground
     val themeBgHighlight = MaterialTheme.colorScheme.surfaceVariant
     val themeBorder = MaterialTheme.colorScheme.outlineVariant
+    val themeMatchBg = MaterialTheme.colorScheme.inversePrimary
 
     // Build CSS from theme colors and encode
-    val encodedCss by remember(themeBg, themeFg, themeBgHighlight, themeBorder) {
-        mutableStateOf(encoded(themeFg, themeBg, themeBgHighlight, themeBorder))
+    val encodedCss by remember(themeBg, themeFg, themeBgHighlight, themeBorder, themeMatchBg) {
+        mutableStateOf(encoded(themeFg, themeBg, themeBgHighlight, themeBorder, themeMatchBg))
+    }
+
+    var offsets by remember { mutableStateOf<Array<Int?>>(emptyArray()) }
+    var offsetCount by remember { mutableIntStateOf (0) }
+
+    val scope = rememberCoroutineScope()
+    class WebAppInterface(private val context: Context) {
+        @JavascriptInterface
+        fun showToast(message:String) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+
+        @JavascriptInterface
+        fun sendOffsets(jsOffsets: FloatArray) {
+            if (jsOffsets.isNotEmpty()) {
+                val padding = with(density) {64.dp.toPx()}
+
+                offsets = jsOffsets.map {
+                    (it * density.density - padding).toInt()
+                }.toTypedArray()
+            }
+        }
     }
 
     val webView = remember {
@@ -127,6 +174,8 @@ fun WebViewWithLoadingIndicator(url: String, modifier: Modifier = Modifier) {
             settings.javaScriptEnabled = true // TODO: check maybe this is better
             settings.cacheMode = WebSettings.LOAD_NO_CACHE
             settings.displayZoomControls = false
+
+            addJavascriptInterface(WebAppInterface(context), "AndroidInterface")
 
             setOnTouchListener { _, _ -> true } // FIXME TODO Consume touch events to prevent the scrolling bug from happening (i think this is what solved it)
 
@@ -214,7 +263,7 @@ fun WebViewWithLoadingIndicator(url: String, modifier: Modifier = Modifier) {
                 }
 
 
-                // entfert autoscroll script und injected das CSS (alternative möglichkeit, wird gerade benutzt) so könnte man javaScriptEnabled wahrscheinlich deaktivieren
+                // entfernt autoscroll script und injected das CSS (alternative Möglichkeit, wird gerade benutzt) so könnte man javaScriptEnabled wahrscheinlich deaktivieren
                 if (requestUrl == url) {
                     try {
                         val document = Jsoup.connect(requestUrl).get()
@@ -229,6 +278,13 @@ fun WebViewWithLoadingIndicator(url: String, modifier: Modifier = Modifier) {
                         styleElement.text(css)
                         document.head().appendChild(styleElement)
 
+                        // insert js
+                        if (course != null) {
+                            val js = js(course)
+                            val jsElement = document.createElement("script")
+                            jsElement.text(js)
+                            document.head().appendChild(jsElement)
+                        }
 
 
                         val stream = ByteArrayInputStream(document.html().toByteArray(charset))
@@ -265,16 +321,66 @@ fun WebViewWithLoadingIndicator(url: String, modifier: Modifier = Modifier) {
         }
     }
 
-    Box(
-        modifier.fillMaxSize(),
-    ) {
+    var fabHeight by remember { mutableIntStateOf(0) }
+    val fabHeightDp = with(LocalDensity.current) { fabHeight.toDp() }
+
+    Scaffold (
+        modifier = Modifier.fillMaxSize(),
+        floatingActionButton = {
+            if (errorCode != null) return@Scaffold
+            if (isLoading) return@Scaffold
+
+            ExtendedFloatingActionButton(
+                expanded = true,
+                onClick = {
+                    webView.evaluateJavascript(
+                        "Array.from(document.getElementsByClassName('$courseMatchClass')).forEach(el => el.classList.add('$courseMatchHighlightClass'))",
+                        null
+                    )
+                    if (offsets.isEmpty()) return@ExtendedFloatingActionButton
+
+                    val index = offsetCount // to prevent race condition with scope
+                    scope.launch {
+                        offsets[index]?.let { scrollState.animateScrollTo(it) } // FIXME ARRAYOUTOFBOUNDSEXCEPTION
+                    }
+                    if (offsetCount != offsets.count() -1) {
+                        offsetCount ++
+                    } else {
+                        offsetCount = 0
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Rounded.ContentPasteSearch,
+                        contentDescription = null
+                    )
+                },
+                text = {
+                    Text(
+                        if (offsets.isNotEmpty()) {
+                            "Nach \"$course\" suchen (${offsets.size} ${ if(offsets.size == 1) "Ergebnis" else "Ergebnisse"})"
+                        } else {
+                            "\"$course\" nicht gefunden"
+                        }
+                    )
+                },
+                modifier = Modifier
+                    .onGloballyPositioned { // calculate FAB height
+                        fabHeight = it.size.height
+                    }
+                    // .animateContentSize() // TODO: animation too slow and also clipped fab shadow
+            )
+        }
+    ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = isLoading,
             onRefresh = {
-                webView.reload()
+                webView.reload() // TODO: only reloads current page not the other
             },
-            //modifier = Modifier.fillMaxSize(),
-            modifier = Modifier.matchParentSize()
+            modifier = Modifier.fillMaxSize()
+                .padding(innerPadding)
+            ,
+            //modifier = Modifier.matchParentSize()
 
         ) {
             if (errorCode != null) {
@@ -314,7 +420,8 @@ fun WebViewWithLoadingIndicator(url: String, modifier: Modifier = Modifier) {
             } else {
                 AndroidView(
                     modifier = Modifier.matchParentSize()
-                        .verticalScroll(rememberScrollState()) // FIXME Allow scrolling the error view. this current method works but is really dumb. but this is due to a material bug, not mine.
+                        .verticalScroll(scrollState) // FIXME Allow scrolling the error view. this current method works but is really dumb. but i think this is due to a material bug, not mine.
+                        .padding(PaddingValues(bottom = fabHeightDp + 16.dp)) // FAB height + Android hard-coded FAB offset
                     ,
                     factory = { webView }
                 )

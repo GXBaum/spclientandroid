@@ -35,7 +35,7 @@ import de.rafaelbeckmann.hvkclient.ui.revealmark.RevealMarkScreen
 import de.rafaelbeckmann.hvkclient.ui.settings.LibrariesScreen
 import de.rafaelbeckmann.hvkclient.ui.settings.SettingsScreen
 import de.rafaelbeckmann.hvkclient.ui.vp.VpScreen
-import de.rafaelbeckmann.hvkclient.ui.vp.VpWebView
+import de.rafaelbeckmann.hvkclient.ui.vp.VpWebViewScreen
 
 
 const val VP_FAB_EXPLODE_BOUND = "VP_FAB_EXPLODE_BOUND"
@@ -45,7 +45,7 @@ const val VP_FAB_EXPLODE_BOUND = "VP_FAB_EXPLODE_BOUND"
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    startDestination: Any,
+    startDestination: Any, // TODO: change type
     modifier: Modifier = Modifier,
 ) {
     SharedTransitionLayout {
@@ -137,16 +137,22 @@ fun AppNavHost(
                         modifier = Modifier
                             .fillMaxSize(),
                         course = args.course,
-                        onVpOpenClick = {
-                            navController.navigate(VpWebView)
+                        onVpOpenClick = { course ->
+                            navController.navigate(
+                                VpWebViewRoute(
+                                    course = course
+                                )
+                            )
                         },
                         animatedVisibilityScope = this
                     )
                 }
 
-                // TODO: makes vpWebView shit again, but animations would be nice
-                composable<VpWebView> {
-                    VpWebView(
+                composable<VpWebViewRoute> {
+                    val args = it.toRoute<VpWebViewRoute>()
+
+                    VpWebViewScreen(
+                        course = args.course,
                         modifier = Modifier
                             .fillMaxSize()
                             .sharedBounds(
