@@ -13,13 +13,13 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -52,6 +52,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
@@ -79,37 +80,111 @@ fun VpWebViewScreen(
     val scope = rememberCoroutineScope()
     val tabs = listOf("Heute", "Nächster Schultag")
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .safeDrawingPadding(),
-    ) {
-        PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
-            tabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = pagerState.currentPage == index,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    text = { Text(title) }
-                )
-            }
+    val webViewStates = remember {
+        listOf(WebViewState(ScrollState(0)), WebViewState(ScrollState(0)))
+    }
+
+    var fabHeight by remember { mutableIntStateOf(0) }
+    val fabHeightDp = with(LocalDensity.current) { fabHeight.toDp() }
+
+    val activeState = webViewStates[pagerState.currentPage]
+
+
+    Scaffold (
+        modifier = Modifier.fillMaxSize(),
+        floatingActionButton = {
+            if (activeState.errorCode != null) return@Scaffold
+            if (activeState.isLoading) return@Scaffold
+
+            ExtendedFloatingActionButton(
+                expanded = true,
+                onClick = {
+                    activeState.webView?.evaluateJavascript(
+                        "Array.from(document.getElementsByClassName('$courseMatchClass')).forEach(el => el.classList.add('$courseMatchHighlightClass'))",
+                        null
+                    )
+                    if (activeState.offsets.isEmpty()) return@ExtendedFloatingActionButton
+
+                    val index = activeState.offsetCount // to prevent race condition with scope
+                    scope.launch {
+                        activeState.offsets[index]?.let { activeState.scrollState.animateScrollTo(it) } // FIXME ARRAYOUTOFBOUNDSEXCEPTION
+                    }
+                    if (activeState.offsetCount != activeState.offsets.count() -1) {
+                        activeState.offsetCount ++
+                    } else {
+                        activeState.offsetCount = 0
+                    }
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Rounded.ContentPasteSearch,
+                        contentDescription = null
+                    )
+                },
+                text = {
+                    Text(
+                        if (activeState.offsets.isNotEmpty()) {
+                            "Nach \"$course\" suchen (${activeState.offsets.size} ${ if(activeState.offsets.size == 1) "Ergebnis" else "Ergebnisse"})"
+                        } else {
+                            "\"$course\" nicht gefunden"
+                        }
+                    )
+                },
+                modifier = Modifier
+                    .onGloballyPositioned { // calculate FAB height
+                        fabHeight = it.size.height
+                    }
+                // .animateContentSize() // TODO: animation too slow and also clipped fab shadow
+            )
         }
-
-        HorizontalPager(
-            state = pagerState,
-            beyondViewportPageCount = 1,
-            modifier = Modifier.fillMaxSize(),
-        ) { page ->
-            val pageUrl = if (page == 0) url1 else url2
-
-            Box (
-                modifier = Modifier.fillMaxSize()
+    ) { innerPadding ->
+        PullToRefreshBox(
+            isRefreshing = activeState.isLoading,
+            onRefresh = {
+                // FIXME fab scroll glitches to wrong position after reload
+                webViewStates.forEach {
+                    it.webView?.reload()
+                }
+            },
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                ,
             ) {
-                WebViewWithLoadingIndicator(
-                    url = pageUrl,
-                    course = course,
-                    //modifier = Modifier.matchParentSize()
-                    modifier = Modifier.fillMaxSize()
-                )
+                PrimaryTabRow(selectedTabIndex = pagerState.currentPage) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = pagerState.currentPage == index,
+                            onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
+                            text = { Text(title) }
+                        )
+                    }
+                }
+
+                HorizontalPager(
+                    state = pagerState,
+                    beyondViewportPageCount = 1,
+                    modifier = Modifier.fillMaxSize(),
+                ) { page ->
+                    val pageUrl = if (page == 0) url1 else url2
+
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        WebViewWithLoadingIndicator(
+                            url = pageUrl,
+                            course = course,
+                            //modifier = Modifier.matchParentSize()
+                            state = webViewStates[page],
+                            fabHeight = fabHeightDp,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
             }
         }
     }
@@ -122,19 +197,14 @@ fun VpWebViewScreen(
 fun WebViewWithLoadingIndicator(
     url: String,
     course: String? = null,
+    state: WebViewState,
+    fabHeight: Dp,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-
-    val scrollState = rememberScrollState()
-
     val density = LocalDensity.current
 
-
-    var isLoading by remember { mutableStateOf(true) }
     var canGoBack by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var errorCode by remember { mutableStateOf<Int?>(null) }
 
     val themeBg = MaterialTheme.colorScheme.background
     val themeFg = MaterialTheme.colorScheme.onBackground
@@ -147,10 +217,7 @@ fun WebViewWithLoadingIndicator(
         mutableStateOf(encoded(themeFg, themeBg, themeBgHighlight, themeBorder, themeMatchBg))
     }
 
-    var offsets by remember { mutableStateOf<Array<Int?>>(emptyArray()) }
-    var offsetCount by remember { mutableIntStateOf (0) }
 
-    val scope = rememberCoroutineScope()
     class WebAppInterface(private val context: Context) {
         @JavascriptInterface
         fun showToast(message:String) {
@@ -162,7 +229,7 @@ fun WebViewWithLoadingIndicator(
             if (jsOffsets.isNotEmpty()) {
                 val padding = with(density) {64.dp.toPx()}
 
-                offsets = jsOffsets.map {
+                state.offsets = jsOffsets.map {
                     (it * density.density - padding).toInt()
                 }.toTypedArray()
             }
@@ -217,16 +284,16 @@ fun WebViewWithLoadingIndicator(
     DisposableEffect(url) {
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                isLoading = true
-                errorMessage = null
-                errorCode = null
+                state.isLoading = true
+                state.errorMessage = null
+                state.errorCode = null
             }
 
             // Use first-paint callback to avoid showing blank/white before content is drawn
             override fun onPageCommitVisible(view: WebView?, url: String?) {
                 //injectThemeCss() FIXME
                 canGoBack = webView.canGoBack()
-                isLoading = false
+                state.isLoading = false
             }
 
             // TODO: this should be unnecessary
@@ -242,9 +309,9 @@ fun WebViewWithLoadingIndicator(
             ) {
                 super.onReceivedError(view, request, error)
                 if (request?.isForMainFrame == true) {
-                    errorMessage = error?.description.toString()
-                    errorCode = error?.errorCode
-                    isLoading = false
+                    state.errorMessage = error?.description.toString()
+                    state.errorCode = error?.errorCode
+                    state.isLoading = false
                 }
             }
 
@@ -304,13 +371,15 @@ fun WebViewWithLoadingIndicator(
         }
 
         if (webView.url != url) {
-            isLoading = true
+            state.isLoading = true
             webView.loadUrl(url)
         }
         onDispose { }
     }
 
     DisposableEffect(webView) {
+        state.webView = webView // sync local webView with state
+
         onDispose { webView.destroy() }
     }
 
@@ -321,111 +390,58 @@ fun WebViewWithLoadingIndicator(
         }
     }
 
-    var fabHeight by remember { mutableIntStateOf(0) }
-    val fabHeightDp = with(LocalDensity.current) { fabHeight.toDp() }
-
-    Scaffold (
-        modifier = Modifier.fillMaxSize(),
-        floatingActionButton = {
-            if (errorCode != null) return@Scaffold
-            if (isLoading) return@Scaffold
-
-            ExtendedFloatingActionButton(
-                expanded = true,
-                onClick = {
-                    webView.evaluateJavascript(
-                        "Array.from(document.getElementsByClassName('$courseMatchClass')).forEach(el => el.classList.add('$courseMatchHighlightClass'))",
-                        null
-                    )
-                    if (offsets.isEmpty()) return@ExtendedFloatingActionButton
-
-                    val index = offsetCount // to prevent race condition with scope
-                    scope.launch {
-                        offsets[index]?.let { scrollState.animateScrollTo(it) } // FIXME ARRAYOUTOFBOUNDSEXCEPTION
-                    }
-                    if (offsetCount != offsets.count() -1) {
-                        offsetCount ++
-                    } else {
-                        offsetCount = 0
-                    }
-                },
-                icon = {
+    if (state.errorCode != null) {
+        //if (errorCode == -6 || errorCode == -2) { // not sure if this works or if there are false-positives
+        if (state.errorMessage == "net::ERR_INTERNET_DISCONNECTED") {
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     Icon(
-                        imageVector = Icons.Rounded.ContentPasteSearch,
-                        contentDescription = null
+                        imageVector = Icons.Rounded.SignalWifiConnectedNoInternet4,
+                        contentDescription = "No internet connection",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.primary
                     )
-                },
-                text = {
                     Text(
-                        if (offsets.isNotEmpty()) {
-                            "Nach \"$course\" suchen (${offsets.size} ${ if(offsets.size == 1) "Ergebnis" else "Ergebnisse"})"
-                        } else {
-                            "\"$course\" nicht gefunden"
-                        }
+                        text = "Kein Internet",
+                        style = MaterialTheme.typography.headlineSmall,
                     )
-                },
-                modifier = Modifier
-                    .onGloballyPositioned { // calculate FAB height
-                        fabHeight = it.size.height
-                    }
-                    // .animateContentSize() // TODO: animation too slow and also clipped fab shadow
-            )
-        }
-    ) { innerPadding ->
-        PullToRefreshBox(
-            isRefreshing = isLoading,
-            onRefresh = {
-                webView.reload() // TODO: only reloads current page not the other
-            },
-            modifier = Modifier.fillMaxSize()
-                .padding(innerPadding)
-            ,
-            //modifier = Modifier.matchParentSize()
-
-        ) {
-            if (errorCode != null) {
-                //if (errorCode == -6 || errorCode == -2) { // not sure if this works or if there are false-positives
-                if (errorMessage == "net::ERR_INTERNET_DISCONNECTED") {
-                    Box(
-                        modifier = Modifier.fillMaxSize()
-                            .verticalScroll(rememberScrollState()),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.SignalWifiConnectedNoInternet4,
-                                contentDescription = "No internet connection",
-                                modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "Kein Internet",
-                                style = MaterialTheme.typography.headlineSmall,
-                            )
-                            Text(
-                                text = "Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                } else {
-                    ErrorCard(errorMessage!!)
+                    Text(
+                        text = "Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
                 }
-            } else {
-                AndroidView(
-                    modifier = Modifier.matchParentSize()
-                        .verticalScroll(scrollState) // FIXME Allow scrolling the error view. this current method works but is really dumb. but i think this is due to a material bug, not mine.
-                        .padding(PaddingValues(bottom = fabHeightDp + 16.dp)) // FAB height + Android hard-coded FAB offset
-                    ,
-                    factory = { webView }
-                )
             }
+        } else {
+            ErrorCard(state.errorMessage!!) // FIXME cant pull to refresh
         }
+    } else {
+        AndroidView(
+            modifier = Modifier//.matchParentSize()
+                .verticalScroll(state.scrollState) // FIXME Allow scrolling the error view. this current method works but is really dumb. but i think this is due to a material bug, not mine.
+                .padding(PaddingValues(bottom = fabHeight + 16.dp)) // FAB height + Android hard-coded FAB offset
+            ,
+            factory = { webView }
+        )
     }
+}
+
+class WebViewState(
+    var scrollState: ScrollState
+) {
+    var webView by mutableStateOf<WebView?>(null)
+    var offsets by mutableStateOf<Array<Int?>>(emptyArray())
+    var offsetCount by mutableStateOf(0)
+    var errorCode by mutableStateOf<Int?>(null)
+    var errorMessage by mutableStateOf<String?>(null)
+    var isLoading by mutableStateOf(true)
 }

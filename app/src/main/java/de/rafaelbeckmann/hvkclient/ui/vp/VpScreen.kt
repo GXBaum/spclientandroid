@@ -68,7 +68,6 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
-//fun VpScreen(
 fun SharedTransitionScope.VpScreen(
     modifier: Modifier = Modifier,
     viewModel: VpViewModel = hiltViewModel(),
@@ -94,7 +93,7 @@ fun SharedTransitionScope.VpScreen(
     // Safe index for composition to avoid TabRow crash when tabs shrink
     val pageCount = state.selectedCourses.size
     val lastIndex = (pageCount - 1).coerceAtLeast(0)
-    val safeSelectedIndex by remember {
+    val safeSelectedIndex by remember(lastIndex) {
         derivedStateOf { pagerState.currentPage.coerceIn(0, lastIndex) }
     }
 
@@ -135,6 +134,7 @@ fun SharedTransitionScope.VpScreen(
                         ),
                         animatedVisibilityScope = animatedVisibilityScope
                     )
+                ,
             )
         }
     ) { innerPadding ->
