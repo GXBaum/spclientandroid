@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
+import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseRequest
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +22,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// TODO: should potentially not exist, as its redundant with other class
+data class SelectedCourse(
+    val name: String,
+    val verified: Boolean
+)
+
 @HiltViewModel
 open class SettingsViewModel @Inject constructor(
     private val repository: HvkRepository,
@@ -29,8 +35,8 @@ open class SettingsViewModel @Inject constructor(
     open val prefUtils: PrefUtils
 ) : ViewModel() {
 
-    private val _vpSelectedCourse = MutableStateFlow<List<String>>(emptyList())
-    open val vpSelectedCourse: StateFlow<List<String>> = _vpSelectedCourse
+    private val _vpSelectedCourse = MutableStateFlow<List<SelectedCourse>>(emptyList())
+    open val vpSelectedCourse: StateFlow<List<SelectedCourse>> = _vpSelectedCourse
 
     private val _courseSearch = MutableStateFlow<List<String>>(emptyList())
     open val courseSearch: StateFlow<List<String>> = _courseSearch
@@ -57,7 +63,7 @@ open class SettingsViewModel @Inject constructor(
             Log.d("SettingsViewModel", "refreshToken: ${settingsRepository.getRefreshToken()}")
 
             if (userId.value != null) {
-                fetchSpSelectedCourse(userId.value!!)
+                fetchVpSelectedCourse(userId.value!!)
             }
         }
     }
@@ -65,13 +71,13 @@ open class SettingsViewModel @Inject constructor(
     fun saveUsername(userId: Int) {
         viewModelScope.launch {
             settingsRepository.setUserId(userId)
-            fetchSpSelectedCourse(userId)
+            fetchVpSelectedCourse(userId)
         }
     }
 
 
     // TODO: fetcht mehrere Male
-    fun fetchSpSelectedCourse(userId: Int) {
+    fun fetchVpSelectedCourse(userId: Int) {
         repository.getVpSelectedCourses(userId).onEach { result ->
             Log.d("SettingsViewModel", "username: ${this@SettingsViewModel.userId}")
             when (result) {
@@ -118,12 +124,12 @@ open class SettingsViewModel @Inject constructor(
                 //settingsRepository.setVpSelectedCourseName(courseName)
 
                 try {
-                    val courseObject = VpSelectedCourse(courseName)
+                    val courseObject = VpSelectedCourseRequest(courseName)
 
                     repository.postVpSelectedCourses(id, courseObject)
 
                     // After posting successfully, refresh the data
-                    fetchSpSelectedCourse(id)
+                    fetchVpSelectedCourse(id)
                 } catch (exception: Exception) {
                     _error.value = exception.message
                     _isLoading.value = false
@@ -143,7 +149,7 @@ open class SettingsViewModel @Inject constructor(
                     repository.deleteVpSelectedCourse(id, courseName)
 
                     // After deleting successfully, refresh the data
-                    fetchSpSelectedCourse(id)
+                    fetchVpSelectedCourse(id)
                 } catch (exception: Exception) {
                     _error.value = exception.message
                     _isLoading.value = false

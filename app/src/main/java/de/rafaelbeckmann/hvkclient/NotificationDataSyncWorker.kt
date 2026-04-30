@@ -44,7 +44,7 @@ class NotificationDataSyncWorker @AssistedInject constructor(
                         val courses = coursesResource.data
 
                         if (!courses.isNullOrEmpty()) {
-                            val result = repository.getVpSubstitutionsMultipleCourses(courses)
+                            val result = repository.getVpSubstitutionsMultipleCourses(courses.map { it.name })
                                 .filter { it !is Resource.Loading }
                                 .first()
 

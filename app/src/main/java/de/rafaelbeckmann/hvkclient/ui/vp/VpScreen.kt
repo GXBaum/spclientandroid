@@ -99,7 +99,7 @@ fun SharedTransitionScope.VpScreen(
 
     // Jump to tab from navigation arg once courses loaded
     LaunchedEffect(state.selectedCourses, course) {
-        val target = course?.let { state.selectedCourses.indexOf(it) } ?: -1
+        val target = course?.let { courseName -> state.selectedCourses.indexOfFirst { it.name == courseName } } ?: -1
         if (target >= 0) pagerState.scrollToPage(target.coerceAtMost(lastIndex))
     }
 
@@ -116,7 +116,7 @@ fun SharedTransitionScope.VpScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 expanded = fabExpanded,
-                onClick = { onVpOpenClick(state.selectedCourses[safeSelectedIndex]) },
+                onClick = { onVpOpenClick(state.selectedCourses[safeSelectedIndex].name) },
                 icon = {
                     Icon(
                         imageVector = Icons.Rounded.SwapHoriz,
@@ -156,7 +156,7 @@ fun SharedTransitionScope.VpScreen(
                             Tab(
                                 selected = safeSelectedIndex == index,
                                 onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                                text = { Text(courseName) }
+                                text = { Text(courseName.name) }
                             )
                         }
                     }
@@ -179,7 +179,7 @@ fun SharedTransitionScope.VpScreen(
                         modifier = Modifier.fillMaxSize()
                     ) { page ->
                         val courseName = state.selectedCourses.getOrNull(page)
-                        val substitutionsForCourse = courseName?.let { state.substitutions?.substitutions?.get(it) }
+                        val substitutionsForCourse = courseName?.let { state.substitutions?.substitutions?.get(it.name) }
 
                         val sections = listOf(
                             "Heute" to (substitutionsForCourse?.today.orEmpty()),
@@ -192,6 +192,15 @@ fun SharedTransitionScope.VpScreen(
                                 .fillMaxSize()
                                 .padding(horizontal = 16.dp)
                         ) {
+                            // non-existing course warning
+                            state.selectedCourses.getOrNull(page)?.verified?.let {
+                                if (!it) {
+                                    item {
+                                        ErrorCard("Klasse existiert wahrscheinlich nicht")
+                                    }
+                                }
+                            }
+
                             sections.forEach { (title, list) ->
                                 /*val text = if (list.isNotEmpty()) {
                                     title + ", " + list[0].vp_date

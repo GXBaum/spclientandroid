@@ -16,11 +16,14 @@ import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpInfo
 import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
+import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseRequest
+import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
 import de.rafaelbeckmann.hvkclient.data.model.createAccountRequest
 import de.rafaelbeckmann.hvkclient.data.model.createAccountResponse
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
+import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emitAll
@@ -142,11 +145,11 @@ class HvkRepositoryImpl(
         }
     )
 
-    override suspend fun postVpSelectedCourses(userId: Int, courseName: VpSelectedCourse): Result<Unit> {
+    override suspend fun postVpSelectedCourses(userId: Int, courseName: VpSelectedCourseRequest): Result<Unit> {
         return try {
             val response = api.postVpSelectedCourses(userId, courseName)
             if (response.isSuccessful) {
-                cacheDao.insertVpSelectedCourses(listOf(courseName))
+                //cacheDao.insertVpSelectedCourses(listOf(courseName)) // aktuell nicht nötig, im Settings VM wird so oder so neu gefetcht // TODO: funktioniert mit Android 16 aber nicht 10?
                 Result.success(Unit)
             } else {
                 Result.failure(IOException("Failed to post selected courses: ${response.code()}"))
@@ -156,16 +159,26 @@ class HvkRepositoryImpl(
         }
     }
 
-    override fun getVpSelectedCourses(userId: Int): Flow<Resource<List<String>>> = networkBoundResource(
+    override fun getVpSelectedCourses(userId: Int): Flow<Resource<List<SelectedCourse>>> = networkBoundResource(
         query = {
             cacheDao.getVpSelectedCourses().map { courses ->
-                courses.map { it.courseName }
+                courses.map {
+                    SelectedCourse(
+                        name = it.courseName,
+                        verified = it.verified
+                    )
+                }
             }
         },
         fetch = { api.getVpSelectedCourses(userId) },
         saveFetchResult = { response ->
             cacheDao.clearVpSelectedCourses()
-            val courses = response.courses.map { VpSelectedCourse(it.course) }
+            val courses = response.courses.map {
+                VpSelectedCourse(
+                    courseName = it.course,
+                    verified = it.verified
+                )
+            }
             cacheDao.insertVpSelectedCourses(courses)
         }
     )

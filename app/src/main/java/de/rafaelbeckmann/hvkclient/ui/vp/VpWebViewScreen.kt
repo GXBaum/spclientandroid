@@ -91,7 +91,7 @@ fun VpWebViewScreen(
 
 
     Scaffold (
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         floatingActionButton = {
             if (activeState.errorCode != null) return@Scaffold
             if (activeState.isLoading) return@Scaffold
@@ -107,7 +107,7 @@ fun VpWebViewScreen(
 
                     val index = activeState.offsetCount // to prevent race condition with scope
                     scope.launch {
-                        activeState.offsets[index]?.let { activeState.scrollState.animateScrollTo(it) } // FIXME ARRAYOUTOFBOUNDSEXCEPTION
+                        activeState.offsets[index]?.let { activeState.scrollState.animateScrollTo(it) }
                     }
                     if (activeState.offsetCount != activeState.offsets.count() -1) {
                         activeState.offsetCount ++
@@ -151,7 +151,7 @@ fun VpWebViewScreen(
                 .padding(innerPadding)
         ) {
             Column(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxSize()
                 ,
             ) {
@@ -191,7 +191,6 @@ fun VpWebViewScreen(
 }
 
 
-@SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WebViewWithLoadingIndicator(
@@ -238,12 +237,14 @@ fun WebViewWithLoadingIndicator(
 
     val webView = remember {
         WebView(context).apply {
+            @SuppressLint("SetJavaScriptEnabled")
             settings.javaScriptEnabled = true // TODO: check maybe this is better
             settings.cacheMode = WebSettings.LOAD_NO_CACHE
             settings.displayZoomControls = false
 
             addJavascriptInterface(WebAppInterface(context), "AndroidInterface")
 
+            @SuppressLint("ClickableViewAccessibility")
             setOnTouchListener { _, _ -> true } // FIXME TODO Consume touch events to prevent the scrolling bug from happening (i think this is what solved it)
 
             clearCache(true) // this should be unnecessary
@@ -256,6 +257,8 @@ fun WebViewWithLoadingIndicator(
         onDispose { }
     }
 
+
+    /*
     // Inject CSS helper // FIXME this is not needed in the current, better version
     fun injectThemeCss() {
         val js = """
@@ -280,6 +283,7 @@ fun WebViewWithLoadingIndicator(
         //injectThemeCss() FIXME
         onDispose { }
     }
+    */
 
     DisposableEffect(url) {
         webView.webViewClient = object : WebViewClient() {
@@ -330,7 +334,7 @@ fun WebViewWithLoadingIndicator(
                 }
 
 
-                // entfernt autoscroll script und injected das CSS (alternative Möglichkeit, wird gerade benutzt) so könnte man javaScriptEnabled wahrscheinlich deaktivieren
+                // entfernt autoscroll script und injected das CSS (alternative Möglichkeit, wird gerade benutzt)
                 if (requestUrl == url) {
                     try {
                         val document = Jsoup.connect(requestUrl).get()
@@ -440,7 +444,7 @@ class WebViewState(
 ) {
     var webView by mutableStateOf<WebView?>(null)
     var offsets by mutableStateOf<Array<Int?>>(emptyArray())
-    var offsetCount by mutableStateOf(0)
+    var offsetCount by mutableIntStateOf(0)
     var errorCode by mutableStateOf<Int?>(null)
     var errorMessage by mutableStateOf<String?>(null)
     var isLoading by mutableStateOf(true)

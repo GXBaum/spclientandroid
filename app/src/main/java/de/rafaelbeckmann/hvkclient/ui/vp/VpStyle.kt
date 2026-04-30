@@ -95,10 +95,6 @@ object VpStyle {
                     }
                 }
 
-                /*matches.forEach(match => {
-                    AndroidInterface.showToast(match.outerHTML);
-                })*/
-
                 if (matches.length > 0) {
                     const offsets = matches.map( match =>
                         window.pageYOffset + match.getBoundingClientRect().top
@@ -107,7 +103,6 @@ object VpStyle {
                     matches.forEach( match => {
                         match.classList.add("$courseMatchClass")
                     })
-
 
                     AndroidInterface.sendOffsets(offsets);
                 }

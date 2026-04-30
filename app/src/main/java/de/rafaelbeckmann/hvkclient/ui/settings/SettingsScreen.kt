@@ -20,13 +20,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.EditNotifications
+import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.Feedback
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -37,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -50,7 +54,7 @@ import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 
 sealed class CourseListItem {
-    data class Course(val name: String) : CourseListItem()
+    data class Course(val course: SelectedCourse) : CourseListItem()
     object AddButton : CourseListItem()
 }
 
@@ -79,6 +83,8 @@ fun SettingsScreen(
     val useDynamicColor by viewModel.useDynamicColor.collectAsState()
 
     val context = LocalContext.current
+
+    var showWarning by remember { mutableStateOf(false) }
 
 
     // Get the PackageInfo object for the current application package
@@ -184,7 +190,7 @@ fun SettingsScreen(
             items = courseListItems,
             key = { item ->
                 when (item) {
-                    is CourseListItem.Course -> "course_${item.name}"
+                    is CourseListItem.Course -> "course_${item.course}"
                     is CourseListItem.AddButton -> "add_button"
                 }
             },
@@ -214,10 +220,22 @@ fun SettingsScreen(
                 }
                 is CourseListItem.Course -> {
                     RoundedListItem(
-                        text = item.name,
+                        text = item.course.name,
                         trailingIcon = {
+                            if (!item.course.verified && item.course.name != "_DEBUG") {
+                                IconButton(onClick = {
+                                    showWarning = true
+                                }) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Error,
+                                        contentDescription = "Kursname konnte nicht bestätigt werden",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+
                             IconButton(onClick = {
-                                viewModel.deleteVpSelectedCourse(item.name)
+                                viewModel.deleteVpSelectedCourse(item.course.name)
                             }) {
                                 Icon(
                                     imageVector = Icons.Rounded.Delete,
@@ -225,7 +243,14 @@ fun SettingsScreen(
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
-                        }
+                        },
+                        modifier = Modifier.clickable(
+                            onClick = {
+                                if (!item.course.verified) {
+                                    showWarning = true
+                                }
+                            }
+                        )
                     )
                 }
             }
@@ -302,11 +327,44 @@ fun SettingsScreen(
         )
         */
 
-        if (vpSelectedCourse.contains("_DEBUG")) {
+        if (vpSelectedCourse.any { it.name =="_DEBUG" }) {
             item {
                 DebugMenu()
             }
         }
+    }
+
+    // non-verified course warning
+    if (showWarning) {
+        AlertDialog(
+            onDismissRequest = { showWarning = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.Error,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = {
+                Text(
+                    text = "Klasse unbekannt",
+                    textAlign = TextAlign.Center
+                )
+            },
+            text = {
+                Text(
+                    text = "Diese Klasse wurde noch nie im Vertretungsplan gefunden.\n\nAchte auf die richtige Schreibweise (genau wie im Vertretungsplan) und verwende am besten die vorgeschlagenen Klassen.",
+                    textAlign = TextAlign.Center
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showWarning = false }
+                ) {
+                    Text("Schließen")
+                }
+            }
+        )
     }
 }
 

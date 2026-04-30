@@ -10,6 +10,7 @@ import de.rafaelbeckmann.hvkclient.data.model.VpInfo
 import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +26,7 @@ import javax.inject.Inject
 data class VpScreenState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val selectedCourses: List<String> = emptyList(),
+    val selectedCourses: List<SelectedCourse> = emptyList(),
     val substitutions: VpResponse? = null,
     val vpInfo: VpInfo? = null
 )
@@ -98,13 +99,13 @@ open class VpViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun fetchVpSubstitutionsMultipleCourses(courseNames: List<String>) {
-        if (courseNames.isEmpty()) {
+    fun fetchVpSubstitutionsMultipleCourses(courses: List<SelectedCourse>) {
+        if (courses.isEmpty()) {
             _vpScreenState.value = _vpScreenState.value.copy(isLoading = false, substitutions = null)
             return
         }
 
-        repository.getVpSubstitutionsMultipleCourses(courseNames).onEach { result ->
+        repository.getVpSubstitutionsMultipleCourses(courses.map { it.name }).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                     _vpScreenState.value = _vpScreenState.value.copy(isLoading = true)

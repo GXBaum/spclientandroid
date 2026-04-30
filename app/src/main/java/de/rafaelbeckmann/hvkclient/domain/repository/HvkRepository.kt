@@ -8,8 +8,9 @@ import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpInfo
 import de.rafaelbeckmann.hvkclient.data.model.VpResponse
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
+import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseRequest
 import de.rafaelbeckmann.hvkclient.data.model.createAccountResponse
+import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -42,18 +43,18 @@ interface HvkRepository {
 
     /**
      * Fetches the selected courses for a user
-     * @param username The username to fetch selected courses for
+     * @param userId The userId to fetch selected courses for
      * @return Flow emitting either a success with list of selected courses or an error
      */
-    fun getVpSelectedCourses(userId: Int): Flow<Resource<List<String>>>
+    fun getVpSelectedCourses(userId: Int): Flow<Resource<List<SelectedCourse>>>
 
     /**
      * Posts the selected courses for a user
-     * @param username The username to post selected courses for
+     * @param userId The userId to post selected courses for
      * @param courseName The name of the course to post
      * @return Flow emitting either a success or an error
      */
-    suspend fun postVpSelectedCourses(userId: Int, courseName: VpSelectedCourse): Result<Unit>
+    suspend fun postVpSelectedCourses(userId: Int, courseName: VpSelectedCourseRequest): Result<Unit>
 
     suspend fun deleteVpSelectedCourse(userId: Int, courseName: String): Result<Unit>
 

@@ -93,16 +93,22 @@ data class UserMark(
 )
 
 
+data class VpSelectedCourseRequest(
+    val courseName: String
+)
+
 @Entity
 data class VpSelectedCourse(
-    @PrimaryKey val courseName: String
+    @PrimaryKey val courseName: String,
+    val verified: Boolean
 )
 
 data class VpSelectedCoursesResponse(
     val courses: List<VpSelectedCourseResponse>
 )
 data class VpSelectedCourseResponse(
-    val course: String
+    val course: String,
+    val verified: Boolean
 )
 
 @Entity
