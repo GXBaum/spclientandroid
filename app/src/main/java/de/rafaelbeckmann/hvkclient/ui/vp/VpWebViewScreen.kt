@@ -36,7 +36,6 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -56,6 +55,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
+import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.vp.VpStyle.courseMatchClass
 import de.rafaelbeckmann.hvkclient.ui.vp.VpStyle.courseMatchHighlightClass
 import de.rafaelbeckmann.hvkclient.ui.vp.VpStyle.encoded
@@ -138,7 +138,7 @@ fun VpWebViewScreen(
             )
         }
     ) { innerPadding ->
-        PullToRefreshBox(
+        HapticPullToRefreshBox(
             isRefreshing = activeState.isLoading,
             onRefresh = {
                 // FIXME fab scroll glitches to wrong position after reload

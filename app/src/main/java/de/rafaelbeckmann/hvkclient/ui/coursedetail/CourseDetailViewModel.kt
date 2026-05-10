@@ -10,9 +10,17 @@ import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import javax.inject.Inject
+
+data class CourseDetailScreenState(
+    val marks: List<UserMark> = emptyList(),
+    val courseName: String? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
 
 @HiltViewModel
 open class CourseDetailViewModel @Inject constructor(
@@ -21,14 +29,8 @@ open class CourseDetailViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository
 ): ViewModel() {
     // UI state
-    private val _marks = MutableStateFlow<List<UserMark>>(emptyList())
-    open val marks: StateFlow<List<UserMark>> = _marks
-
-    private val _isLoading = MutableStateFlow(false)
-    open val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _error = MutableStateFlow<String?>(null)
-    open val error: StateFlow<String?> = _error
+    private val _courseDetailScreenState = MutableStateFlow(CourseDetailScreenState())
+    val courseDetailScreenState: StateFlow<CourseDetailScreenState> = _courseDetailScreenState.asStateFlow()
 
     /**
      * Fetches courses for the given username
@@ -37,24 +39,52 @@ open class CourseDetailViewModel @Inject constructor(
         repository.getUserMarksForCourse(userId, courseId).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
-                    _isLoading.value = true
-                    result.data?.let {
-                        _marks.value = it
-                    }
+                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
+                        isLoading = true,
+                        marks = result.data ?: courseDetailScreenState.value.marks
+                    )
                 }
                 is Resource.Success -> {
-                    _isLoading.value = false
-                    result.data?.let {
-                        _marks.value = it
-                    }
-                    _error.value = null
+                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
+                        isLoading = false,
+                        marks = result.data ?: courseDetailScreenState.value.marks,
+                        error = null
+                    )
                 }
                 is Resource.Error -> {
-                    _isLoading.value = false
-                    _error.value = result.message
-                    result.data?.let {
-                        _marks.value = it
-                    }
+                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
+                        isLoading = false,
+                        error = result.message,
+                        marks = result.data ?: courseDetailScreenState.value.marks
+                    )
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
+
+    fun fetchCourseName(courseId: Int, userId: Int) {
+        repository.getUserCourseById(userId, courseId).onEach { result ->
+            when (result) {
+                is Resource.Loading -> {
+                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
+                        isLoading = true,
+                        courseName = result.data?.name ?: courseDetailScreenState.value.courseName
+                    )
+                }
+                is Resource.Success -> {
+                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
+                        isLoading = false,
+                        courseName = result.data?.name ?: courseDetailScreenState.value.courseName,
+                        error = null
+                    )
+                }
+                is Resource.Error -> {
+                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
+                        isLoading = false,
+                        error = result.message,
+                        courseName = result.data?.name ?: courseDetailScreenState.value.courseName
+                    )
                 }
             }
         }.launchIn(viewModelScope)

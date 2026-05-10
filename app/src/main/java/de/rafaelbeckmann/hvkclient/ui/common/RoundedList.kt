@@ -70,12 +70,14 @@ fun <T> LazyListScope.roundedListItems(
 fun RoundedListItem(
     modifier: Modifier = Modifier,
     text: String,
+    leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        leadingIcon?.invoke()
         Text(
             text = text,
             modifier = Modifier

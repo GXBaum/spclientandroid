@@ -15,6 +15,7 @@ import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -28,6 +29,16 @@ data class SelectedCourse(
     val verified: Boolean
 )
 
+data class SettingsScreenState(
+    val vpSelectedCourse: List<SelectedCourse> = emptyList(),
+    val courseSearch: List<String> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val isDeveloper: Boolean = false,
+    val useDynamicColor: Boolean? = null,
+    val userId: Int? = null
+)
+
 @HiltViewModel
 open class SettingsViewModel @Inject constructor(
     private val repository: HvkRepository,
@@ -35,17 +46,11 @@ open class SettingsViewModel @Inject constructor(
     open val prefUtils: PrefUtils
 ) : ViewModel() {
 
-    private val _vpSelectedCourse = MutableStateFlow<List<SelectedCourse>>(emptyList())
-    open val vpSelectedCourse: StateFlow<List<SelectedCourse>> = _vpSelectedCourse
+    private val _settingsScreenState = MutableStateFlow(SettingsScreenState())
+    val settingsScreenState: StateFlow<SettingsScreenState> = _settingsScreenState.asStateFlow()
 
     private val _courseSearch = MutableStateFlow<List<String>>(emptyList())
     open val courseSearch: StateFlow<List<String>> = _courseSearch
-
-    private val _isLoading = MutableStateFlow(false)
-    open val isLoading: StateFlow<Boolean> = _isLoading
-
-    private val _error = MutableStateFlow<String?>(null)
-    open val error: StateFlow<String?> = _error
 
     var isDeveloper = mutableStateOf(false)
     var userId = mutableStateOf<Int?>(null)
@@ -60,11 +65,22 @@ open class SettingsViewModel @Inject constructor(
             isDeveloper.value = settingsRepository.isDeveloper()
             userId.value = settingsRepository.getUserId()
 
+            _settingsScreenState.value = _settingsScreenState.value.copy(
+                isDeveloper = settingsRepository.isDeveloper(),
+                userId = settingsRepository.getUserId()
+            )
+
             Log.d("SettingsViewModel", "refreshToken: ${settingsRepository.getRefreshToken()}")
 
             if (userId.value != null) {
                 fetchVpSelectedCourse(userId.value!!)
             }
+        }
+    }
+
+    fun reload() {
+        userId.value?.let{
+            fetchVpSelectedCourse(it)
         }
     }
 
@@ -83,30 +99,38 @@ open class SettingsViewModel @Inject constructor(
             when (result) {
                 is Resource.Loading -> {
                     Log.d("SettingsViewModel", "Loading vpSelectedCourse for user: ${this@SettingsViewModel.userId} - Result: $result")
-                    _isLoading.value = true
-                    result.data?.let {
-                        _vpSelectedCourse.value = it
-                    }
+
+                    _settingsScreenState.value = _settingsScreenState.value.copy(
+                        isLoading = true,
+                        vpSelectedCourse = result.data ?: settingsScreenState.value.vpSelectedCourse
+                    )
                 }
                 is Resource.Success -> {
                     Log.d("SettingsViewModel", "Success fetching vpSelectedCourse for user: ${this@SettingsViewModel.userId} - Data: ${result.data}")
-                    _isLoading.value = false
-                    _error.value = null
-                    _vpSelectedCourse.value = result.data ?: emptyList()
+
+                    _settingsScreenState.value = _settingsScreenState.value.copy(
+                        isLoading = false,
+                        error = null,
+                        vpSelectedCourse = result.data ?: emptyList()
+                    )
+
                     Log.d("SettingsViewModel", "vpSelectedCourse: ${result.data}")
                 }
                 is Resource.Error -> {
                     Log.e("SettingsViewModel", "Error fetching vpSelectedCourse for user: ${this@SettingsViewModel.userId}, message: ${result.message}")
-                    _isLoading.value = false
-                    _error.value = result.message
-                    result.data?.let {
-                        _vpSelectedCourse.value = it
-                    }
+
+                    _settingsScreenState.value = _settingsScreenState.value.copy(
+                        isLoading = false,
+                        error = result.message,
+                        vpSelectedCourse = result.data ?: settingsScreenState.value.vpSelectedCourse
+                    )
                 }
             }
         }.catch { exception ->
-            _isLoading.value = false
-            _error.value = exception.message
+            _settingsScreenState.value = _settingsScreenState.value.copy(
+                isLoading = false,
+                error = exception.message
+            )
         }.launchIn(viewModelScope)
     }
 
@@ -118,8 +142,10 @@ open class SettingsViewModel @Inject constructor(
         if (courseName.isBlank()) return
         userId.value?.let { id ->
             viewModelScope.launch {
-                _isLoading.value = true
-                _error.value = null
+                _settingsScreenState.value = _settingsScreenState.value.copy(
+                    isLoading = true,
+                    error = null,
+                )
 
                 //settingsRepository.setVpSelectedCourseName(courseName)
 
@@ -131,8 +157,10 @@ open class SettingsViewModel @Inject constructor(
                     // After posting successfully, refresh the data
                     fetchVpSelectedCourse(id)
                 } catch (exception: Exception) {
-                    _error.value = exception.message
-                    _isLoading.value = false
+                    _settingsScreenState.value = _settingsScreenState.value.copy(
+                        isLoading = false,
+                        error = exception.message,
+                    )
                 }
             }
         }
@@ -142,8 +170,10 @@ open class SettingsViewModel @Inject constructor(
     fun deleteVpSelectedCourse(courseName: String) {
         userId.value?.let { id ->
             viewModelScope.launch {
-                _isLoading.value = true
-                _error.value = null
+                _settingsScreenState.value = _settingsScreenState.value.copy(
+                    isLoading = true,
+                    error = null,
+                )
 
                 try {
                     repository.deleteVpSelectedCourse(id, courseName)
@@ -151,8 +181,10 @@ open class SettingsViewModel @Inject constructor(
                     // After deleting successfully, refresh the data
                     fetchVpSelectedCourse(id)
                 } catch (exception: Exception) {
-                    _error.value = exception.message
-                    _isLoading.value = false
+                    _settingsScreenState.value = _settingsScreenState.value.copy(
+                        isLoading = false,
+                        error = exception.message,
+                    )
                 }
             }
         }
@@ -164,27 +196,41 @@ open class SettingsViewModel @Inject constructor(
             Log.d("SettingsViewModel", "username: $userId")
             when (result) {
                 is Resource.Loading -> {
-                    _isLoading.value = true
                     result.data?.let {
                         _courseSearch.value = it
                     }
+
+                    _settingsScreenState.value = _settingsScreenState.value.copy(
+                        isLoading = true,
+                        courseSearch = result.data ?: settingsScreenState.value.courseSearch
+                    )
                 }
                 is Resource.Success -> {
-                    _isLoading.value = false
-                    _error.value = null
                     _courseSearch.value = result.data ?: emptyList()
+
+                    _settingsScreenState.value = _settingsScreenState.value.copy(
+                        isLoading = false,
+                        error = null,
+                        courseSearch = result.data ?: emptyList()
+                    )
                 }
                 is Resource.Error -> {
-                    _isLoading.value = false
-                    _error.value = result.message
                     result.data?.let {
                         _courseSearch.value = it
                     }
+
+                    _settingsScreenState.value = _settingsScreenState.value.copy(
+                        isLoading = false,
+                        error = result.message,
+                        courseSearch = result.data ?: settingsScreenState.value.courseSearch
+                    )
                 }
             }
         }.catch { exception ->
-            _isLoading.value = false
-            _error.value = exception.message
+            _settingsScreenState.value = _settingsScreenState.value.copy(
+                isLoading = false,
+                error = exception.message,
+            )
         }.launchIn(viewModelScope)
     }
 
@@ -192,6 +238,11 @@ open class SettingsViewModel @Inject constructor(
     fun toggleDeveloperMode(context: Context) {
         viewModelScope.launch {
             isDeveloper.value = !isDeveloper.value
+
+            _settingsScreenState.value = _settingsScreenState.value.copy(
+                isDeveloper = !settingsScreenState.value.isDeveloper
+            )
+
             settingsRepository.setIsDeveloper(isDeveloper.value)
             Toast.makeText(
                 context,

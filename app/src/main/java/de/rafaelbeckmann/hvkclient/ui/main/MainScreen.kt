@@ -20,17 +20,18 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -49,6 +50,11 @@ import de.rafaelbeckmann.hvkclient.ui.navigation.OnboardingGraph
 import de.rafaelbeckmann.hvkclient.ui.navigation.RevealMarkScreen
 import de.rafaelbeckmann.hvkclient.ui.navigation.VpGraph
 import kotlinx.coroutines.launch
+
+
+val LocalSnackbarHostState = staticCompositionLocalOf<SnackbarHostState> {
+    error("No SnackbarHostState provided")
+}
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -93,80 +99,88 @@ fun MainScreen(
         }
     }
 
-    Scaffold(
-        contentWindowInsets = WindowInsets(0.dp),
+    CompositionLocalProvider(
+        LocalSnackbarHostState provides snackbarHostState
+    ) {
+        Scaffold(
+            contentWindowInsets = WindowInsets(0.dp),
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                val showBottomBar = !isOnboarding && !isRevealMarkScreen
 
-        snackbarHost = {
-            SnackbarHost(
-                hostState = snackbarHostState,
-               // modifier = Modifier.safeDrawingPadding()
-            )
-        },
+                // Connectivity state must be known before composing the bottom app bar
+                val isConnected by connectivityViewModel.isConnected.collectAsStateWithLifecycle()
+                val bannerVisible = !isConnected
 
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            val showBottomBar = !isOnboarding && !isRevealMarkScreen
-
-            // Connectivity state must be known before composing the bottom app bar
-            val isConnected by connectivityViewModel.isConnected.collectAsStateWithLifecycle()
-            val bannerVisible = !isConnected
-
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                AnimatedVisibility(
-                    visible = showBottomBar,
-                    enter = expandVertically(expandFrom = Alignment.Bottom, animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()) +
-                            slideInVertically(initialOffsetY = { it }, animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()),
-                    exit = shrinkVertically(shrinkTowards = Alignment.Bottom) +
-                            slideOutVertically(targetOffsetY = { it })
+                Column(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    // TODO: kann man das auch injecten?
-                    AppBottomNavigation(
-                        navController = navController,
-                        currentDestination = currentDestination,
-                        // Disable nav bar padding when the banner consumes it; otherwise keep it
-                        windowInsets = if (bannerVisible)
-                            WindowInsets(0.dp)
-                        else
-                            WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
-                    )
-                }
-
-
-                AnimatedVisibility(
-                    visible = bannerVisible,
-                    enter = expandVertically(expandFrom = Alignment.Bottom, animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()) +
-                            slideInVertically(initialOffsetY = { it }, animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()),
-                    exit = shrinkVertically(shrinkTowards = Alignment.Bottom) +
-                            slideOutVertically(targetOffsetY = { it })
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .background(MaterialTheme.colorScheme.errorContainer)
-                            .fillMaxWidth()
-                            .windowInsetsPadding(
-                                WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
-                            ),
-                        contentAlignment = Alignment.Center
+                    AnimatedVisibility(
+                        visible = showBottomBar,
+                        enter = expandVertically(
+                            expandFrom = Alignment.Bottom,
+                            animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                        ) +
+                                slideInVertically(
+                                    initialOffsetY = { it },
+                                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                                ),
+                        exit = shrinkVertically(shrinkTowards = Alignment.Bottom) +
+                                slideOutVertically(targetOffsetY = { it })
                     ) {
-                        Text(
-                            text = "kein Internet",
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            style = MaterialTheme.typography.bodySmall
+                        // TODO: kann man das auch injecten?
+                        AppBottomNavigation(
+                            navController = navController,
+                            currentDestination = currentDestination,
+                            // Disable nav bar padding when the banner consumes it; otherwise keep it
+                            windowInsets = if (bannerVisible)
+                                WindowInsets(0.dp)
+                            else
+                                WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
                         )
+                    }
+
+
+                    AnimatedVisibility(
+                        visible = bannerVisible,
+                        enter = expandVertically(
+                            expandFrom = Alignment.Bottom,
+                            animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                        ) +
+                                slideInVertically(
+                                    initialOffsetY = { it },
+                                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                                ),
+                        exit = shrinkVertically(shrinkTowards = Alignment.Bottom) +
+                                slideOutVertically(targetOffsetY = { it })
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .background(MaterialTheme.colorScheme.errorContainer)
+                                .fillMaxWidth()
+                                .windowInsetsPadding(
+                                    WindowInsets.navigationBars.only(WindowInsetsSides.Bottom)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "kein Internet",
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
             }
+        ) { innerPadding ->
+            AppNavHost(
+                navController = navController,
+                startDestination = startDestination,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
+            )
         }
-    ) { innerPadding ->
-        AppNavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .consumeWindowInsets(innerPadding),
-        )
     }
 }

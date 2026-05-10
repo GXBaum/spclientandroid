@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -16,20 +17,28 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Class
+import androidx.compose.material.icons.rounded.ColorLens
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.EditNotifications
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.Feedback
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -39,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -50,8 +60,11 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import de.rafaelbeckmann.hvkclient.ui.common.DebugMenu
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
+import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
+import de.rafaelbeckmann.hvkclient.ui.common.rememberSmartCollapseTopAppBarBehavior
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
+import de.rafaelbeckmann.hvkclient.ui.main.LocalSnackbarHostState
 
 sealed class CourseListItem {
     data class Course(val course: SelectedCourse) : CourseListItem()
@@ -67,11 +80,13 @@ sealed class SettingsItem {
 
     class Switch(
         val text: String,
+        val icon: ImageVector,
         val checked: Boolean?,
         val onCheckedChange: (Boolean) -> Unit
     ) : SettingsItem()
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
@@ -79,12 +94,14 @@ fun SettingsScreen(
     onAddCourseClick: () -> Unit = {},
     onLibrariesClick: () -> Unit = {}
 ) {
-    val vpSelectedCourse by viewModel.vpSelectedCourse.collectAsState()
+    val state by viewModel.settingsScreenState.collectAsState()
+
     val useDynamicColor by viewModel.useDynamicColor.collectAsState()
+
+    var showWarning by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
-    var showWarning by remember { mutableStateOf(false) }
 
 
     // Get the PackageInfo object for the current application package
@@ -157,179 +174,222 @@ fun SettingsScreen(
         )
     }
 
-    LazyColumn(
-        modifier = modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxSize(),
-        contentPadding = WindowInsets.systemBars.asPaddingValues(),
-        //verticalArrangement = Arrangement.spacedBy(8.dp) // TODO: eigentlich cool, aber macht die liste kaputt
-    ) {
-        item {
-            Text(
-                text = "Einstellungen",
-                style = MaterialTheme.typography.titleLarge
+    val lazyColumnState = rememberLazyListState()
+    val scrollBehavior = rememberSmartCollapseTopAppBarBehavior(lazyColumnState)
+
+    Scaffold(
+        snackbarHost = {
+            val snackbarHostState = LocalSnackbarHostState.current
+            SnackbarHost(
+                hostState = snackbarHostState,
             )
-        }
-        // TODO: das schöner machen (mit tippen zu den Einstellungen geleitet werden)
-        item {
-            if (!hasNotificationPermission) {
-                ErrorCard(
-                    "Benachrichtigungen sind nicht aktiviert."
+        },
+        topBar = {
+            val statusBarPadding = WindowInsets.systemBars.asPaddingValues()
+            TopAppBar(
+                title = {
+                    Text("Einstellungen")
+                },
+                scrollBehavior = scrollBehavior,
+                windowInsets = WindowInsets(0.dp),
+                contentPadding = PaddingValues(
+                    top = statusBarPadding.calculateTopPadding()
                 )
-            }
-        }
+            )
+        },
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+    ) { innerPadding ->
 
-        item {
-            Spacer(Modifier.padding(vertical = 8.dp))
-        }
-
-        val courseListItems =
-            vpSelectedCourse.map { CourseListItem.Course(it) } + CourseListItem.AddButton
-
-        roundedListItems(
-            items = courseListItems,
-            key = { item ->
-                when (item) {
-                    is CourseListItem.Course -> "course_${item.course}"
-                    is CourseListItem.AddButton -> "add_button"
+        HapticPullToRefreshBox(
+            isRefreshing = state.isLoading,
+            onRefresh = { viewModel.reload() },
+            state = rememberPullToRefreshState(),
+            modifier = Modifier
+                .padding(innerPadding)
+        ) {
+            LazyColumn(
+                state = lazyColumnState,
+                modifier = modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxSize()
+                //contentPadding = innerPadding
+            ) {
+                // TODO: das schöner machen (mit tippen zu den Einstellungen geleitet werden)
+                item {
+                    if (!hasNotificationPermission) {
+                        ErrorCard(
+                            "Benachrichtigungen sind nicht aktiviert."
+                        )
+                    }
                 }
-            },
-            onItemClick = { item ->
-                when (item) {
-                    is CourseListItem.AddButton -> onAddCourseClick()
-                    is CourseListItem.Course -> {}
+
+                item {
+                    Spacer(Modifier.padding(vertical = 8.dp))
                 }
-            }
-        ) { item ->
-            when (item) {
-                is CourseListItem.AddButton -> {
-                    RoundedListItem(
-                        text = "Kurs hinzufügen",
-                        trailingIcon = {
-                            IconButton(onClick = {
-                                onAddCourseClick()
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Add,
-                                    contentDescription = "Kurs hinzufügen",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
-                            }
+
+                val courseListItems = state.vpSelectedCourse.map { CourseListItem.Course(it) } + CourseListItem.AddButton
+
+                roundedListItems(
+                    items = courseListItems,
+                    key = { item ->
+                        when (item) {
+                            is CourseListItem.Course -> "course_${item.course}"
+                            is CourseListItem.AddButton -> "add_button"
                         }
-                    )
-                }
-                is CourseListItem.Course -> {
-                    RoundedListItem(
-                        text = item.course.name,
-                        trailingIcon = {
-                            if (!item.course.verified && item.course.name != "_DEBUG") {
-                                IconButton(onClick = {
-                                    showWarning = true
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Error,
-                                        contentDescription = "Kursname konnte nicht bestätigt werden",
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
+                    },
+                    onItemClick = { item ->
+                        when (item) {
+                            is CourseListItem.AddButton -> onAddCourseClick()
+                            is CourseListItem.Course -> {}
+                        }
+                    }
+                ) { item ->
+                    when (item) {
+                        is CourseListItem.AddButton -> {
+                            SettingsMenuItem(
+                                SettingsItem.Entry(
+                                    text = "Kurs hinzufügen",
+                                    icon = Icons.Rounded.Add
+                                ) {
+                                    onAddCourseClick()
                                 }
-                            }
+                            )
+                        }
 
-                            IconButton(onClick = {
-                                viewModel.deleteVpSelectedCourse(item.course.name)
-                            }) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Delete,
-                                    contentDescription = "Kurs löschen",
-                                    tint = MaterialTheme.colorScheme.primary
+                        is CourseListItem.Course -> {
+                            RoundedListItem(
+                                text = item.course.name,
+                                trailingIcon = {
+                                    if (!item.course.verified && item.course.name != "_DEBUG") {
+                                        IconButton(onClick = {
+                                            showWarning = true
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Rounded.Error,
+                                                contentDescription = "Kursname konnte nicht bestätigt werden",
+                                                tint = MaterialTheme.colorScheme.error
+                                            )
+                                        }
+                                    }
+
+                                    IconButton(onClick = {
+                                        viewModel.deleteVpSelectedCourse(item.course.name)
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Delete,
+                                            contentDescription = "Kurs löschen",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                },
+                                leadingIcon = {
+                                    IconButton(
+                                        onClick = {
+                                            if (!item.course.verified) {
+                                                showWarning = true
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Class,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            contentDescription = null
+                                        )
+                                    }
+                                },
+                                modifier = Modifier.clickable(
+                                    onClick = {
+                                        if (!item.course.verified) {
+                                            showWarning = true
+                                        }
+                                    }
                                 )
-                            }
-                        },
-                        modifier = Modifier.clickable(
-                            onClick = {
-                                if (!item.course.verified) {
-                                    showWarning = true
-                                }
-                            }
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    Spacer(Modifier.padding(vertical = 8.dp))
+                }
+
+                val notificationSettingsEntries = listOf(
+                    SettingsItem.Entry(
+                        text = "Benachrichtigungseinstellungen",
+                        icon = Icons.Rounded.EditNotifications
+                    ) {
+                        val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                        }
+                        context.startActivity(intent)
+                    }
+                )
+
+                settingsMenu(
+                    entries = notificationSettingsEntries
+                )
+
+
+                // Adaptive Color on Android 12+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    item {
+                        Spacer(Modifier.padding(vertical = 8.dp))
+                    }
+
+                    roundedListItems(
+                        items = listOf(
+                            SettingsItem.Switch(
+                                text = "Systemfarben verwenden",
+                                icon = Icons.Rounded.ColorLens,
+                                checked = useDynamicColor
+                            ) { viewModel.toggleDynamicColor(it) }
+                        )
+                    ) {
+                        SettingsSwitch(
+                            text = it.text,
+                            checked = it.checked,
+                            onCheckedChange = it.onCheckedChange,
+                            icon = it.icon
+                        )
+                    }
+                }
+
+                item {
+                    Spacer(Modifier.padding(vertical = 8.dp))
+                }
+
+                settingsMenu(
+                    entries = shareEntries
+                )
+
+
+
+                //if (vpSelectedCourse.any { it.name =="_DEBUG" }) {
+                if (state.vpSelectedCourse.any { it.name == "_DEBUG" }) {
+                    item {
+                        DebugMenu()
+                    }
+
+                    /*
+                    // TODO: Moritz hat gehatet und will es unbedingt entfernt haben.
+                    // Open-Source-Lizenzen (nicht ganz sicher, was ich damit machen soll. eigentlich will ich es haben, aber es verwirrt diese uncs.)
+                    val libraryEntries = listOf(
+                        SettingsItem.Entry(
+                            text = "Open-Source-Lizenzen",
+                            icon = Icons.AutoMirrored.Rounded.LibraryBooks,
+                            onClick = onLibrariesClick
                         )
                     )
+
+                    item {
+                        Spacer(Modifier.padding(vertical = 16.dp))
+                    }
+
+                    settingsMenu(
+                        entries = libraryEntries
+                    )
+                    */
                 }
-            }
-        }
-
-        item {
-            Spacer(Modifier.padding(vertical = 8.dp))
-        }
-
-        val notificationSettingsEntries = listOf(
-            SettingsItem.Entry(
-                text = "Benachrichtigungseinstellungen",
-                icon = Icons.Rounded.EditNotifications
-            ) {
-                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                }
-                context.startActivity(intent)
-            }
-        )
-
-        settingsMenu(
-            entries = notificationSettingsEntries
-        )
-
-
-        // Adaptive Color on Android 12+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            item {
-                Spacer(Modifier.padding(vertical = 8.dp))
-            }
-
-            roundedListItems(
-                items = listOf(
-                    SettingsItem.Switch(
-                        text = "Systemfarben verwenden",
-                        checked = useDynamicColor
-                    ) { it -> viewModel.toggleDynamicColor(it) }
-                )
-            ) {
-                SettingsSwitch(
-                    text = it.text,
-                    checked = it.checked,
-                    onCheckedChange = it.onCheckedChange
-                )
-            }
-        }
-
-        item {
-            Spacer(Modifier.padding(vertical = 8.dp))
-        }
-
-        settingsMenu(
-            entries = shareEntries
-        )
-
-
-        // TODO: Moritz hat gehatet und will es unbedingt entfernt haben.
-        /*
-        val libraryEntries = listOf(
-            SettingsEntry(
-                text = "Bibliotheken",
-                icon = Icons.AutoMirrored.Rounded.LibraryBooks,
-                onClick = onLibrariesClick
-            )
-        )
-
-        item {
-            Spacer(Modifier.padding(vertical = 16.dp))
-        }
-
-        settingsMenu(
-            entries = libraryEntries
-        )
-        */
-
-        if (vpSelectedCourse.any { it.name =="_DEBUG" }) {
-            item {
-                DebugMenu()
             }
         }
     }
@@ -373,11 +433,25 @@ fun SettingsSwitch(
     modifier: Modifier = Modifier,
     text: String,
     checked: Boolean?,
-    onCheckedChange: ((Boolean) -> Unit)?
+    onCheckedChange: ((Boolean) -> Unit)?,
+    icon: ImageVector? = null
 ) {
     RoundedListItem(
         modifier = modifier.clickable { checked?.let { onCheckedChange?.invoke(!it) } },
         text = text,
+        leadingIcon = {
+            icon?.let {
+                IconButton(
+                    onClick = { checked?.let { isChecked -> onCheckedChange?.invoke(!isChecked)}}
+                ) {
+                    Icon(
+                        imageVector = it,
+                        tint = MaterialTheme.colorScheme.primary,
+                        contentDescription = null
+                    )
+                }
+            }
+        },
         trailingIcon = {
             if (checked != null) {
                 Switch(
@@ -413,7 +487,7 @@ private fun SettingsMenuItem(
     RoundedListItem(
         modifier = modifier,
         text = entry.text,
-        trailingIcon = {
+        leadingIcon = {
             IconButton(onClick = entry.onClick) {
                 Icon(
                     imageVector = entry.icon,

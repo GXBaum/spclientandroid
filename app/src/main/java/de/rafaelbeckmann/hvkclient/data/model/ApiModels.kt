@@ -72,6 +72,9 @@ data class TokenUpdateRequest(
 data class UserCourses(
     val courses: List<UserCourse>
 )
+data class SingleCourseResponse(
+    val course: UserCourse
+)
 @Entity
 data class UserCourse(
     @PrimaryKey val courseId: Int,

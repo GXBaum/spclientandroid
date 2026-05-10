@@ -5,6 +5,7 @@ import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
 import de.rafaelbeckmann.hvkclient.data.model.LoginRequest
 import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
 import de.rafaelbeckmann.hvkclient.data.model.RefreshTokenRequest
+import de.rafaelbeckmann.hvkclient.data.model.SingleCourseResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenRefreshResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourses
@@ -61,6 +62,12 @@ interface HvkClientApi {
     suspend fun getUserCourses(
         @Path("userId") userId: Int
     ): Response<UserCourses>
+
+    @GET("users/{userId}/courses/{courseId}")
+    suspend fun getUserCourseById(
+        @Path("userId") userId: Int,
+        @Path("courseId") courseId: Int
+    ): Response<SingleCourseResponse>
 
     @GET("users/{userId}/{courseId}/marks")
     suspend fun getUserMarksForCourse(

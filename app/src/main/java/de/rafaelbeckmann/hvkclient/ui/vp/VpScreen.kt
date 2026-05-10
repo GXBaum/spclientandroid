@@ -33,10 +33,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,8 +60,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
+import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
+import de.rafaelbeckmann.hvkclient.ui.main.LocalSnackbarHostState
 import de.rafaelbeckmann.hvkclient.ui.navigation.VP_FAB_EXPLODE_BOUND
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -112,6 +114,12 @@ fun SharedTransitionScope.VpScreen(
 
 
     Scaffold(
+        snackbarHost = {
+            val snackbarHostState = LocalSnackbarHostState.current
+            SnackbarHost(
+                hostState = snackbarHostState,
+            )
+        },
         modifier = Modifier.safeDrawingPadding(),
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -138,7 +146,7 @@ fun SharedTransitionScope.VpScreen(
             )
         }
     ) { innerPadding ->
-        PullToRefreshBox(
+        HapticPullToRefreshBox(
             isRefreshing = state.isLoading,
             onRefresh = {
                 viewModel.refresh()

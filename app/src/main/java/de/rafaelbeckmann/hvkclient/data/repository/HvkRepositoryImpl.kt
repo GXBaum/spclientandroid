@@ -17,7 +17,6 @@ import de.rafaelbeckmann.hvkclient.data.model.VpInfo
 import de.rafaelbeckmann.hvkclient.data.model.VpResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseRequest
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseResponse
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
 import de.rafaelbeckmann.hvkclient.data.model.createAccountRequest
 import de.rafaelbeckmann.hvkclient.data.model.createAccountResponse
@@ -121,6 +120,12 @@ class HvkRepositoryImpl(
         query = { cacheDao.getUserCourses() },
         fetch = { api.getUserCourses(userId) },
         saveFetchResult = { cacheDao.insertUserCourses(it.courses) }
+    )
+
+    override fun getUserCourseById(userId: Int, courseId: Int): Flow<Resource<UserCourse>> = networkBoundResource(
+        query = { cacheDao.getUserCourseById(courseId) },
+        fetch = { api.getUserCourseById(userId, courseId) },
+        saveFetchResult = { cacheDao.insertUserCourses(listOf(it.course)) }
     )
 
     override suspend fun updateToken(userId: Int, tokenUpdateRequest: TokenUpdateRequest): Result<Unit> {

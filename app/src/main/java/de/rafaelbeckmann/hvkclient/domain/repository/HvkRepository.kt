@@ -33,6 +33,8 @@ interface HvkRepository {
      */
     fun getUserCourses(userId: Int): Flow<Resource<List<UserCourse>>>
 
+    fun getUserCourseById(userId: Int, courseId: Int): Flow<Resource<UserCourse>>
+
     fun getUserMarksForCourse(userId: Int, courseId: Int): Flow<Resource<List<UserMark>>>
 
     /**
