@@ -6,10 +6,13 @@ import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.SnackbarEvent
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
+import de.rafaelbeckmann.hvkclient.data.model.Chat
+import de.rafaelbeckmann.hvkclient.data.model.ChatMessage
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.data.model.LoginRequest
 import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
+import de.rafaelbeckmann.hvkclient.data.model.ReplySendRequest
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
@@ -274,8 +277,8 @@ class HvkRepositoryImpl(
             query = {
                 cacheDao.getVpInfoItems().map { items ->
                     VpInfo(info = items)
-            }
-        },
+                }
+            },
             fetch = { api.getVpInfo() },
             saveFetchResult = { result ->
                 val items = result.info
@@ -283,6 +286,42 @@ class HvkRepositoryImpl(
                 cacheDao.insertVpInfo(items)
             }
         )
+    }
+
+    override fun getChats(userId: Int): Flow<Resource<List<Chat>>> = networkBoundResource(
+        query = { cacheDao.getChats() },
+        fetch = { api.getChats(userId) },
+        saveFetchResult = { result ->
+            cacheDao.insertChats(
+                result.chats
+            )
+        }
+    )
+
+    override fun getChatMessages(userId: Int, chatId: String): Flow<Resource<List<ChatMessage>>> = networkBoundResource(
+        query = { cacheDao.getChatMessages(chatId) },
+        fetch = { api.getChatMessages(userId, chatId) },
+        saveFetchResult = {
+            cacheDao.insertChatMessages(it.messages)
+        }
+    )
+
+    override suspend fun sendMessageReply(
+        userId: Int,
+        chatId: String,
+        message: String
+    ): Result<Unit> {
+        return try {
+            val response = api.postMessageReply(userId, chatId, ReplySendRequest(message))
+            if (response.isSuccessful) {
+                //cacheDao.insertVpSelectedCourses(listOf(courseName)) // aktuell nicht nötig, im Settings VM wird so oder so neu gefetcht // TODO: funktioniert mit Android 16 aber nicht 10?
+                Result.success(Unit)
+            } else {
+                Result.failure(IOException("Failed to post reply: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun clearCache() {

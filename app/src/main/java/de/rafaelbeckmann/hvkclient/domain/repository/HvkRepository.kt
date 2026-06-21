@@ -1,6 +1,8 @@
 package de.rafaelbeckmann.hvkclient.domain.repository
 
 import de.rafaelbeckmann.hvkclient.data.Resource
+import de.rafaelbeckmann.hvkclient.data.model.Chat
+import de.rafaelbeckmann.hvkclient.data.model.ChatMessage
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
 import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
@@ -67,6 +69,12 @@ interface HvkRepository {
     fun getFeatureFlags(): Flow<Resource<FeatureFlag>>
 
     fun getVpInfo(): Flow<Resource<VpInfo>>
+
+    fun getChats(userId: Int): Flow<Resource<List<Chat>>>
+
+    fun getChatMessages(userId: Int, chatId: String): Flow<Resource<List<ChatMessage>>>
+
+    suspend fun sendMessageReply(userId: Int, chatId: String, message: String): Result<Unit>
 
     /**
      * Clears all cached data from the local database.

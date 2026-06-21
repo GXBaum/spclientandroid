@@ -1,10 +1,13 @@
 package de.rafaelbeckmann.hvkclient.data.remote
 
+import de.rafaelbeckmann.hvkclient.data.model.ChatMessageResponse
+import de.rafaelbeckmann.hvkclient.data.model.ChatResponse
 import de.rafaelbeckmann.hvkclient.data.model.CourseSearchResponse
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
 import de.rafaelbeckmann.hvkclient.data.model.LoginRequest
 import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
 import de.rafaelbeckmann.hvkclient.data.model.RefreshTokenRequest
+import de.rafaelbeckmann.hvkclient.data.model.ReplySendRequest
 import de.rafaelbeckmann.hvkclient.data.model.SingleCourseResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenRefreshResponse
 import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
@@ -96,6 +99,24 @@ interface HvkClientApi {
     suspend fun getVpSubstitutionsMultipleCourses(
         @Query("courses") courses: String
     ): Response<VpResponse>
+
+    @GET("users/{userId}/chats")
+    suspend fun getChats(
+        @Path("userId") userId: Int
+    ): Response<ChatResponse>
+
+    @GET("users/{userId}/chats/{chatId}/messages")
+    suspend fun getChatMessages(
+        @Path("userId") userId: Int,
+        @Path("chatId") chatId: String
+    ): Response<ChatMessageResponse>
+
+    @POST("users/{userId}/chats/{chatId}/messages")
+    suspend fun postMessageReply(
+        @Path("userId") userId: Int,
+        @Path("chatId") chatId: String,
+        @Body message: ReplySendRequest
+    ): Response<Any>
 
     @GET("vp/info")
     suspend fun getVpInfo(

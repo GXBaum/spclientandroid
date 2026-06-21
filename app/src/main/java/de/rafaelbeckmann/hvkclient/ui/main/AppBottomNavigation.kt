@@ -24,6 +24,7 @@ import de.rafaelbeckmann.hvkclient.ui.navigation.CoursesGraph
 import de.rafaelbeckmann.hvkclient.ui.navigation.NavGraphSpec
 import de.rafaelbeckmann.hvkclient.ui.navigation.NavItem
 import de.rafaelbeckmann.hvkclient.ui.navigation.SettingsGraph
+import de.rafaelbeckmann.hvkclient.ui.navigation.TestGraph
 import de.rafaelbeckmann.hvkclient.ui.navigation.VpGraph
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -37,15 +38,24 @@ fun AppBottomNavigation(
         // TODO: implement notification badge count
         val navItemList = listOf(
             NavItem(
-                "Vertretungsplan",
+                "Vertretungen",
                 ImageVector.vectorResource(id = R.drawable.home_24dp_e3e3e3_fill1_wght400_grad0_opsz24),
                 ImageVector.vectorResource(id = R.drawable.home_24dp_e3e3e3_fill0_wght400_grad0_opsz24),
-                0, VpGraph),
+                0,
+                VpGraph),
             NavItem(
                 "SP Noten",
                 ImageVector.vectorResource(id = R.drawable.star_24dp_e3e3e3_fill1_wght400_grad0_opsz24),
                 ImageVector.vectorResource(id = R.drawable.star_24dp_e3e3e3_fill0_wght400_grad0_opsz24),
-                0, CoursesGraph),
+                0,
+                CoursesGraph),
+            NavItem(
+                "Nachrichten",
+                ImageVector.vectorResource(id = R.drawable.mail_24dp_e3e3e3_fill1_wght400_grad0_opsz24),
+                ImageVector.vectorResource(id = R.drawable.mail_24dp_e3e3e3_fill0_wght400_grad0_opsz24),
+                0,
+                TestGraph
+            ),
             NavItem(
                 "Einstellungen",
                 ImageVector.vectorResource(id = R.drawable.settings_24dp_e3e3e3_fill1_wght400_grad0_opsz24),

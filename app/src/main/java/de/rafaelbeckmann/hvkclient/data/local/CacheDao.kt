@@ -5,6 +5,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
+import de.rafaelbeckmann.hvkclient.data.model.Chat
+import de.rafaelbeckmann.hvkclient.data.model.ChatMessage
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
@@ -82,6 +84,25 @@ interface CacheDao {
     @Query("DELETE FROM vp_info")
     suspend fun clearVpInfo()
 
+    @Query("SELECT * FROM chat")
+    fun getChats(): Flow<List<Chat>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertChats(chats: List<Chat>)
+
+    @Query("DELETE FROM chat")
+    suspend fun clearChats()
+
+    @Query("SELECT * FROM chat_message WHERE chatId = :chatId")
+    fun getChatMessages(chatId: String): Flow<List<ChatMessage>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertChatMessages(chats: List<ChatMessage>)
+
+    @Query("DELETE FROM chat_message")
+    suspend fun clearChatMessages()
+
+
     @Transaction
     suspend fun clearAllCache() {
         clearUserCourses()
@@ -90,5 +111,7 @@ interface CacheDao {
         clearVpSubstitutionsCache()
         clearFeatureFlags()
         clearVpInfo()
+        clearChats()
+        clearChatMessages()
     }
 }

@@ -95,6 +95,32 @@ data class UserMark(
     val isDeleted: Boolean
 )
 
+@Entity
+data class Chat(
+    @PrimaryKey val chatId: String,
+    val betreff: String,
+    val content: String? = null
+)
+
+data class ChatResponse(
+    val chats: List<Chat>
+)
+
+@Entity(tableName = "chat_message")
+data class ChatMessage(
+    @PrimaryKey val messageId: String,
+    val chatId: String,
+    val betreff: String,
+    val content: String
+)
+
+data class ChatMessageResponse(
+    val messages: List<ChatMessage>
+)
+
+data class ReplySendRequest(
+    val message: String
+)
 
 data class VpSelectedCourseRequest(
     val courseName: String

@@ -24,6 +24,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
+import de.rafaelbeckmann.hvkclient.ui.chat.ChatDetailScreen
+import de.rafaelbeckmann.hvkclient.ui.chat.ChatScreen
 import de.rafaelbeckmann.hvkclient.ui.common.AddCourseScreen
 import de.rafaelbeckmann.hvkclient.ui.coursedetail.CourseDetailScreen
 import de.rafaelbeckmann.hvkclient.ui.courses.CoursesScreen
@@ -245,6 +247,27 @@ fun AppNavHost(
                 }
                 composable<LibrariesScreen> {
                     LibrariesScreen()
+                }
+            }
+
+            navigation<TestGraph>(
+                startDestination = TestGraph.startDestination()
+            ) {
+                composable<ChatScreen>{
+                    ChatScreen(
+                        onChatClick = { chatId ->
+                            navController.navigate(
+                                ChatDetailScreen(chatId)
+                            )
+                        }
+                    )
+                }
+                composable<ChatDetailScreen>{
+                    val args = it.toRoute<ChatDetailScreen>()
+
+                    ChatDetailScreen(
+                        chatId = args.chatId
+                    )
                 }
             }
 

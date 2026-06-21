@@ -3,6 +3,8 @@ package de.rafaelbeckmann.hvkclient.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import de.rafaelbeckmann.hvkclient.data.model.Chat
+import de.rafaelbeckmann.hvkclient.data.model.ChatMessage
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
@@ -20,9 +22,11 @@ import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
         VpSubstitution::class,
         VpSubstitutionsCache::class,
         FeatureFlagEntity::class,
-        VpInfoItem::class
+        VpInfoItem::class,
+        Chat::class,
+        ChatMessage::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(VpClassConverter::class)

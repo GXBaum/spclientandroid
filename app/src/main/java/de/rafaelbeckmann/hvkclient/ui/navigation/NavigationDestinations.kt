@@ -30,6 +30,11 @@ object OnboardingGraph : NavGraphSpec {
 }
 
 @Serializable
+object TestGraph : NavGraphSpec {
+    override fun startDestination() = ChatScreen
+}
+
+@Serializable
 object CoursesScreen
 
 @Serializable
@@ -73,6 +78,14 @@ data class VpWebViewRoute(
 
 @Serializable
 object LibrariesScreen
+
+@Serializable
+object ChatScreen
+
+@Serializable
+data class ChatDetailScreen(
+    val chatId: String
+)
 
 
 data class NavItem(
