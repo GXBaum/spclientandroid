@@ -14,7 +14,7 @@ import javax.inject.Singleton
 
 @Singleton
 class PrefUtils @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val dataStore: DataStore<Preferences>
 ) {
     suspend fun saveString(key: String, value: String) {

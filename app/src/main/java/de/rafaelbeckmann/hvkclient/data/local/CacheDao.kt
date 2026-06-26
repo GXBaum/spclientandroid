@@ -6,11 +6,13 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
-import de.rafaelbeckmann.hvkclient.data.model.UserCourse
-import de.rafaelbeckmann.hvkclient.data.model.UserMark
-import de.rafaelbeckmann.hvkclient.data.model.VpInfoItem
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
+import de.rafaelbeckmann.hvkclient.data.model.UserCourseEntity
+import de.rafaelbeckmann.hvkclient.data.model.UserMarkEntity
+import de.rafaelbeckmann.hvkclient.data.model.VpDayEntity
+import de.rafaelbeckmann.hvkclient.data.model.VpDayInfoItem
+import de.rafaelbeckmann.hvkclient.data.model.VpDayWithInfo
+import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseEntity
+import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionEntity
 import kotlinx.coroutines.flow.Flow
 
 // TODO: maybe replace replace with ignore?
@@ -18,49 +20,74 @@ import kotlinx.coroutines.flow.Flow
 interface CacheDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUserCourses(courses: List<UserCourse>)
+    suspend fun insertUserCourses(courses: List<UserCourseEntity>)
 
-    @Query("SELECT * FROM usercourse")
-    fun getUserCourses(): Flow<List<UserCourse>>
+    @Query("SELECT * FROM usercourseentity")
+    fun getUserCourses(): Flow<List<UserCourseEntity>>
 
-    @Query("SELECT * FROM usercourse WHERE courseId = :courseId")
-    fun getUserCourseById(courseId: Int): Flow<UserCourse>
+    @Query("SELECT * FROM usercourseentity WHERE courseId = :courseId")
+    fun getUserCourseById(courseId: Int): Flow<UserCourseEntity>
 
-    @Query("DELETE FROM usercourse")
+    @Query("DELETE FROM usercourseentity")
     suspend fun clearUserCourses()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUserMarks(marks: List<UserMark>)
+    suspend fun insertUserMarks(marks: List<UserMarkEntity>)
 
-    @Query("DELETE FROM usermark WHERE course_id = :courseId")
+    @Query("DELETE FROM usermarkentity WHERE course_id = :courseId")
     suspend fun deleteUserMarksForCourse(courseId: Int)
 
-    @Query("SELECT * FROM usermark WHERE course_id = :courseId")
-    fun getUserMarksForCourse(courseId: Int): Flow<List<UserMark>>
+    @Query("SELECT * FROM usermarkentity WHERE course_id = :courseId")
+    fun getUserMarksForCourse(courseId: Int): Flow<List<UserMarkEntity>>
 
-    @Query("DELETE FROM usermark")
+    @Query("DELETE FROM usermarkentity")
     suspend fun clearUserMarks()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertVpSelectedCourses(courses: List<VpSelectedCourse>)
+    suspend fun insertVpSelectedCourses(courses: List<VpSelectedCourseEntity>)
 
-    @Query("SELECT * FROM vpselectedcourse")
-    fun getVpSelectedCourses(): Flow<List<VpSelectedCourse>>
+    @Query("SELECT * FROM vpselectedcourseentity")
+    fun getVpSelectedCourses(): Flow<List<VpSelectedCourseEntity>>
 
-    @Query("DELETE FROM vpselectedcourse")
+    @Query("DELETE FROM vpselectedcourseentity")
     suspend fun clearVpSelectedCourses()
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertVpSubstitutionsCache(cache: VpSubstitutionsCache)
 
-    @Query("SELECT * FROM vp_substitutions_cache WHERE courseName IN (:courseNames)")
-    fun getVpSubstitutionsForCourses(courseNames: List<String>): Flow<List<VpSubstitutionsCache>>
 
-    @Query("DELETE FROM vp_substitutions_cache")
+
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertVpSubstitution(substitutions: List<VpSubstitutionEntity>)
+
+    @Query("SELECT * FROM VpSubstitutionEntity WHERE courseName IN (:courseNames)")
+    fun getVpSubstitutionsForCourses(courseNames: List<String>): Flow<List<VpSubstitutionEntity>>
+
+    @Query("DELETE FROM vpsubstitutionentity")
     suspend fun clearVpSubstitutionsCache()
 
-    @Query("DELETE FROM vp_substitutions_cache WHERE courseName IN (:courseNames)")
+    @Query("DELETE FROM vpsubstitutionentity WHERE courseName IN (:courseNames)")
     suspend fun deleteVpSubstitutionsForCourses(courseNames: List<String>)
+
+
+
+
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertVpDay(days: List<VpDayEntity>)
+
+    @Transaction
+    @Query("SELECT * FROM vpdayentity")
+    fun getVpDay(): Flow<List<VpDayWithInfo>>
+
+    @Query("DELETE FROM vpdayentity")
+    suspend fun clearVpDay()
+
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertVpDayInfoItems(items: List<VpDayInfoItem>)
+
+    @Query("DELETE FROM VpDayInfoItem")
+    suspend fun deleteVpDayInfo()
 
     // Feature flags
     @Query("SELECT * FROM feature_flag")
@@ -72,23 +99,4 @@ interface CacheDao {
     @Query("DELETE FROM feature_flag")
     suspend fun clearFeatureFlags()
 
-    // VP Info
-    @Query("SELECT * FROM vp_info")
-    fun getVpInfoItems(): Flow<List<VpInfoItem>>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertVpInfo(items: List<VpInfoItem>)
-
-    @Query("DELETE FROM vp_info")
-    suspend fun clearVpInfo()
-
-    @Transaction
-    suspend fun clearAllCache() {
-        clearUserCourses()
-        clearUserMarks()
-        clearVpSelectedCourses()
-        clearVpSubstitutionsCache()
-        clearFeatureFlags()
-        clearVpInfo()
-    }
 }

@@ -1,13 +1,11 @@
 package de.rafaelbeckmann.hvkclient.ui.vp
 
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.model.VpInfo
-import de.rafaelbeckmann.hvkclient.data.model.VpResponse
+import de.rafaelbeckmann.hvkclient.data.model.VpDays
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
@@ -27,8 +25,7 @@ data class VpScreenState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val selectedCourses: List<SelectedCourse> = emptyList(),
-    val substitutions: VpResponse? = null,
-    val vpInfo: VpInfo? = null
+    val substitutions: VpDays? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -37,8 +34,6 @@ open class VpViewModel @Inject constructor(
     private val repository: HvkRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
-    var userId = mutableStateOf<Int?>(null)
-
     private val _vpScreenState = MutableStateFlow(VpScreenState())
     open val vpScreenState: StateFlow<VpScreenState> = _vpScreenState.asStateFlow()
 
@@ -47,38 +42,31 @@ open class VpViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             _vpScreenState.value = _vpScreenState.value.copy(isLoading = true, error = null)
-            userId.value = settingsRepository.getUserId()
 
-            fetchVpInfo()
+            fetchVpSelectedCourse()
 
-            userId.value?.let { id ->
-                fetchSpSelectedCourse(id)
-            } ?: run {
-                _vpScreenState.value = _vpScreenState.value.copy(isLoading = false, error = "User ID not set. Please set it in the settings.")
-            }
 
             // Observe the selected course and fetch substitutions when it's available
             vpScreenState.map { it.selectedCourses }
                 .distinctUntilChanged()
                 .onEach { courses ->
-                    fetchVpSubstitutionsMultipleCourses(courses)
+                    fetchVpSubstitutions(courses)
                 }.launchIn(viewModelScope)
         }
     }
 
-    fun fetchSpSelectedCourse(userId: Int) {
-        repository.getVpSelectedCourses(userId).onEach { result ->
-            Log.d("VpViewModel", "userId: $userId")
+    fun fetchVpSelectedCourse() {
+        repository.getVpSelectedCourses().onEach { result ->
             when (result) {
                 is Resource.Loading -> {
-                    Log.d("VpViewModel", "Loading vpSelectedCourse for user: $userId - Result: $result")
+                    Log.d("VpViewModel", "Loading vpSelectedCourse - Result: $result")
                     _vpScreenState.value = _vpScreenState.value.copy(isLoading = true)
                     result.data?.let {
                         _vpScreenState.value = _vpScreenState.value.copy(selectedCourses = it)
                     }
                 }
                 is Resource.Success -> {
-                    Log.d("VpViewModel", "Success fetching vpSelectedCourse for user: $userId - Data: ${result.data}")
+                    Log.d("VpViewModel", "Success fetching vpSelectedCourse - Data: ${result.data}")
                     _vpScreenState.value = _vpScreenState.value.copy(
                         isLoading = false,
                         error = null,
@@ -87,7 +75,7 @@ open class VpViewModel @Inject constructor(
                     Log.d("VpViewModel", "vpSelectedCourse: ${result.data}")
                 }
                 is Resource.Error -> {
-                    Log.e("VpViewModel", "Error fetching vpSelectedCourse for user: $userId, message: ${result.message}")
+                    Log.e("VpViewModel", "Error fetching vpSelectedCourse, message: ${result.message}")
                     _vpScreenState.value = _vpScreenState.value.copy(isLoading = false, error = result.message)
                     result.data?.let {
                         _vpScreenState.value = _vpScreenState.value.copy(selectedCourses = it)
@@ -99,13 +87,13 @@ open class VpViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    fun fetchVpSubstitutionsMultipleCourses(courses: List<SelectedCourse>) {
+    fun fetchVpSubstitutions(courses: List<SelectedCourse>) {
         if (courses.isEmpty()) {
             _vpScreenState.value = _vpScreenState.value.copy(isLoading = false, substitutions = null)
             return
         }
 
-        repository.getVpSubstitutionsMultipleCourses(courses.map { it.name }).onEach { result ->
+        repository.getVpSubstitutions(courses.map { it.name }).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                     _vpScreenState.value = _vpScreenState.value.copy(isLoading = true)
@@ -142,49 +130,8 @@ open class VpViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
-
-    fun fetchVpInfo() {
-        repository.getVpInfo().onEach { result ->
-            when (result) {
-                is Resource.Loading -> {
-                    _vpScreenState.value = _vpScreenState.value.copy(isLoading = true)
-                    result.data?.let {
-                        Log.d("VpViewModel", "vp info loading: ${result.data}")
-
-                        _vpScreenState.value = _vpScreenState.value.copy(vpInfo = it)
-                    }
-                }
-                is Resource.Success -> {
-                    result.data?.let {
-                        Log.d("VpViewModel", "vp info success: ${result.data}")
-
-                        _vpScreenState.value = _vpScreenState.value.copy(
-                            isLoading = false,
-                            error = null,
-                            vpInfo = it
-                        )
-                    }
-                    Log.d("VpViewModel", "vp info: ${result.data}")
-                }
-                is Resource.Error -> {
-                    result.data?.let {
-                        Log.d("VpViewModel", "vp info error: ${result.data}")
-
-                        _vpScreenState.value = _vpScreenState.value.copy(
-                            isLoading = false,
-                            error = null,
-                            vpInfo = it
-                        )
-                    }
-                    Log.e("VpViewModel", "Error fetching vp info: ${result.message}")
-                }
-            }
-        }.launchIn(viewModelScope)
-    }
-
     fun refresh() {
         val courses = vpScreenState.value.selectedCourses
-        fetchVpSubstitutionsMultipleCourses(courses)
-        fetchVpInfo()
+        fetchVpSubstitutions(courses)
     }
 }

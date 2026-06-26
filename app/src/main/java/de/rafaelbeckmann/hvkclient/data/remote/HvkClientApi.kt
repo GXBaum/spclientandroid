@@ -1,103 +1,94 @@
 package de.rafaelbeckmann.hvkclient.data.remote
 
-import de.rafaelbeckmann.hvkclient.data.model.CourseSearchResponse
-import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
-import de.rafaelbeckmann.hvkclient.data.model.LoginRequest
-import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
-import de.rafaelbeckmann.hvkclient.data.model.RefreshTokenRequest
-import de.rafaelbeckmann.hvkclient.data.model.SingleCourseResponse
-import de.rafaelbeckmann.hvkclient.data.model.TokenRefreshResponse
-import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
-import de.rafaelbeckmann.hvkclient.data.model.UserCourses
-import de.rafaelbeckmann.hvkclient.data.model.UserMarks
-import de.rafaelbeckmann.hvkclient.data.model.VpInfo
-import de.rafaelbeckmann.hvkclient.data.model.VpResponse
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseRequest
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCoursesResponse
-import de.rafaelbeckmann.hvkclient.data.model.createAccountRequest
-import de.rafaelbeckmann.hvkclient.data.model.createAccountResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCourseSearchResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkFeatureFlag
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkRefreshTokenRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkRefreshTokenResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkSingleCourseResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkUserCoursesResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkUserMarks
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCoursesResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface HvkClientApi {
     @POST("auth/login")
     suspend fun login(
-        @Body request: LoginRequest
-    ): Response<LoginResponse>
+        @Body request: NetworkLoginRequest
+    ): Response<NetworkLoginResponse>
 
-    @POST("auth/token")
+    @POST("auth/refresh")
     suspend fun refreshToken(
-        @Body request: RefreshTokenRequest
-    ): Response<TokenRefreshResponse>
+        @Body request: NetworkRefreshTokenRequest
+    ): Response<NetworkRefreshTokenResponse>
 
-    @PUT("users/{userId}/notification-token")
+    @POST("users/me/notification-token")
     suspend fun updateToken(
-        @Path("userId") userId: Int,
-        @Body tokenUpdate: TokenUpdateRequest
+        @Body tokenUpdate: NetworkTokenUpdateRequest
     ): Response<Any>
 
 
-    @POST("users")
+    @POST("auth/register")
     suspend fun createAccount(
-        @Body request: createAccountRequest
-    ): Response<createAccountResponse>
+        @Body request: NetworkCreateAccountRequest
+    ): Response<NetworkCreateAccountResponse>
 
 
     @GET("featureFlags")
     suspend fun getFeatureFlags(
-    ): Response<FeatureFlag>
+    ): Response<NetworkFeatureFlag>
 
-    @GET("courseSearch")
+    @GET("vp/courses")
     suspend fun getCourseSearch(
-        @Query("courseName") courseName: String
-    ): Response<CourseSearchResponse>
+        @Query("search") search: String
+    ): Response<NetworkCourseSearchResponse>
 
     @GET("users/{userId}/courses")
     suspend fun getUserCourses(
-        @Path("userId") userId: Int
-    ): Response<UserCourses>
+        @Path("userId") userId: String
+    ): Response<NetworkUserCoursesResponse>
 
     @GET("users/{userId}/courses/{courseId}")
     suspend fun getUserCourseById(
-        @Path("userId") userId: Int,
+        @Path("userId") userId: String,
         @Path("courseId") courseId: Int
-    ): Response<SingleCourseResponse>
+    ): Response<NetworkSingleCourseResponse>
 
     @GET("users/{userId}/{courseId}/marks")
     suspend fun getUserMarksForCourse(
-        @Path("userId") userId: Int,
+        @Path("userId") userId: String,
         @Path("courseId") courseId: Int
-    ): Response<UserMarks>
+    ): Response<NetworkUserMarks>
 
-    @POST("users/{userId}/vpSelectedCourses")
+    @POST("vp/enrolled")
     suspend fun postVpSelectedCourses(
-        @Path("userId") userId: Int,
-        @Body courseName: VpSelectedCourseRequest
+        @Body course: NetworkVpSelectedCourseRequest
     ): Response<Any>
 
-    @GET("users/{userId}/vpSelectedCourses")
+    @GET("vp/enrolled")
     suspend fun getVpSelectedCourses(
-        @Path("userId") userId: Int
-    ): Response<VpSelectedCoursesResponse>
+    ): Response<NetworkVpSelectedCoursesResponse>
 
-    @DELETE("users/{userId}/vpSelectedCourses/{courseName}")
+    @DELETE("vp/enrolled/{courseId}")
     suspend fun deleteVpSelectedCourse(
-        @Path("userId") userId: Int,
-        @Path("courseName") courseName: String
+        @Path("courseId") courseId: String
     ): Response<Any>
 
-    @GET("vpSubstitutions")
+    @GET("vp/substitutions")
     suspend fun getVpSubstitutionsMultipleCourses(
-        @Query("courses") courses: String
-    ): Response<VpResponse>
+        @Query("courses") courses: List<String>
+    ): Response<NetworkVpResponse>
 
-    @GET("vp/info")
-    suspend fun getVpInfo(
-    ): Response<VpInfo>
 }

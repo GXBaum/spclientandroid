@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +25,7 @@ import javax.inject.Inject
 
 // TODO: should potentially not exist, as its redundant with other class
 data class SelectedCourse(
+    val id: String,
     val name: String,
     val verified: Boolean
 )
@@ -36,7 +37,7 @@ data class SettingsScreenState(
     val error: String? = null,
     val isDeveloper: Boolean = false,
     val useDynamicColor: Boolean? = null,
-    val userId: Int? = null
+    val userId: String? = null
 )
 
 @HiltViewModel
@@ -53,7 +54,6 @@ open class SettingsViewModel @Inject constructor(
     open val courseSearch: StateFlow<List<String>> = _courseSearch
 
     var isDeveloper = mutableStateOf(false)
-    var userId = mutableStateOf<Int?>(null)
 
     // TODO ich verstehe .stateIn nicht
     val useDynamicColor: StateFlow<Boolean?> = settingsRepository
@@ -63,7 +63,6 @@ open class SettingsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             isDeveloper.value = settingsRepository.isDeveloper()
-            userId.value = settingsRepository.getUserId()
 
             _settingsScreenState.value = _settingsScreenState.value.copy(
                 isDeveloper = settingsRepository.isDeveloper(),
@@ -72,33 +71,29 @@ open class SettingsViewModel @Inject constructor(
 
             Log.d("SettingsViewModel", "refreshToken: ${settingsRepository.getRefreshToken()}")
 
-            if (userId.value != null) {
-                fetchVpSelectedCourse(userId.value!!)
-            }
+            fetchVpSelectedCourse()
         }
     }
 
     fun reload() {
-        userId.value?.let{
-            fetchVpSelectedCourse(it)
-        }
+        fetchVpSelectedCourse()
     }
 
-    fun saveUsername(userId: Int) {
+    fun saveUsername(userId: String) {
         viewModelScope.launch {
             settingsRepository.setUserId(userId)
-            fetchVpSelectedCourse(userId)
+            fetchVpSelectedCourse()
         }
     }
 
 
     // TODO: fetcht mehrere Male
-    fun fetchVpSelectedCourse(userId: Int) {
-        repository.getVpSelectedCourses(userId).onEach { result ->
-            Log.d("SettingsViewModel", "username: ${this@SettingsViewModel.userId}")
+    fun fetchVpSelectedCourse() {
+        repository.getVpSelectedCourses().onEach { result ->
+            Log.d("SettingsViewModel", "username: ${settingsScreenState.value.userId}")
             when (result) {
                 is Resource.Loading -> {
-                    Log.d("SettingsViewModel", "Loading vpSelectedCourse for user: ${this@SettingsViewModel.userId} - Result: $result")
+                    Log.d("SettingsViewModel", "Loading vpSelectedCourse - Result: $result")
 
                     _settingsScreenState.value = _settingsScreenState.value.copy(
                         isLoading = true,
@@ -106,7 +101,7 @@ open class SettingsViewModel @Inject constructor(
                     )
                 }
                 is Resource.Success -> {
-                    Log.d("SettingsViewModel", "Success fetching vpSelectedCourse for user: ${this@SettingsViewModel.userId} - Data: ${result.data}")
+                    Log.d("SettingsViewModel", "Success fetching vpSelectedCourse - Data: ${result.data}")
 
                     _settingsScreenState.value = _settingsScreenState.value.copy(
                         isLoading = false,
@@ -117,7 +112,7 @@ open class SettingsViewModel @Inject constructor(
                     Log.d("SettingsViewModel", "vpSelectedCourse: ${result.data}")
                 }
                 is Resource.Error -> {
-                    Log.e("SettingsViewModel", "Error fetching vpSelectedCourse for user: ${this@SettingsViewModel.userId}, message: ${result.message}")
+                    Log.e("SettingsViewModel", "Error fetching vpSelectedCourse, message: ${result.message}")
 
                     _settingsScreenState.value = _settingsScreenState.value.copy(
                         isLoading = false,
@@ -140,52 +135,54 @@ open class SettingsViewModel @Inject constructor(
     // TODO: man kann einen Kurs "" erstellen, der dann nicht mehr gelöscht werden kann
     fun postVpSelectedCourse(courseName: String) {
         if (courseName.isBlank()) return
-        userId.value?.let { id ->
-            viewModelScope.launch {
+
+        viewModelScope.launch {
+            _settingsScreenState.value = _settingsScreenState.value.copy(
+                isLoading = true,
+                error = null,
+            )
+
+            try {
+                val courseObject = NetworkVpSelectedCourseRequest(courseName)
+
+                val result = repository.postVpSelectedCourses(courseObject)
+
+                // After posting successfully, refresh the data
+                if (result.isSuccess) {
+                    fetchVpSelectedCourse()
+                }
+
                 _settingsScreenState.value = _settingsScreenState.value.copy(
-                    isLoading = true,
+                    isLoading = false,
                     error = null,
                 )
-
-                //settingsRepository.setVpSelectedCourseName(courseName)
-
-                try {
-                    val courseObject = VpSelectedCourseRequest(courseName)
-
-                    repository.postVpSelectedCourses(id, courseObject)
-
-                    // After posting successfully, refresh the data
-                    fetchVpSelectedCourse(id)
-                } catch (exception: Exception) {
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = false,
-                        error = exception.message,
-                    )
-                }
+            } catch (exception: Exception) {
+                _settingsScreenState.value = _settingsScreenState.value.copy(
+                    isLoading = false,
+                    error = exception.message,
+                )
             }
         }
     }
 
     // TODO: irgendwie mehr responsive machen
-    fun deleteVpSelectedCourse(courseName: String) {
-        userId.value?.let { id ->
-            viewModelScope.launch {
+    fun deleteVpSelectedCourse(courseId: String) {
+        viewModelScope.launch {
+            _settingsScreenState.value = _settingsScreenState.value.copy(
+                isLoading = true,
+                error = null,
+            )
+
+            try {
+                repository.deleteVpSelectedCourse(courseId)
+
+                // After deleting successfully, refresh the data
+                fetchVpSelectedCourse()
+            } catch (exception: Exception) {
                 _settingsScreenState.value = _settingsScreenState.value.copy(
-                    isLoading = true,
-                    error = null,
+                    isLoading = false,
+                    error = exception.message,
                 )
-
-                try {
-                    repository.deleteVpSelectedCourse(id, courseName)
-
-                    // After deleting successfully, refresh the data
-                    fetchVpSelectedCourse(id)
-                } catch (exception: Exception) {
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = false,
-                        error = exception.message,
-                    )
-                }
             }
         }
     }
@@ -193,7 +190,6 @@ open class SettingsViewModel @Inject constructor(
     // TODO: maybe don't search for every letter and cache?
     fun searchCourses(courseName: String) {
         repository.getCourseSearch(courseName).onEach { result ->
-            Log.d("SettingsViewModel", "username: $userId")
             when (result) {
                 is Resource.Loading -> {
                     result.data?.let {

@@ -2,30 +2,27 @@ package de.rafaelbeckmann.hvkclient.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
-import de.rafaelbeckmann.hvkclient.data.model.UserCourse
-import de.rafaelbeckmann.hvkclient.data.model.UserMark
-import de.rafaelbeckmann.hvkclient.data.model.VpClassConverter
-import de.rafaelbeckmann.hvkclient.data.model.VpInfoItem
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
+import de.rafaelbeckmann.hvkclient.data.model.UserCourseEntity
+import de.rafaelbeckmann.hvkclient.data.model.UserMarkEntity
+import de.rafaelbeckmann.hvkclient.data.model.VpDayEntity
+import de.rafaelbeckmann.hvkclient.data.model.VpDayInfoItem
+import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseEntity
+import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionEntity
 
 @Database(
     entities = [
-        UserCourse::class,
-        UserMark::class,
-        VpSelectedCourse::class,
-        VpSubstitution::class,
-        VpSubstitutionsCache::class,
-        FeatureFlagEntity::class,
-        VpInfoItem::class
+        UserCourseEntity::class,
+        UserMarkEntity::class,
+        VpSelectedCourseEntity::class,
+        VpSubstitutionEntity::class,
+        VpDayEntity::class,
+        VpDayInfoItem::class,
+        FeatureFlagEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
-@TypeConverters(VpClassConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun cacheDao(): CacheDao
 }

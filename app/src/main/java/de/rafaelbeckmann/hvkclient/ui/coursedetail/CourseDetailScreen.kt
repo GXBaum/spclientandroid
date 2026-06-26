@@ -64,7 +64,7 @@ fun CourseDetailScreen(
 ) {
     val state by viewModel.courseDetailScreenState.collectAsState()
 
-    var userId by remember { mutableStateOf<Int?>(null) }
+    var userId by remember { mutableStateOf<String?>(null) }
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(courseId) {
@@ -151,7 +151,7 @@ fun LazyListScope.marksList(
     marks: List<UserMark>,
     onMarkClick: (UserMark) -> Unit
 ) {
-    val groupedMarks = marks.groupBy { it.half_year }
+    val groupedMarks = marks.groupBy { it.halfYear }
 
     /*item(key = "header") {
         Text(

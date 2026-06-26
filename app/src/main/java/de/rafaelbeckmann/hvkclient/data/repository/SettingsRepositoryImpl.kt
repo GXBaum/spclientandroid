@@ -19,12 +19,12 @@ class SettingsRepositoryImpl @Inject constructor(
     private val prefUtils: PrefUtils
 ) : SettingsRepository {
 
-    override suspend fun setUserId(userId: Int) {
-        prefUtils.saveString(PreferenceKeys.USERNAME, userId.toString())
+    override suspend fun setUserId(userId: String) {
+        prefUtils.saveString(PreferenceKeys.USERNAME, userId)
     }
 
-    override suspend fun getUserId(): Int? {
-        return prefUtils.getString(PreferenceKeys.USERNAME)?.toInt()
+    override suspend fun getUserId(): String? {
+        return prefUtils.getString(PreferenceKeys.USERNAME)
     }
 
     override suspend fun setIsDeveloper(isDeveloper: Boolean) {

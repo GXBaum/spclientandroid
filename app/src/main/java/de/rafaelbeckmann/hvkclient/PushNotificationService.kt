@@ -15,7 +15,7 @@ import androidx.work.workDataOf
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
-import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -48,24 +48,19 @@ class PushNotificationService : FirebaseMessagingService() {
         Log.d(TAG, "New FCM token received: $token")
 
         serviceScope.launch {
-            val userId = settingsRepository.getUserId()
-            if (userId != null) {
-                sendTokenToServer(token, userId)
-            } else {
-                // TODO: no explanation needed
-                Log.d(TAG, "Token updated, will send when user logs in")
-            }
+            // TODO: this failes on signup since you're not registered/logged in but it does'nt matter, it gets resent on signup
+            sendTokenToServer(token)
         }
     }
 
-    private fun sendTokenToServer(token: String, userId: Int) {
+    private fun sendTokenToServer(token: String) {
         serviceScope.launch {
             try {
-                Log.d(TAG, "Sending token to server for user: $userId")
+                Log.d(TAG, "Sending token to server")
 
-                // make TokenUpdateRequest object
-                val tokenUpdateRequest = TokenUpdateRequest(token, userId)
-                repository.updateToken(userId, tokenUpdateRequest)
+                // make NetworkTokenUpdateRequest object
+                val tokenUpdateRequest = NetworkTokenUpdateRequest(token)
+                repository.updateToken(tokenUpdateRequest)
 
                 Log.d(TAG, "Token sent successfully")
             } catch (e: Exception) {

@@ -35,7 +35,7 @@ open class CoursesViewModel @Inject constructor(
     /**
      * Fetches courses for the given username
      */
-    open fun fetchCourses(userId: Int) {
+    open fun fetchCourses(userId: String) {
         repository.getUserCourses(userId).onEach { result ->
             _uiState.update { currentState ->
                 when (result) {
@@ -65,7 +65,7 @@ open class CoursesViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    open suspend fun getUserId(): Int? {
+    open suspend fun getUserId(): String? {
         return settingsRepository.getUserId()
     }
 

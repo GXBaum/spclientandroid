@@ -3,8 +3,8 @@ package de.rafaelbeckmann.hvkclient.domain.repository
 import kotlinx.coroutines.flow.Flow
 
 interface SettingsRepository {
-    suspend fun setUserId(userId: Int)
-    suspend fun getUserId(): Int?
+    suspend fun setUserId(userId: String)
+    suspend fun getUserId(): String?
 
     suspend fun setIsDeveloper(isDeveloper: Boolean)
     suspend fun isDeveloper(): Boolean

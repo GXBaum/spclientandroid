@@ -1,38 +1,14 @@
 package de.rafaelbeckmann.hvkclient.data.model
 
+import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.ForeignKey
+import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.PrimaryKey
-import androidx.room.TypeConverter
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import androidx.room.Relation
 
 // TODO: split into multiple files
 
-data class createAccountRequest(
-    val isNotificationEnabled: Int
-)
-data class createAccountResponse(
-    val accessToken: String,
-    val refreshToken: String,
-    val userId: Int
-)
-
-data class CourseSearchResponse(
-    val courses: List<String>
-)
-
-data class VpInfo(
-    val info: List<VpInfoItem>
-)
-
-@Entity(tableName = "vp_info")
-data class VpInfoItem(
-    @PrimaryKey val id: Int,
-    val fetched_at: String,
-    val day: String,
-    val data: String? = null,
-    val summary: String? = null
-)
 
 data class FeatureFlag(
     val featureFlags: Map<String, Boolean>
@@ -44,48 +20,22 @@ data class FeatureFlagEntity(
     val value: Boolean
 )
 
-data class LoginRequest(
-    val username: String,
-    val password: String
-)
-
-data class LoginResponse(
-    val accessToken: String,
-    val refreshToken: String,
-    val userId: Int
-)
-
-data class RefreshTokenRequest(
-    val token: String
-)
-
-data class TokenRefreshResponse(
-    val accessToken: String
-)
-
-data class TokenUpdateRequest(
-    val token: String,
-    val userId: Int
-    // TODO: this doesn't match the API (userId in here is redundant and not used)
-)
-
 data class UserCourses(
-    val courses: List<UserCourse>
-)
-data class SingleCourseResponse(
-    val course: UserCourse
+    val courses: List<UserCourseEntity>
 )
 @Entity
-data class UserCourse(
+data class UserCourseEntity(
     @PrimaryKey val courseId: Int,
     val name: String,
 )
 
-data class UserMarks(
-    val marks: List<UserMark>
+data class UserCourse(
+    val courseId: Int,
+    val name: String
 )
+
 @Entity
-data class UserMark(
+data class UserMarkEntity(
     @PrimaryKey val id: Int,
     val name: String,
     val date: String,
@@ -95,73 +45,99 @@ data class UserMark(
     val isDeleted: Boolean
 )
 
-
-data class VpSelectedCourseRequest(
-    val courseName: String
+data class UserMark(
+    val id: Int,
+    val name: String,
+    val date: String,
+    val grade: String,
+    val courseId: Int,
+    val halfYear: Int,
+    val isDeleted: Boolean
 )
 
 @Entity
-data class VpSelectedCourse(
-    @PrimaryKey val courseName: String,
+data class VpSelectedCourseEntity(
+    @PrimaryKey val id: String,
+    val courseName: String,
     val verified: Boolean
 )
 
-data class VpSelectedCoursesResponse(
-    val courses: List<VpSelectedCourseResponse>
-)
-data class VpSelectedCourseResponse(
-    val course: String,
-    val verified: Boolean
-)
+enum class VpType {
+    substitution, differentRoom
+}
 
 @Entity
-data class VpSubstitution(
+data class VpSubstitutionEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val hour: String,
     val original: String,
     val replacement: String,
     val description: String,
-    val vp_date: String,
-    val isDeleted: Boolean
+    val isDeleted: Boolean,
+    val VpType: VpType,
+    val courseName: String,
+
+    val targetDate: String
 )
 
-data class VpClass(
-    val today: List<VpSubstitution> = emptyList(),
-    val tomorrow: List<VpSubstitution> = emptyList(),
-    val roomsToday: List<VpSubstitution> = emptyList(),
-    val roomsTomorrow: List<VpSubstitution> = emptyList()
+data class VpSubstitution(
+    val id: Int = 0,
+    val hour: String,
+    val original: String,
+    val replacement: String,
+    val description: String,
+    val isDeleted: Boolean,
+    val VpType: VpType,
+    val courseName: String,
+
+    val targetDate: String
 )
 
-data class VpResponse(
-    val substitutions: Map<String, VpClass>
+data class VpInfoNeu(
+    val id: Int,
+    val text: String,
+    val targetDate: String
 )
 
-// TODO: mit VpSubstitutionsAll zusammenlegen, also VpSubstitutionsAll mit diesen sachen annotieren
-
-
-// TODO: ist es goofy dass das mit JSON gespeichert wird?
-
-
-// TODO
-@Entity(tableName = "vp_substitutions_cache")
-data class VpSubstitutionsCache(
-    @PrimaryKey val courseName: String,
-    val vpClass: VpClass
+data class VpDay(
+    val substitutions: List<VpSubstitution> = emptyList(),
+    val targetDate: String, // TODO: not a string
+    val dayString: String,
+    val info: List<VpInfoNeu>?
 )
 
-class VpClassConverter {
-    private val moshi = Moshi.Builder()
-        .add(KotlinJsonAdapterFactory())
-        .build()
-    private val vpClassAdapter = moshi.adapter<VpClass>(VpClass::class.java)
+@Entity
+data class VpDayEntity(
+    @PrimaryKey val targetDate: String,
+    val dayString: String
+)
 
-    @TypeConverter
-    fun fromVpClass(vpClass: VpClass): String {
-        return vpClassAdapter.toJson(vpClass)
-    }
+data class VpDayWithInfo(
+    @Embedded val day: VpDayEntity,
+    @Relation(
+        parentColumn = "targetDate",
+        entityColumn = "targetDate"
+    )
+    val info: List<VpDayInfoItem>
+)
 
-    @TypeConverter
-    fun toVpClass(value: String): VpClass? {
-        return vpClassAdapter.fromJson(value)
-    }
-}
+@Entity(
+    foreignKeys = [
+        ForeignKey(
+            entity = VpDayEntity::class,
+            parentColumns = ["targetDate"],
+            childColumns = ["targetDate"],
+            onDelete = CASCADE,
+        )
+    ]
+)
+data class VpDayInfoItem(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val targetDate: String,
+    val info: String
+)
+
+data class VpDays(
+    val today: VpDay,
+    val tomorrow: VpDay
+)

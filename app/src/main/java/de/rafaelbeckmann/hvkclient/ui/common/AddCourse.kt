@@ -54,6 +54,9 @@ fun AddCourseScreen(
         if (courseName.isNotBlank()) {
             viewModel.postVpSelectedCourse(courseName)
             Log.d("SettingsScreen", "Neuer Kurs: $courseName")
+
+            // TODO: does not fix the issue where the list sometimes doesn't get updated after adding a course
+            viewModel.fetchVpSelectedCourse()
         }
         onContinue()
     }
@@ -131,7 +134,6 @@ fun AddCourseScreen(
                 }
                 item {
                     Spacer(Modifier.height(4.dp))
-
                 }
 
                 roundedListItems(

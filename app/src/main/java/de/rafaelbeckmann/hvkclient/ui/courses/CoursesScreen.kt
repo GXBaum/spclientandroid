@@ -41,13 +41,13 @@ fun CoursesScreen(
     onCourseClick: (UserCourse) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var userId by remember { mutableStateOf<Int?>(null) }
+    var userId by remember { mutableStateOf<String?>(null) }
     var isDeveloper by remember { mutableStateOf(false) }
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(Unit) {
-        val savedUsername = viewModel.getUserId()
-        userId = savedUsername
+        userId = viewModel.getUserId()
+
         userId?.let { viewModel.fetchCourses(it) }
 
         isDeveloper = viewModel.isDeveloper()

@@ -6,7 +6,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.messaging.messaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,9 +42,9 @@ open class OnboardingViewModel @Inject constructor(
 
                             // TODO: Firebase.messaging.token.await() auch ins repo?
                             val fcmToken = Firebase.messaging.token.await()
-                            val tokenUpdateRequest = TokenUpdateRequest(fcmToken, response.userId)
+                            val tokenUpdateRequest = NetworkTokenUpdateRequest(fcmToken)
 
-                            repository.updateToken(response.userId, tokenUpdateRequest)
+                            repository.updateToken(tokenUpdateRequest)
                             _loginState.value = LoginState.Success
                         }
                     } ?: run {
@@ -60,8 +60,8 @@ open class OnboardingViewModel @Inject constructor(
 
 
 
-    fun createAccount(isNotificationEnabled: Int) {
-        repository.createAccount(isNotificationEnabled).onEach { result ->
+    fun createAccount() {
+        repository.createAccount().onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                     _loginState.value = LoginState.Loading
@@ -69,15 +69,15 @@ open class OnboardingViewModel @Inject constructor(
                 is Resource.Success -> {
                     result.data?.let { response ->
                         viewModelScope.launch {
-                            settingsRepository.setAccessToken(response.accessToken)
+                            settingsRepository.setAccessToken(response.token)
                             settingsRepository.setRefreshToken(response.refreshToken)
-                            settingsRepository.setUserId(response.userId)
+                            settingsRepository.setUserId(response.id)
                             settingsRepository.setOnboardingCompleted(true)
 
                             // TODO: Firebase.messaging.token.await() auch ins repo?
                             val fcmToken = Firebase.messaging.token.await()
-                            val tokenUpdateRequest = TokenUpdateRequest(fcmToken, response.userId)
-                            repository.updateToken(response.userId, tokenUpdateRequest)
+                            val tokenUpdateRequest = NetworkTokenUpdateRequest(fcmToken)
+                            repository.updateToken(tokenUpdateRequest)
 
                             _loginState.value = LoginState.Success
                         }

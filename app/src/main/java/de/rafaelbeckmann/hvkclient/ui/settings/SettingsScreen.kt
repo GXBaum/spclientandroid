@@ -273,7 +273,7 @@ fun SettingsScreen(
                                     }
 
                                     IconButton(onClick = {
-                                        viewModel.deleteVpSelectedCourse(item.course.name)
+                                        viewModel.deleteVpSelectedCourse(item.course.id)
                                     }) {
                                         Icon(
                                             imageVector = Icons.Rounded.Delete,

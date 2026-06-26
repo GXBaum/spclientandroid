@@ -167,7 +167,7 @@ fun OnboardingScreen(
                                 val lastPageIndex = pagerState.pageCount - 1
                                 if (pagerState.currentPage == lastPageIndex) {
                                     // Start creation; navigation happens on Success via LaunchedEffect.
-                                    viewModel.createAccount(if (isNotificationEnabled) 1 else 0)
+                                    viewModel.createAccount()
                                 } else {
                                     pagerState.animateScrollToPage(pagerState.currentPage + 1)
                                 }
@@ -200,7 +200,7 @@ fun OnboardingScreen(
                     Text(error, color = MaterialTheme.colorScheme.error)
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { viewModel.createAccount(if (isNotificationEnabled) 1 else 0) },
+                        onClick = { viewModel.createAccount() },
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text("Erneut versuchen")

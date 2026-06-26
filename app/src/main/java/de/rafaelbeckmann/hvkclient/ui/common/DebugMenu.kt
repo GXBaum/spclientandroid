@@ -12,6 +12,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,10 +32,10 @@ fun DebugMenu(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val isDeveloper by viewModel.isDeveloper
-    val userId by viewModel.userId
+    val userId = viewModel.settingsScreenState.collectAsState().value.userId
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var userIdString by remember { mutableStateOf(userId?.toString() ?: "") }
+    var userIdString by remember { mutableStateOf(userId ?: "") }
 
     Column {
         TextButton(
@@ -55,13 +56,8 @@ fun DebugMenu(
                 trailingIcon = {
                     IconButton(
                         onClick = {
-                            val parsedId = userIdString.toIntOrNull()
-                            if (parsedId != null) {
-                                viewModel.saveUsername(parsedId)
-                                Toast.makeText(context, "User ID gespeichert", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, "Ungültige User ID", Toast.LENGTH_SHORT).show()
-                            }
+                            viewModel.saveUsername(userIdString)
+                            Toast.makeText(context, "User ID gespeichert", Toast.LENGTH_SHORT).show()
                         }
                     ) {
                         Icon(

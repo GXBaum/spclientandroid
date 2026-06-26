@@ -8,6 +8,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import de.rafaelbeckmann.hvkclient.PrefUtils
+import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.remote.AuthInterceptor
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
@@ -26,7 +27,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    private const val BASE_URL = "https://rafaelbeckmann.de/api/dev/"
+    private const val BASE_URL = "https://rafaelbeckmann.de/api/v1/"
 
     @Provides
     @Singleton
@@ -110,8 +111,13 @@ object AppModule {
     // TODO: rename this function
     @Provides
     @Singleton
-    fun provideMyRepository(api: HvkClientApi, cacheDao: CacheDao, app: Application): HvkRepository {
-        return HvkRepositoryImpl(api, cacheDao, app)
+    fun provideMyRepository(
+        api: HvkClientApi,
+        cacheDao: CacheDao,
+        database: AppDatabase,
+        app: Application
+    ): HvkRepository {
+        return HvkRepositoryImpl(api, cacheDao, database, app)
     }
 
     @Provides

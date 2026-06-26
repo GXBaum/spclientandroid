@@ -1,7 +1,7 @@
 package de.rafaelbeckmann.hvkclient.data.remote
 
 import android.util.Log
-import de.rafaelbeckmann.hvkclient.data.model.RefreshTokenRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkRefreshTokenRequest
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
@@ -22,10 +22,10 @@ class TokenAuthenticator @Inject constructor(
             return runBlocking {
                 val refreshToken = settingsRepository.getRefreshToken() ?: return@runBlocking null
 
-                val refreshResponse = api.refreshToken(RefreshTokenRequest(refreshToken))
+                val refreshResponse = api.refreshToken(NetworkRefreshTokenRequest(refreshToken))
 
                 if (refreshResponse.isSuccessful && refreshResponse.body() != null) {
-                    val newAccessToken = refreshResponse.body()!!.accessToken
+                    val newAccessToken = refreshResponse.body()!!.token
                     settingsRepository.setAccessToken(newAccessToken)
                     response.request.newBuilder()
                         .header("Authorization", "Bearer $newAccessToken")

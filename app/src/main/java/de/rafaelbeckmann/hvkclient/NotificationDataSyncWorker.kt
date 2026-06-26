@@ -32,11 +32,10 @@ class NotificationDataSyncWorker @AssistedInject constructor(
         Log.d(TAG, "Worker started")
         return try {
             val channelId = inputData.getString("channel_id") ?: return Result.failure()
-            val userId = settingsRepository.getUserId() ?: return Result.failure()
 
             when (channelId) {
                 CHANNEL_VP_UPDATES -> {
-                    val coursesResource = repository.getVpSelectedCourses(userId)
+                    val coursesResource = repository.getVpSelectedCourses()
                         .filter { it !is Resource.Loading }
                         .first()
 
@@ -44,7 +43,7 @@ class NotificationDataSyncWorker @AssistedInject constructor(
                         val courses = coursesResource.data
 
                         if (!courses.isNullOrEmpty()) {
-                            val result = repository.getVpSubstitutionsMultipleCourses(courses.map { it.name })
+                            val result = repository.getVpSubstitutions(courses.map { it.name })
                                 .filter { it !is Resource.Loading }
                                 .first()
 

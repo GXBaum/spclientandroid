@@ -1,12 +1,10 @@
 package de.rafaelbeckmann.hvkclient.ui.vp
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,13 +20,11 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.PrimaryTabRow
@@ -50,7 +46,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
@@ -59,6 +54,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
+import de.rafaelbeckmann.hvkclient.data.model.VpType
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
@@ -67,6 +63,7 @@ import de.rafaelbeckmann.hvkclient.ui.main.LocalSnackbarHostState
 import de.rafaelbeckmann.hvkclient.ui.navigation.VP_FAB_EXPLODE_BOUND
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.collections.partition
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -187,11 +184,10 @@ fun SharedTransitionScope.VpScreen(
                         modifier = Modifier.fillMaxSize()
                     ) { page ->
                         val courseName = state.selectedCourses.getOrNull(page)
-                        val substitutionsForCourse = courseName?.let { state.substitutions?.substitutions?.get(it.name) }
 
                         val sections = listOf(
-                            "Heute" to (substitutionsForCourse?.today.orEmpty()),
-                            "Nächster Schultag" to (substitutionsForCourse?.tomorrow.orEmpty())
+                            "Heute" to (state.substitutions?.today),
+                            "Nächster Schultag" to (state.substitutions?.tomorrow)
                         )
 
                         LazyColumn(
@@ -210,11 +206,6 @@ fun SharedTransitionScope.VpScreen(
                             }
 
                             sections.forEach { (title, list) ->
-                                /*val text = if (list.isNotEmpty()) {
-                                    title + ", " + list[0].vp_date
-                                } else {
-                                    title
-                                }*/
                                 item(key = "header_${courseName}_$title") {
                                     Text(
                                         //text = text,
@@ -223,11 +214,11 @@ fun SharedTransitionScope.VpScreen(
                                         modifier = Modifier.padding(top = 16.dp)
                                     )
                                 }
-                                // this is really fucking stupid since if you dont have entries it doesnt show the date. should be general metadata in the json response
-                                if(list.isNotEmpty()) {
+
+                                if (list?.dayString != null) {
                                     item(key = "header_day_${courseName}_$title") {
                                         Text(
-                                            text = list[0].vp_date,
+                                            text = list.dayString,
                                             style = MaterialTheme.typography.bodyMediumEmphasized
                                         )
                                     }
@@ -241,11 +232,47 @@ fun SharedTransitionScope.VpScreen(
                                     else -> null
                                 }
 
-                                // VP Info
-                                val filteredInfo = state.vpInfo?.info
-                                    ?.filter { it.day == dayKey }
-                                    ?.filter { !(it.data.isNullOrBlank() && it.summary.isNullOrBlank()) }
-                                    .orEmpty()
+
+                                Log.d("TEST", state.substitutions?.today?.info.toString())
+                                Log.d("TEST", state.substitutions?.tomorrow?.info.toString())
+
+
+                                val info = if (dayKey == "today") {
+                                    state.substitutions?.today?.info?.firstOrNull()?.text
+                                } else {
+                                    state.substitutions?.tomorrow?.info?.firstOrNull()?.text
+                                }
+
+                                if (info?.isNotBlank() == true) {
+                                    item {
+                                        RoundedListItem(
+                                            text = info,
+                                        )
+                                    }
+                                }
+
+                                /*
+                                val filteredInfo = if (dayKey == "today") {
+                                    state.substitutions?.today?.info?.map {
+                                        VpInfoItem(
+                                            data = it.text,
+                                            summary = it.text,
+                                            fetched_at = "FIXME_PLACEHOLDER", // FIXME THIS ABOMINATION
+                                            id = 1,
+                                            day = it.targetDate
+                                        )
+                                    }
+                                } else {
+                                    state.substitutions?.tomorrow?.info?.map {
+                                        VpInfoItem(
+                                            data = it.text,
+                                            summary = it.text,
+                                            fetched_at = "FIXME_PLACEHOLDER",
+                                            id = 1,
+                                            day = it.targetDate
+                                        )
+                                    }
+                                }.orEmpty()
 
                                 if (filteredInfo.isNotEmpty()){
                                     roundedListItems(
@@ -291,9 +318,31 @@ fun SharedTransitionScope.VpScreen(
                                         )
                                     }
                                 }
+                                */
 
-                                vpTableItems(list)
+                                val substitutionsForCourse = list?.substitutions?.filter {
+                                    it.courseName == courseName?.name &&
+                                            it.VpType == VpType.substitution
+                                }
+                                val differentRoomsForCourse = list?.substitutions?.filter {
+                                    it.courseName == courseName?.name &&
+                                            it.VpType == VpType.differentRoom
+                                }
 
+                                vpTableItems(substitutionsForCourse.orEmpty())
+
+                                if (!differentRoomsForCourse.isNullOrEmpty()) {
+                                    item(key = "rooms_header_${courseName}_$title") {
+                                        Text(
+                                            text = "Ersatzräume",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            modifier = Modifier.padding(top = 12.dp)
+                                        )
+                                    }
+                                    vpTableItems(differentRoomsForCourse)
+                                }
+
+                                /*
                                 val roomsList = when (title) {
                                     "Heute" -> substitutionsForCourse?.roomsToday.orEmpty()
                                     "Nächster Schultag" -> substitutionsForCourse?.roomsTomorrow.orEmpty()
@@ -309,6 +358,7 @@ fun SharedTransitionScope.VpScreen(
                                     }
                                     vpTableItems(roomsList)
                                 }
+                                */
                             }
                         }
                     }

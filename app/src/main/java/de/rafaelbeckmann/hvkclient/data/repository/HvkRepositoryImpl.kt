@@ -1,40 +1,47 @@
 package de.rafaelbeckmann.hvkclient.data.repository
 
 import android.app.Application
-import android.util.Log
+import androidx.room.withTransaction
 import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.SnackbarEvent
 import de.rafaelbeckmann.hvkclient.data.Resource
+import de.rafaelbeckmann.hvkclient.data.Resource.Error
+import de.rafaelbeckmann.hvkclient.data.Resource.Loading
+import de.rafaelbeckmann.hvkclient.data.Resource.Success
+import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
+import de.rafaelbeckmann.hvkclient.data.mapEntitiesToVpDays
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
-import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
-import de.rafaelbeckmann.hvkclient.data.model.LoginRequest
-import de.rafaelbeckmann.hvkclient.data.model.LoginResponse
-import de.rafaelbeckmann.hvkclient.data.model.TokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
-import de.rafaelbeckmann.hvkclient.data.model.VpInfo
-import de.rafaelbeckmann.hvkclient.data.model.VpResponse
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourse
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseRequest
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionsCache
-import de.rafaelbeckmann.hvkclient.data.model.createAccountRequest
-import de.rafaelbeckmann.hvkclient.data.model.createAccountResponse
+import de.rafaelbeckmann.hvkclient.data.model.VpDays
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
+import de.rafaelbeckmann.hvkclient.data.toDomain
+import de.rafaelbeckmann.hvkclient.data.toEntity
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import retrofit2.Response
 import java.io.IOException
-import java.net.URLEncoder
 
 class HvkRepositoryImpl(
     private val api: HvkClientApi,
     private val cacheDao: CacheDao,
+    private val database: AppDatabase,
     private val appContext: Application
 ) : HvkRepository {
 
@@ -47,15 +54,15 @@ class HvkRepositoryImpl(
      */
     private inline fun <ResultType, RequestType> networkBoundResource(
         crossinline query: () -> Flow<ResultType>,
-        crossinline fetch: suspend () -> retrofit2.Response<RequestType>,
+        crossinline fetch: suspend () -> Response<RequestType>,
         crossinline saveFetchResult: suspend (RequestType) -> Unit,
         crossinline shouldFetch: (ResultType?) -> Boolean = { true }
     ): Flow<Resource<ResultType>> = flow {
         val data = query().first()
-        emit(Resource.Loading(data))
+        emit(Loading(data))
 
         if (!shouldFetch(data)) {
-            emitAll(query().map { Resource.Success(it) })
+            emitAll(query().map { Success(it) })
             return@flow
         }
 
@@ -64,7 +71,7 @@ class HvkRepositoryImpl(
             if (response.isSuccessful) {
                 response.body()?.let { saveFetchResult(it) }
                 // Query again after saving to get the updated data
-                emitAll(query().map { Resource.Success(it) })
+                emitAll(query().map { Success(it) })
             } else {
                 SnackbarController.sendEvent(
                     event = SnackbarEvent(
@@ -73,7 +80,7 @@ class HvkRepositoryImpl(
                 )
                 val error = "API Error: ${response.code()} ${response.message()}"
                 // On error, emit the error but continue listening to the cache
-                emitAll(query().map { Resource.Error(error, it) })
+                emitAll(query().map { Error(error, it) })
             }
         } catch (ce: CancellationException) {
             // cancellation is not an error; propagate it.
@@ -84,53 +91,65 @@ class HvkRepositoryImpl(
                     message = "Fehler beim Laden: ${e.message}"
                 )
             )
-            emitAll(query().map { Resource.Error(e.message ?: "Unknown error", it) })
+            emitAll(query().map { Error(e.message ?: "Unknown error", it) })
         }
     }
 
-    override fun createAccount(isNotificationEnabled: Int): Flow<Resource<createAccountResponse>> = flow {
-        emit(Resource.Loading())
+    override fun createAccount(): Flow<Resource<NetworkCreateAccountResponse>> = flow {
+        emit(Loading())
         try {
-            val response = api.createAccount(createAccountRequest(isNotificationEnabled))
+            val response = api.createAccount(NetworkCreateAccountRequest())
             if (response.isSuccessful && response.body() != null) {
-                emit(Resource.Success(response.body()!!))
+                emit(Success(response.body()!!))
             } else {
-                emit(Resource.Error("Account creation failed: ${response.code()} ${response.message()}"))
+                emit(Error("Account creation failed: ${response.code()} ${response.message()}"))
             }
         } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "An unknown error occurred"))
+            emit(Error(e.message ?: "An unknown error occurred"))
         }
     }
 
-    override fun login(username: String, password: String): Flow<Resource<LoginResponse>> = flow {
-        emit(Resource.Loading())
+    override fun login(username: String, password: String): Flow<Resource<NetworkLoginResponse>> = flow {
+        emit(Loading())
         try {
-            val response = api.login(LoginRequest(username, password))
+            val response = api.login(NetworkLoginRequest(username, password))
             if (response.isSuccessful && response.body() != null) {
-                emit(Resource.Success(response.body()!!))
+                emit(Success(response.body()!!))
             } else {
-                emit(Resource.Error("Login failed: ${response.code()} ${response.message()}"))
+                emit(Error("Login failed: ${response.code()} ${response.message()}"))
             }
         } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "An unknown error occurred"))
+            emit(Error(e.message ?: "An unknown error occurred"))
         }
     }
 
-    override fun getUserCourses(userId: Int): Flow<Resource<List<UserCourse>>> = networkBoundResource(
-        query = { cacheDao.getUserCourses() },
+    override fun getUserCourses(userId: String): Flow<Resource<List<UserCourse>>> = networkBoundResource(
+        query = {
+            cacheDao.getUserCourses().map { courses ->
+                courses.map { it.toDomain() }
+            }
+        },
         fetch = { api.getUserCourses(userId) },
-        saveFetchResult = { cacheDao.insertUserCourses(it.courses) }
+        saveFetchResult = {
+            cacheDao.insertUserCourses(
+                it.courses.map { course -> course.toEntity() }
+            )
+        }
     )
 
-    override fun getUserCourseById(userId: Int, courseId: Int): Flow<Resource<UserCourse>> = networkBoundResource(
-        query = { cacheDao.getUserCourseById(courseId) },
+    override fun getUserCourseById(userId: String, courseId: Int): Flow<Resource<UserCourse>> = networkBoundResource(
+        query = { cacheDao.getUserCourseById(courseId).map { it.toDomain() } },
         fetch = { api.getUserCourseById(userId, courseId) },
-        saveFetchResult = { cacheDao.insertUserCourses(listOf(it.course)) }
+        saveFetchResult = {
+            cacheDao.insertUserCourses(
+                listOf(it.course.toEntity())
+            )
+        }
     )
 
-    override suspend fun updateToken(userId: Int, tokenUpdateRequest: TokenUpdateRequest): Result<Unit> {
+    override suspend fun updateToken(tokenUpdateRequest: NetworkTokenUpdateRequest): Result<Unit> {
         return try {
-            val response = api.updateToken(userId, tokenUpdateRequest)
+            val response = api.updateToken(tokenUpdateRequest)
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
@@ -141,18 +160,24 @@ class HvkRepositoryImpl(
         }
     }
 
-    override fun getUserMarksForCourse(userId: Int, courseId: Int): Flow<Resource<List<UserMark>>> = networkBoundResource(
-        query = { cacheDao.getUserMarksForCourse(courseId) },
+    override fun getUserMarksForCourse(userId: String, courseId: Int): Flow<Resource<List<UserMark>>> = networkBoundResource(
+        query = {
+            cacheDao.getUserMarksForCourse(courseId).map { marks ->
+                marks.map { it.toDomain() }
+            }
+        },
         fetch = { api.getUserMarksForCourse(userId, courseId) },
         saveFetchResult = {
             cacheDao.deleteUserMarksForCourse(courseId)
-            cacheDao.insertUserMarks(it.marks)
+            cacheDao.insertUserMarks(
+                it.marks.map { mark -> mark.toEntity() }
+            )
         }
     )
 
-    override suspend fun postVpSelectedCourses(userId: Int, courseName: VpSelectedCourseRequest): Result<Unit> {
+    override suspend fun postVpSelectedCourses(courseName: NetworkVpSelectedCourseRequest): Result<Unit> {
         return try {
-            val response = api.postVpSelectedCourses(userId, courseName)
+            val response = api.postVpSelectedCourses(courseName)
             if (response.isSuccessful) {
                 //cacheDao.insertVpSelectedCourses(listOf(courseName)) // aktuell nicht nötig, im Settings VM wird so oder so neu gefetcht // TODO: funktioniert mit Android 16 aber nicht 10?
                 Result.success(Unit)
@@ -164,36 +189,31 @@ class HvkRepositoryImpl(
         }
     }
 
-    override fun getVpSelectedCourses(userId: Int): Flow<Resource<List<SelectedCourse>>> = networkBoundResource(
+    override fun getVpSelectedCourses(): Flow<Resource<List<SelectedCourse>>> = networkBoundResource(
         query = {
             cacheDao.getVpSelectedCourses().map { courses ->
                 courses.map {
-                    SelectedCourse(
-                        name = it.courseName,
-                        verified = it.verified
-                    )
+                    it.toDomain()
                 }
             }
         },
-        fetch = { api.getVpSelectedCourses(userId) },
+        fetch = { api.getVpSelectedCourses() },
         saveFetchResult = { response ->
             cacheDao.clearVpSelectedCourses()
-            val courses = response.courses.map {
-                VpSelectedCourse(
-                    courseName = it.course,
-                    verified = it.verified
-                )
-            }
+
+            val courses = response.courses.map { it.toEntity() }
             cacheDao.insertVpSelectedCourses(courses)
         }
     )
 
-    override suspend fun deleteVpSelectedCourse(userId: Int, courseName: String): Result<Unit> {
+    override suspend fun deleteVpSelectedCourse(courseId: String): Result<Unit> {
         return try {
             // TODO: ist es vlt doch besser, es im body zu schicken, dann wäre das nicht nötig
             // TODO: das ist gottlos dumm, aber er macht es zu + und nicht %20
-            val encodedCourseName = URLEncoder.encode(courseName, "UTF-8").replace("+", "%20")
-            val response = api.deleteVpSelectedCourse(userId, encodedCourseName)
+            //val encodedCourseName = URLEncoder.encode(courseName, "UTF-8").replace("+", "%20")
+            //val response = api.deleteVpSelectedCourse(encodedCourseName)
+            val response = api.deleteVpSelectedCourse(courseId)
+
             if (response.isSuccessful) {
                 // TODO: Uncomment when cacheDao is implemented
                 //cacheDao.deleteVpSelectedCourse(courseName)
@@ -206,27 +226,61 @@ class HvkRepositoryImpl(
         }
     }
 
-    override fun getVpSubstitutionsMultipleCourses(courseNames: List<String>): Flow<Resource<VpResponse>> {
+    override fun getVpSubstitutions(courseNames: List<String>): Flow<Resource<VpDays>> {
         return networkBoundResource(
             query = {
-                cacheDao.getVpSubstitutionsForCourses(courseNames).map { cacheEntries ->
-                    val substitutionsMap = cacheEntries.associate { it.courseName to it.vpClass }
-                    VpResponse(substitutionsMap)
+                cacheDao.getVpSubstitutionsForCourses(courseNames).combine(cacheDao.getVpDay()) { subs, days ->
+                    mapEntitiesToVpDays(days, subs)
                 }
             },
             fetch = {
-                val coursesInOneString = courseNames.joinToString(",")
-                Log.d("repo", coursesInOneString)
-                api.getVpSubstitutionsMultipleCourses(coursesInOneString)
+                api.getVpSubstitutionsMultipleCourses(courseNames)
             },
             saveFetchResult = { result ->
-                // First delete existing entries for these courses
-                cacheDao.deleteVpSubstitutionsForCourses(courseNames)
+                database.withTransaction {
+                    // First delete existing entries for these courses
+                    cacheDao.deleteVpSubstitutionsForCourses(courseNames)
+                    cacheDao.deleteVpDayInfo()
+                    cacheDao.clearVpDay()
 
-                // Then save the new data
-                result.substitutions.forEach { (courseName, vpClass) ->
-                    val cacheEntry = VpSubstitutionsCache(courseName, vpClass)
-                    cacheDao.insertVpSubstitutionsCache(cacheEntry)
+
+                    // Then save the new data
+                    result.substitutions.today.substitutions.let {
+                        cacheDao.insertVpSubstitution(
+                            it.map { sub -> sub.toEntity() }
+                        )
+                    }
+                    result.substitutions.tomorrow.substitutions.let {
+                        cacheDao.insertVpSubstitution(
+                            it.map { sub -> sub.toEntity() }
+                        )
+                    }
+
+                    result.substitutions.today.let {
+                        cacheDao.insertVpDay(
+                            listOf(
+                                it.toEntity()
+                            )
+                        )
+                    }
+                    result.substitutions.tomorrow.let {
+                        cacheDao.insertVpDay(
+                            listOf(
+                                it.toEntity()
+                            )
+                        )
+                    }
+
+                    val infosToday = result.substitutions.today.info?.map {
+                        it.toEntity()
+                    } ?: emptyList()
+                    val infosTomorrow = result.substitutions.tomorrow.info?.map {
+                        it.toEntity()
+                    } ?: emptyList()
+
+                    cacheDao.insertVpDayInfoItems(
+                        infosToday + infosTomorrow
+                    )
                 }
             }
         )
@@ -234,17 +288,17 @@ class HvkRepositoryImpl(
 
     // TODO: vielleicht nicht direkt be jedem buchstaben suchen
     override fun getCourseSearch(courseName: String): Flow<Resource<List<String>>> = flow {
-        emit(Resource.Loading())
+        emit(Loading())
         try {
             val response = api.getCourseSearch(courseName)
             if (response.isSuccessful) {
                 val courses = response.body()?.courses ?: emptyList()
-                emit(Resource.Success(courses))
+                emit(Success(courses.map { course -> course.name }))
             } else {
-                emit(Resource.Error("Course search failed: ${response.code()} ${response.message()}"))
+                emit(Error("Course search failed: ${response.code()} ${response.message()}"))
             }
         } catch (e: Exception) {
-            emit(Resource.Error(e.message ?: "Unknown error"))
+            emit(Error(e.message ?: "Unknown error"))
         }
     }
 
@@ -258,34 +312,16 @@ class HvkRepositoryImpl(
             fetch = { api.getFeatureFlags() },
             saveFetchResult = { result ->
                 cacheDao.clearFeatureFlags()
-                val rows = result.featureFlags.map { (key, value) ->
-                    FeatureFlagEntity(
-                        key = key,
-                        value = value
-                    )
-                }
+
+                val rows = result.toEntity()
                 cacheDao.upsertFeatureFlags(rows)
             }
         )
     }
 
-    override fun getVpInfo(): Flow<Resource<VpInfo>> {
-        return networkBoundResource(
-            query = {
-                cacheDao.getVpInfoItems().map { items ->
-                    VpInfo(info = items)
-            }
-        },
-            fetch = { api.getVpInfo() },
-            saveFetchResult = { result ->
-                val items = result.info
-                cacheDao.clearVpInfo()
-                cacheDao.insertVpInfo(items)
-            }
-        )
-    }
-
     override suspend fun clearCache() {
-        cacheDao.clearAllCache()
+        withContext(Dispatchers.IO) {
+            database.clearAllTables()
+        }
     }
 }
