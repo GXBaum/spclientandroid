@@ -2,6 +2,8 @@ package de.rafaelbeckmann.hvkclient.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import de.rafaelbeckmann.hvkclient.data.model.Converters
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.data.model.UserCourseEntity
 import de.rafaelbeckmann.hvkclient.data.model.UserMarkEntity
@@ -23,6 +25,8 @@ import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionEntity
     version = 5,
     exportSchema = false
 )
+
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun cacheDao(): CacheDao
 }

@@ -8,10 +8,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
+import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
+import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,6 +25,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import okhttp3.Cookie
 import javax.inject.Inject
 
 // TODO: should potentially not exist, as its redundant with other class
@@ -37,14 +42,20 @@ data class SettingsScreenState(
     val error: String? = null,
     val isDeveloper: Boolean = false,
     val useDynamicColor: Boolean? = null,
-    val userId: String? = null
+    val userId: String? = null,
+
+    val spAuthTest: List<Cookie> = emptyList(),
+    val encryptedUserPreferences: UserPreferences? = null
 )
 
 @HiltViewModel
 open class SettingsViewModel @Inject constructor(
     private val repository: HvkRepository,
     private val settingsRepository: SettingsRepository,
-    open val prefUtils: PrefUtils
+    open val prefUtils: PrefUtils,
+
+    private val spTestRepository: SpRepositoryTest,
+    private val encryptedUserPreferencesRepository: EncryptedUserPreferencesRepository
 ) : ViewModel() {
 
     private val _settingsScreenState = MutableStateFlow(SettingsScreenState())
@@ -132,7 +143,6 @@ open class SettingsViewModel @Inject constructor(
 
 
 
-    // TODO: man kann einen Kurs "" erstellen, der dann nicht mehr gelöscht werden kann
     fun postVpSelectedCourse(courseName: String) {
         if (courseName.isBlank()) return
 
@@ -288,4 +298,46 @@ open class SettingsViewModel @Inject constructor(
         }
     }
 
+
+
+
+
+    fun getSpAuthCookieTest() {
+        viewModelScope.launch {
+            _settingsScreenState.value = _settingsScreenState.value.copy(
+                spAuthTest = spTestRepository.getSpAuthCookiesTest()
+            )
+            Log.d("TEST", settingsScreenState.value.spAuthTest.toString())
+
+            val formattedCookie = settingsScreenState.value.spAuthTest.map { cookie -> cookie.toString().split(";")[0] }.joinToString("; ")
+            Log.d("TEST", formattedCookie)
+
+            repository.postSpAuthCookie(
+                SpAuthCookieRequest(
+                    formattedCookie,
+                    settingsScreenState.value.spAuthTest
+                )
+            )
+        }
+    }
+
+    fun getSpTest() {
+        viewModelScope.launch {
+            repository.getSpTest()
+        }
+    }
+
+    fun getEncryptedUserPreferences() {
+        encryptedUserPreferencesRepository.getUserPreferences().onEach { result ->
+            _settingsScreenState.value = _settingsScreenState.value.copy(
+                encryptedUserPreferences = result
+            )
+        }.launchIn(viewModelScope)
+    }
+
+    fun setEncryptedUserPreferences(userPreferences: UserPreferences) {
+        viewModelScope.launch {
+            encryptedUserPreferencesRepository.setUserPreferences(userPreferences)
+        }
+    }
 }

@@ -35,8 +35,8 @@ open class CoursesViewModel @Inject constructor(
     /**
      * Fetches courses for the given username
      */
-    open fun fetchCourses(userId: String) {
-        repository.getUserCourses(userId).onEach { result ->
+    open fun fetchCourses() {
+        repository.getUserCourses().onEach { result ->
             _uiState.update { currentState ->
                 when (result) {
                     is Resource.Loading -> {

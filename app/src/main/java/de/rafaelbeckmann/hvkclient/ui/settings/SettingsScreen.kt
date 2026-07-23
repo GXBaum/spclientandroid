@@ -130,6 +130,7 @@ fun SettingsScreen(
         )
     }
 
+    // TODO is LifecycleResumeEffect better?
     // Observe lifecycle to update permission on resume
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {

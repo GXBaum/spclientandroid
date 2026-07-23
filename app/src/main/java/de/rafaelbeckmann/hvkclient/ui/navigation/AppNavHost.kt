@@ -174,7 +174,7 @@ fun AppNavHost(
                             navController.navigate(
                                 CourseDetailsScreen(
                                     name = course.name,
-                                    courseId = course.courseId,
+                                    courseId = course.id,
                                 )
                             )
                         }

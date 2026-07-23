@@ -17,13 +17,13 @@ plugins {
 
 android {
     namespace = "de.rafaelbeckmann.hvkclient"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "de.rafaelbeckmann.hvkclient"
         minSdk = 29
         targetSdk = 36
-        versionCode = 20
+        versionCode = 21
         versionName = "0.3.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -86,6 +86,8 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.okhttp)
     implementation(libs.converter.moshi)
+    implementation(libs.okhttp.urlconnection)
+
 
     implementation(libs.moshi.kotlin)
 

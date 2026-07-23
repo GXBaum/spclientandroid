@@ -4,7 +4,9 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,6 +48,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
@@ -58,12 +61,13 @@ import de.rafaelbeckmann.hvkclient.data.model.VpType
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
+import de.rafaelbeckmann.hvkclient.ui.common.relativeDateFormatter
+import de.rafaelbeckmann.hvkclient.ui.common.relativeDateTimeFormatter
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 import de.rafaelbeckmann.hvkclient.ui.main.LocalSnackbarHostState
 import de.rafaelbeckmann.hvkclient.ui.navigation.VP_FAB_EXPLODE_BOUND
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.collections.partition
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -215,6 +219,15 @@ fun SharedTransitionScope.VpScreen(
                                     )
                                 }
 
+                                // TODO: remove this, redundant
+                                item {
+                                    Text(
+                                        list?.targetDate?.let {
+                                            relativeDateFormatter(it)
+                                        } ?: ""
+                                    )
+                                }
+
                                 if (list?.dayString != null) {
                                     item(key = "header_day_${courseName}_$title") {
                                         Text(
@@ -244,9 +257,12 @@ fun SharedTransitionScope.VpScreen(
                                 }
 
                                 if (info?.isNotBlank() == true) {
-                                    item {
+                                    roundedListItems(
+                                        items = listOf(info),
+                                        animatePlacement = false
+                                    ) {
                                         RoundedListItem(
-                                            text = info,
+                                            text = it
                                         )
                                     }
                                 }
@@ -383,6 +399,7 @@ fun SharedTransitionScope.VpScreen(
 fun RowScope.TableCell(
     text: String,
     weight: Float,
+    modifier: Modifier = Modifier,
     isHeader: Boolean = false
 ) {
     Text(
@@ -390,7 +407,7 @@ fun RowScope.TableCell(
         fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
         style = if (isHeader) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
         textAlign = TextAlign.Start,
-        modifier = Modifier
+        modifier = modifier
             .weight(weight)
             .padding(2.dp)
     )
@@ -420,44 +437,72 @@ fun LazyListScope.vpTableItems(
             }
         }
     } else {
-        roundedListItems(
-            items = active,
-            animatePlacement = false
-            //key = { sub -> sub.id }
-        ) { sub ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-            ) {
-                TableCell(text = sub.hour, weight = 0.10f)
-                TableCell(text = sub.original, weight = 0.25f)
-                TableCell(text = sub.replacement, weight = 0.25f)
-                TableCell(text = sub.description, weight = 0.40f)
-            }
-        }
+        vpTableItemsNotSureHowToNameThis(active)
     }
 
     if (deleted.isNotEmpty()){
         item{
             Text("gelöscht")
         }
-        roundedListItems(
-            items = deleted,
-            animatePlacement = false
-        ) { sub ->
-            Row(
+        vpTableItemsNotSureHowToNameThis(deleted, isDeleted = true, isDefaultExtended = true)
+    }
+}
+
+fun LazyListScope.vpTableItemsNotSureHowToNameThis(
+    items: List<VpSubstitution>,
+    isDeleted: Boolean = false,
+    isDefaultExtended: Boolean = false
+) {
+    // TODO: add deleted param
+    roundedListItems(
+        items = items,
+        animatePlacement = false
+        //key = { sub -> sub.id }
+    ) { sub ->
+        var isExtended by remember { mutableStateOf(isDefaultExtended) }
+        Column (
+            modifier = Modifier
+                .clickable(
+                    onClick = {
+                        isExtended = !isExtended
+                    }
+                )
+                .animateContentSize(
+                    animationSpec = MaterialTheme.motionScheme.fastSpatialSpec()
+                )
+                .background(
+                    color = if (isDeleted) MaterialTheme.colorScheme.errorContainer else Color.Transparent,
+                )
+        ){
+            Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        color = MaterialTheme.colorScheme.errorContainer,
-                    )
                     .padding(8.dp)
             ) {
-                TableCell(text = sub.hour, weight = 0.10f)
-                TableCell(text = sub.original, weight = 0.25f)
-                TableCell(text = sub.replacement, weight = 0.25f)
-                TableCell(text = sub.description, weight = 0.40f)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    TableCell(text = sub.hour, weight = 0.075f)
+                    TableCell(text = sub.original, weight = 0.25f)
+                    TableCell(text = "→", weight = 0.075f)
+                    TableCell(text = sub.replacement, weight = 0.25f)
+                    TableCell(text = sub.description, weight = 0.35f)
+                }
+
+                if (isExtended) {
+                    Text(
+                        text = "zuerst gesehen: ${relativeDateTimeFormatter(sub.createdAt)}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    // if it's deleted the last change should be the deletion, so this should be fine
+                    if (isDeleted) {
+                        Text(
+                            text = "gelöscht: ${relativeDateTimeFormatter(sub.updatedAt)}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
             }
         }
     }

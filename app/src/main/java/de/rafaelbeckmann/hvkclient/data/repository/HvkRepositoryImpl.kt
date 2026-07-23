@@ -16,12 +16,15 @@ import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpDays
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
+import de.rafaelbeckmann.hvkclient.data.remote.PayloadDecoder
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
 import de.rafaelbeckmann.hvkclient.data.toDomain
 import de.rafaelbeckmann.hvkclient.data.toEntity
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
@@ -37,12 +40,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import retrofit2.Response
 import java.io.IOException
+import javax.inject.Inject
 
-class HvkRepositoryImpl(
+class HvkRepositoryImpl @Inject constructor(
     private val api: HvkClientApi,
     private val cacheDao: CacheDao,
     private val database: AppDatabase,
-    private val appContext: Application
+    private val appContext: Application,
+    private val payloadDecoder: PayloadDecoder
 ) : HvkRepository {
 
     /**
@@ -123,23 +128,25 @@ class HvkRepositoryImpl(
         }
     }
 
-    override fun getUserCourses(userId: String): Flow<Resource<List<UserCourse>>> = networkBoundResource(
+    override fun getUserCourses(): Flow<Resource<List<UserCourse>>> = networkBoundResource(
         query = {
             cacheDao.getUserCourses().map { courses ->
                 courses.map { it.toDomain() }
             }
         },
-        fetch = { api.getUserCourses(userId) },
+        fetch = { api.getUserCourses() },
         saveFetchResult = {
+            val networkUserCourses = payloadDecoder.decodeUserCourses(it.courses)
+
             cacheDao.insertUserCourses(
-                it.courses.map { course -> course.toEntity() }
+                networkUserCourses.map { course -> course.toEntity() }
             )
         }
     )
 
-    override fun getUserCourseById(userId: String, courseId: Int): Flow<Resource<UserCourse>> = networkBoundResource(
+    override fun getUserCourseById(courseId: Int): Flow<Resource<UserCourse>> = networkBoundResource(
         query = { cacheDao.getUserCourseById(courseId).map { it.toDomain() } },
-        fetch = { api.getUserCourseById(userId, courseId) },
+        fetch = { api.getUserCourseById(courseId) },
         saveFetchResult = {
             cacheDao.insertUserCourses(
                 listOf(it.course.toEntity())
@@ -160,13 +167,13 @@ class HvkRepositoryImpl(
         }
     }
 
-    override fun getUserMarksForCourse(userId: String, courseId: Int): Flow<Resource<List<UserMark>>> = networkBoundResource(
+    override fun getUserMarksForCourse(courseId: Int): Flow<Resource<List<UserMark>>> = networkBoundResource(
         query = {
             cacheDao.getUserMarksForCourse(courseId).map { marks ->
                 marks.map { it.toDomain() }
             }
         },
-        fetch = { api.getUserMarksForCourse(userId, courseId) },
+        fetch = { api.getUserMarksForCourse(courseId) },
         saveFetchResult = {
             cacheDao.deleteUserMarksForCourse(courseId)
             cacheDao.insertUserMarks(
@@ -317,6 +324,40 @@ class HvkRepositoryImpl(
                 cacheDao.upsertFeatureFlags(rows)
             }
         )
+    }
+
+    override suspend fun postSpAuthCookie(authCookie: SpAuthCookieRequest): Result<Unit> {
+        return try {
+            val response = api.postSpAuthCookie(authCookie)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                Result.failure(IOException("Failed to post cookie: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun getSpTest() {
+        try {
+            val test = api.getSpTest()
+        } catch (e: Exception) {
+        }
+    }
+
+    override fun devV1Migration(userId: Number, refreshToken: String): Flow<Resource<NetworkMigrateAccountDevV1Response>> = flow {
+        emit(Loading())
+        try {
+            val response = api.getDevV1Migration(userId, refreshToken)
+            if (response.isSuccessful && response.body() != null) {
+                emit(Success(response.body()!!))
+            } else {
+                emit(Error("Account migration failed: ${response.code()} ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            emit(Error(e.message ?: "An unknown error occurred"))
+        }
     }
 
     override suspend fun clearCache() {

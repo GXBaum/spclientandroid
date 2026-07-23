@@ -30,3 +30,8 @@ data class NetworkRefreshTokenResponse(
 data class NetworkTokenUpdateRequest(
     val token: String
 )
+
+data class NetworkMigrateAccountDevV1Response(
+    val token: String,
+    val id: String
+)

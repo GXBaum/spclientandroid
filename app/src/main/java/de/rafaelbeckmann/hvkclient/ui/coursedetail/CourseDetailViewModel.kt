@@ -35,8 +35,8 @@ open class CourseDetailViewModel @Inject constructor(
     /**
      * Fetches courses for the given username
      */
-    open fun fetchUserMarks(courseId: Int, userId: String) {
-        repository.getUserMarksForCourse(userId, courseId).onEach { result ->
+    open fun fetchUserMarks(courseId: Int) {
+        repository.getUserMarksForCourse(courseId).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                     _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
@@ -63,8 +63,8 @@ open class CourseDetailViewModel @Inject constructor(
     }
 
 
-    fun fetchCourseName(courseId: Int, userId: String) {
-        repository.getUserCourseById(userId, courseId).onEach { result ->
+    fun fetchCourseName(courseId: Int) {
+        repository.getUserCourseById(courseId).onEach { result ->
             when (result) {
                 is Resource.Loading -> {
                     _courseDetailScreenState.value = _courseDetailScreenState.value.copy(

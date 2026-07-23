@@ -1,26 +1,26 @@
 package de.rafaelbeckmann.hvkclient.di
 
-import android.app.Application
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import de.rafaelbeckmann.hvkclient.PrefUtils
-import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
-import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.remote.AuthInterceptor
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
+import de.rafaelbeckmann.hvkclient.data.remote.PayloadDecoder
+import de.rafaelbeckmann.hvkclient.data.remote.PayloadDecoderImpl
 import de.rafaelbeckmann.hvkclient.data.remote.TokenAuthenticator
-import de.rafaelbeckmann.hvkclient.data.repository.HvkRepositoryImpl
-import de.rafaelbeckmann.hvkclient.data.repository.SettingsRepositoryImpl
-import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
+import okhttp3.java.net.cookiejar.JavaNetCookieJar
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import java.net.CookieManager
+import java.net.CookiePolicy
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
 @Module
@@ -41,6 +41,13 @@ object AppModule {
     @Singleton
     fun provideAuthInterceptor(settingsRepository: SettingsRepository): AuthInterceptor {
         return AuthInterceptor(settingsRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun providePayloadDecoder(): PayloadDecoder {
+        val test = Json
+        return PayloadDecoderImpl(test)
     }
 
     @Provides
@@ -108,21 +115,23 @@ object AppModule {
     // --- End of cycle-breaking providers ---
 
 
-    // TODO: rename this function
-    @Provides
-    @Singleton
-    fun provideMyRepository(
-        api: HvkClientApi,
-        cacheDao: CacheDao,
-        database: AppDatabase,
-        app: Application
-    ): HvkRepository {
-        return HvkRepositoryImpl(api, cacheDao, database, app)
-    }
+    @Qualifier
+    annotation class UsingThisToNotHaveTheProvidesAnnotationDuplicationError
 
     @Provides
     @Singleton
-    fun provideSettingsRepository(prefUtils: PrefUtils): SettingsRepository {
-        return SettingsRepositoryImpl(prefUtils)
+    @UsingThisToNotHaveTheProvidesAnnotationDuplicationError
+    fun provideSpAuthOkHttpClient(): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+        val cookieManager = CookieManager().apply {
+            setCookiePolicy(CookiePolicy.ACCEPT_ALL)
+        }
+
+        return OkHttpClient.Builder()
+            .cookieJar(JavaNetCookieJar(cookieManager))
+            .addInterceptor(loggingInterceptor)
+            .build()
     }
 }

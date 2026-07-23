@@ -61,6 +61,7 @@ fun AddCourseScreen(
         onContinue()
     }
 
+    // TODO is LifecycleResumeEffect better?
     /*LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }*/

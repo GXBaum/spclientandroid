@@ -69,11 +69,8 @@ fun CourseDetailScreen(
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(courseId) {
         // TODO: ist eigentlich ziemlich dumm gerade, aber kb zu ändern
-        userId = viewModel.getUserId()
-        userId?.let { id ->
-            viewModel.fetchUserMarks(courseId, id)
-            viewModel.fetchCourseName(courseId, id)
-        }
+        viewModel.fetchUserMarks(courseId)
+        viewModel.fetchCourseName(courseId)
     }
 
     val lazyColumnState = rememberLazyListState()
@@ -103,9 +100,7 @@ fun CourseDetailScreen(
         HapticPullToRefreshBox(
             isRefreshing = state.isLoading,
             onRefresh = {
-                userId?.let { id ->
-                    viewModel.fetchUserMarks(courseId, id)
-                }
+                viewModel.fetchUserMarks(courseId)
             },
             modifier = Modifier
                 .fillMaxSize()

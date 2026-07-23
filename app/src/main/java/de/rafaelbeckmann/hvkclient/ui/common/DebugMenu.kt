@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.SnackbarEvent
+import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 
@@ -31,8 +32,10 @@ fun DebugMenu(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
+    val state by viewModel.settingsScreenState.collectAsState()
+
     val isDeveloper by viewModel.isDeveloper
-    val userId = viewModel.settingsScreenState.collectAsState().value.userId
+    val userId = state.userId
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var userIdString by remember { mutableStateOf(userId ?: "") }
@@ -104,6 +107,94 @@ fun DebugMenu(
                 ) { Text("Snackbar testen") }
             }
             CopyTokenButton()
+
+
+
+
+
+            TextButton(
+                onClick = {
+                    viewModel.getSpAuthCookieTest()
+                }
+            ) {
+                Text("get token")
+            }
+            Text(viewModel.settingsScreenState.collectAsState().value.spAuthTest.toString())
+
+            TextButton(
+                onClick = {
+                    viewModel.getEncryptedUserPreferences()
+                }
+            ) {
+                Text("load encrypted prefs")
+            }
+            Text(state.encryptedUserPreferences.toString())
+
+
+            var spUsernameInput by remember { mutableStateOf("") }
+            var spPasswordInput by remember { mutableStateOf("") }
+
+            OutlinedTextField(
+                value = spUsernameInput,
+                onValueChange = { newValue ->
+                    spUsernameInput = newValue
+                },
+                label = { Text("sp username") },
+                trailingIcon = {
+                    IconButton(
+                        onClick = {
+                            viewModel.setEncryptedUserPreferences(
+                                UserPreferences(
+                                    spUsername = spUsernameInput,
+                                    spPassword = spPasswordInput
+                                )
+                            )
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Save,
+                            contentDescription = "speichern"
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = spPasswordInput,
+                onValueChange = { newValue ->
+                    spPasswordInput = newValue
+                },
+                label = { Text("sp password") },
+                trailingIcon = {
+                    IconButton(
+                        onClick = {
+                            viewModel.setEncryptedUserPreferences(
+                                UserPreferences(
+                                    spUsername = spUsernameInput,
+                                    spPassword = spPasswordInput
+                                )
+                            )
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Save,
+                            contentDescription = "speichern"
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+
+
+            TextButton(
+                onClick = {
+                    viewModel.getSpTest()
+                }
+            ) {
+                Text("get sp test")
+            }
         }
     }
 }

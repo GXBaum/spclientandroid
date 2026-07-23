@@ -6,6 +6,10 @@ import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import androidx.room.TypeConverter
+import java.time.LocalDate
+import java.time.LocalDateTime
+import kotlin.time.Instant
 
 // TODO: split into multiple files
 
@@ -20,9 +24,6 @@ data class FeatureFlagEntity(
     val value: Boolean
 )
 
-data class UserCourses(
-    val courses: List<UserCourseEntity>
-)
 @Entity
 data class UserCourseEntity(
     @PrimaryKey val courseId: Int,
@@ -30,7 +31,7 @@ data class UserCourseEntity(
 )
 
 data class UserCourse(
-    val courseId: Int,
+    val id: Int,
     val name: String
 )
 
@@ -77,7 +78,9 @@ data class VpSubstitutionEntity(
     val VpType: VpType,
     val courseName: String,
 
-    val targetDate: String
+    val targetDate: Instant,
+    val createdAt: Instant,
+    val updatedAt: Instant
 )
 
 data class VpSubstitution(
@@ -90,7 +93,9 @@ data class VpSubstitution(
     val VpType: VpType,
     val courseName: String,
 
-    val targetDate: String
+    val targetDate: LocalDate,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime
 )
 
 data class VpInfoNeu(
@@ -101,14 +106,14 @@ data class VpInfoNeu(
 
 data class VpDay(
     val substitutions: List<VpSubstitution> = emptyList(),
-    val targetDate: String, // TODO: not a string
+    val targetDate: LocalDate,
     val dayString: String,
     val info: List<VpInfoNeu>?
 )
 
 @Entity
 data class VpDayEntity(
-    @PrimaryKey val targetDate: String,
+    @PrimaryKey val targetDate: Instant,
     val dayString: String
 )
 
@@ -133,7 +138,7 @@ data class VpDayWithInfo(
 )
 data class VpDayInfoItem(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val targetDate: String,
+    val targetDate: Instant,
     val info: String
 )
 
@@ -141,3 +146,16 @@ data class VpDays(
     val today: VpDay,
     val tomorrow: VpDay
 )
+
+// TODO: maybe move this
+class Converters {
+    @TypeConverter
+    fun fromEpochMillis(value: Long?): Instant? {
+        return value?.let { Instant.fromEpochMilliseconds(it) }
+    }
+
+    @TypeConverter
+    fun instantToEpochMillis(value: Instant?): Long? {
+        return value?.toEpochMilliseconds()
+    }
+}

@@ -23,10 +23,15 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpInfoNeu
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSubstitution
 import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 fun NetworkVpDay.toEntity(): VpDayEntity {
     return VpDayEntity(
-        targetDate = this.targetDate,
+        targetDate = Instant.parse(this.targetDate),
         dayString = this.dayString,
     )
 }
@@ -34,7 +39,7 @@ fun NetworkVpDay.toEntity(): VpDayEntity {
 fun VpDayEntity.toDomain(substitutions: List<VpSubstitutionEntity>, info: List<VpInfoNeu>): VpDay {
     return VpDay(
         substitutions = substitutions.map { it.toDomain() },
-        targetDate = this.targetDate,
+        targetDate = LocalDateTime.ofInstant(this.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate(),
         dayString = this.dayString,
         info = info
     )
@@ -46,21 +51,36 @@ fun mapEntitiesToVpDays(
     vpDaysWithInfo: List<VpDayWithInfo>,
     subs: List<VpSubstitutionEntity>
 ): VpDays {
-    val today = vpDaysWithInfo.firstOrNull()
-    val tomorrow = vpDaysWithInfo.getOrNull(1)
+    val testToday = vpDaysWithInfo.firstOrNull()
+    val testTomorrow = vpDaysWithInfo.getOrNull(1)
+
+    val subsToday = subs.filter { sub ->
+        val subDate = LocalDateTime.ofInstant(sub.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate()
+        val dayDate = LocalDateTime.ofInstant(testToday?.day?.targetDate?.toJavaInstant(), ZoneId.systemDefault()).toLocalDate()
+        subDate == dayDate
+    }.map { it.toDomain() }
+
+    val substTomorrow = subs.filter { sub ->
+        val subDate = LocalDateTime.ofInstant(sub.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate()
+        val dayDate = LocalDateTime.ofInstant(testTomorrow?.day?.targetDate?.toJavaInstant(), ZoneId.systemDefault()).toLocalDate()
+        subDate == dayDate
+    }.map { it.toDomain() }
+
+    val today = vpDaysWithInfo.firstOrNull()?.toDomain(subsToday)
+    val tomorrow = vpDaysWithInfo.getOrNull(1)?.toDomain(substTomorrow)
 
     return VpDays(
-        today = VpDay(
-            substitutions = subs.map { it.toDomain() }.filter { it.targetDate == today?.day?.targetDate },
-            targetDate = today?.day?.targetDate ?: "",
-            dayString = today?.day?.dayString ?: "",
-            info = today?.info?.map { it.toDomain() }
+        today = today ?: VpDay( // yeah this sucks
+            substitutions = emptyList(),
+            targetDate = LocalDate.now(), // this is no good.
+            dayString = "",
+            info = emptyList()
         ),
-        tomorrow = VpDay(
-            substitutions = subs.map { it.toDomain() }.filter { it.targetDate == tomorrow?.day?.targetDate },
-            targetDate = tomorrow?.day?.targetDate ?: "",
-            dayString = tomorrow?.day?.dayString ?: "",
-            info = tomorrow?.info?.map { it.toDomain() }
+        tomorrow = tomorrow ?: VpDay( // yeah this sucks
+            substitutions = emptyList(),
+            targetDate = LocalDate.now(), // this is no good.
+            dayString = "",
+            info = emptyList()
         )
     )
 }
@@ -75,7 +95,9 @@ fun NetworkVpSubstitution.toEntity(): VpSubstitutionEntity {
         isDeleted = this.isDeleted,
         VpType = VpType.valueOf(this.vpType),
         courseName = this.courseName,
-        targetDate = this.targetDate
+        targetDate = Instant.parse(this.targetDate),
+        createdAt = Instant.parse(this.createdAt),
+        updatedAt = Instant.parse(this.updatedAt)
     )
 }
 
@@ -89,14 +111,16 @@ fun VpSubstitutionEntity.toDomain(): VpSubstitution {
         isDeleted = this.isDeleted,
         VpType = this.VpType,
         courseName = this.courseName,
-        targetDate = this.targetDate
+        targetDate = LocalDateTime.ofInstant(this.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate(), // LocalDate.ofInstant() has min API 34
+        createdAt = LocalDateTime.ofInstant(this.createdAt.toJavaInstant(), ZoneId.systemDefault()),
+        updatedAt = LocalDateTime.ofInstant(this.updatedAt.toJavaInstant(), ZoneId.systemDefault())
     )
 }
 
 fun NetworkVpInfoNeu.toEntity(): VpDayInfoItem {
     return VpDayInfoItem(
         id = this.id,
-        targetDate = this.targetDate,
+        targetDate = Instant.parse(this.targetDate),
         info = this.text
     )
 }
@@ -105,7 +129,16 @@ fun VpDayInfoItem.toDomain(): VpInfoNeu {
     return VpInfoNeu(
         id = this.id,
         text = this.info,
-        targetDate = this.targetDate
+        targetDate = LocalDateTime.ofInstant(this.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate().toString()
+    )
+}
+
+fun VpDayWithInfo.toDomain(substitutions: List<VpSubstitution>): VpDay {
+    return VpDay(
+        substitutions = substitutions,
+        targetDate = LocalDateTime.ofInstant(this.day.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate(),
+        dayString = this.day.dayString,
+        info = this.info.map { it.toDomain() }
     )
 }
 
@@ -160,14 +193,14 @@ fun NetworkFeatureFlag.toEntity(): List<FeatureFlagEntity> {
 
 fun NetworkUserCourse.toEntity(): UserCourseEntity {
     return UserCourseEntity(
-        courseId = this.courseId,
+        courseId = this.id,
         name = this.name
     )
 }
 
 fun UserCourseEntity.toDomain(): UserCourse {
     return UserCourse(
-        courseId = this.courseId,
+        id = this.courseId,
         name = this.name
     )
 }

@@ -6,6 +6,7 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkFeatureFlag
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkRefreshTokenRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkRefreshTokenResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkSingleCourseResponse
@@ -15,6 +16,7 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkUserMarks
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCoursesResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -55,20 +57,17 @@ interface HvkClientApi {
         @Query("search") search: String
     ): Response<NetworkCourseSearchResponse>
 
-    @GET("users/{userId}/courses")
+    @GET("sp/courses")
     suspend fun getUserCourses(
-        @Path("userId") userId: String
     ): Response<NetworkUserCoursesResponse>
 
-    @GET("users/{userId}/courses/{courseId}")
+    @GET("sp/courses/{courseId}")
     suspend fun getUserCourseById(
-        @Path("userId") userId: String,
         @Path("courseId") courseId: Int
     ): Response<NetworkSingleCourseResponse>
 
-    @GET("users/{userId}/{courseId}/marks")
+    @GET("sp/courses/{courseId}/marks")
     suspend fun getUserMarksForCourse(
-        @Path("userId") userId: String,
         @Path("courseId") courseId: Int
     ): Response<NetworkUserMarks>
 
@@ -91,4 +90,18 @@ interface HvkClientApi {
         @Query("courses") courses: List<String>
     ): Response<NetworkVpResponse>
 
+    @POST("sp/authCookie")
+    suspend fun postSpAuthCookie(
+        @Body request: SpAuthCookieRequest
+    ): Response<Any> // this is goofy as hell
+
+    @GET("sp/test")
+    suspend fun getSpTest(
+    ): Response<Any>
+
+    @GET("migrations/dev-v1/{userId}")
+    suspend fun getDevV1Migration(
+        @Path("userId") userId: Number,
+        @Query("refreshTokenInRequest") refreshToken: String
+    ): Response<NetworkMigrateAccountDevV1Response>
 }

@@ -7,8 +7,10 @@ import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpDays
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
+import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
 import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
 import kotlinx.coroutines.flow.Flow
 
@@ -30,11 +32,11 @@ interface HvkRepository {
      * @param userId The userId to fetch courses for
      * @return Flow emitting either a success with list of courses or an error
      */
-    fun getUserCourses(userId: String): Flow<Resource<List<UserCourse>>>
+    fun getUserCourses(): Flow<Resource<List<UserCourse>>>
 
-    fun getUserCourseById(userId: String, courseId: Int): Flow<Resource<UserCourse>>
+    fun getUserCourseById(courseId: Int): Flow<Resource<UserCourse>>
 
-    fun getUserMarksForCourse(userId: String, courseId: Int): Flow<Resource<List<UserMark>>>
+    fun getUserMarksForCourse(courseId: Int): Flow<Resource<List<UserMark>>>
 
     /**
      * Updates the FCM token for a user on the server
@@ -63,6 +65,12 @@ interface HvkRepository {
     fun getCourseSearch(courseName: String): Flow<Resource<List<String>>>
 
     fun getFeatureFlags(): Flow<Resource<FeatureFlag>>
+
+    suspend fun postSpAuthCookie(authCookie: SpAuthCookieRequest): Result<Unit>
+
+    suspend fun getSpTest(): Unit
+
+    fun devV1Migration(userId: Number, refreshToken: String): Flow<Resource<NetworkMigrateAccountDevV1Response>>
 
     /**
      * Clears all cached data from the local database.

@@ -1,6 +1,8 @@
 package de.rafaelbeckmann.hvkclient.data.remote.dto
 
 import com.squareup.moshi.Json
+import kotlinx.serialization.Serializable
+import okhttp3.Cookie
 
 
 data class NetworkUserMarks(
@@ -11,8 +13,8 @@ data class NetworkUserMark(
     val name: String,
     val date: String,
     val grade: String,
-    @param:Json(name = "course_id") val courseId: Int,
-    @param:Json(name = "half_year") val halfYear: Int,
+    val courseId: Int,
+    val halfYear: Int,
     val isDeleted: Boolean
 )
 
@@ -23,8 +25,9 @@ data class NetworkCourseSearchResponse(
     val courses: List<NetworkCourseSearchItem>
 )
 
+@Serializable // has serializable because it has custom decoder
 data class NetworkUserCourse(
-    val courseId: Int,
+    val id: Int,
     val name: String
 )
 
@@ -33,7 +36,7 @@ data class NetworkSingleCourseResponse(
 )
 
 data class NetworkUserCoursesResponse(
-    val courses: List<NetworkUserCourse>
+    val courses: String // custom decoder for encryption in the future, but still have to decide
 )
 
 data class NetworkVpSelectedCourseRequest(
@@ -88,4 +91,9 @@ data class NetworkVpDay(
 
 data class NetworkFeatureFlag(
     val featureFlags: Map<String, Boolean>
+)
+
+data class SpAuthCookieRequest(
+    val authCookie: String,
+    val cookies: List<Cookie>? = null
 )

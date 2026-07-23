@@ -46,9 +46,7 @@ fun CoursesScreen(
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(Unit) {
-        userId = viewModel.getUserId()
-
-        userId?.let { viewModel.fetchCourses(it) }
+        viewModel.fetchCourses()
 
         isDeveloper = viewModel.isDeveloper()
     }
@@ -79,7 +77,7 @@ fun CoursesScreen(
         ) { innerPadding ->
         HapticPullToRefreshBox(
             isRefreshing = uiState.isLoading,
-            onRefresh = { userId?.let { viewModel.fetchCourses(it) } },
+            onRefresh = { viewModel.fetchCourses() },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -101,7 +99,7 @@ fun CoursesScreen(
                 if (uiState.courses.isNotEmpty()) {
                     roundedListItems(
                         items = uiState.courses,
-                        key = { course -> course.courseId },
+                        key = { course -> course.id },
                         onItemClick = { course -> onCourseClick(course) }
                     ) { course ->
                         RoundedListItem(
@@ -109,7 +107,7 @@ fun CoursesScreen(
                             trailingIcon = {
                                 if (isDeveloper) {
                                     Text(
-                                        text = course.courseId.toString(),
+                                        text = course.id.toString(),
                                         modifier = Modifier
                                             .padding(16.dp)
                                     )

@@ -1,5 +1,6 @@
 package de.rafaelbeckmann.hvkclient.ui.main
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -60,7 +61,8 @@ val LocalSnackbarHostState = staticCompositionLocalOf<SnackbarHostState> {
 @Composable
 fun MainScreen(
     settingsRepository: SettingsRepository,
-    connectivityViewModel: ConnectivityViewModel = hiltViewModel()
+    connectivityViewModel: ConnectivityViewModel = hiltViewModel(),
+    viewModel: MainViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
@@ -96,6 +98,24 @@ fun MainScreen(
             if (result == SnackbarResult.ActionPerformed) {
                 event.action?.action?.invoke()
             }
+        }
+    }
+
+
+
+    LaunchedEffect(Unit) {
+        val userId = settingsRepository.getUserId()
+        val userIdInt = userId?.toIntOrNull()
+
+        if (userIdInt != null) {
+            Log.d("MIGRATION", "userId $userId can be parsed to int, migrating.")
+
+            val refreshToken = settingsRepository.getRefreshToken() ?: return@LaunchedEffect
+
+            viewModel.migrateDevV1(userIdInt, refreshToken)
+        } else {
+            Log.d("MIGRATION", "userId $userId can NOT be parsed to int, no migration")
+
         }
     }
 
