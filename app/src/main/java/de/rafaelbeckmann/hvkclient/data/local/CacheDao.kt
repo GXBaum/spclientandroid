@@ -57,7 +57,7 @@ interface CacheDao {
 
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertVpSubstitution(substitutions: List<VpSubstitutionEntity>)
+    suspend fun insertVpSubstitutions(substitutions: List<VpSubstitutionEntity>)
 
     @Query("SELECT * FROM VpSubstitutionEntity WHERE courseName IN (:courseNames)")
     fun getVpSubstitutionsForCourses(courseNames: List<String>): Flow<List<VpSubstitutionEntity>>

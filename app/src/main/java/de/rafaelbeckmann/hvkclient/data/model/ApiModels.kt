@@ -143,8 +143,8 @@ data class VpDayInfoItem(
 )
 
 data class VpDays(
-    val today: VpDay,
-    val tomorrow: VpDay
+    val today: VpDay?,
+    val tomorrow: VpDay?
 )
 
 // TODO: maybe move this

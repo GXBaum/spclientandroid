@@ -13,6 +13,7 @@ class PayloadDecoderImpl @Inject constructor(
     }
 
     override fun decodeUserCourses(input: String): List<NetworkUserCourse> {
+        if (input.isEmpty()) return emptyList() // might be needed for decodeJson
         return json.decodeFromString<List<NetworkUserCourse>>(input)
     }
 }

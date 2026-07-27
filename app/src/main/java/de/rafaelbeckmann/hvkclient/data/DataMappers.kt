@@ -23,7 +23,6 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpInfoNeu
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSubstitution
 import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.time.Instant
@@ -70,18 +69,8 @@ fun mapEntitiesToVpDays(
     val tomorrow = vpDaysWithInfo.getOrNull(1)?.toDomain(substTomorrow)
 
     return VpDays(
-        today = today ?: VpDay( // yeah this sucks
-            substitutions = emptyList(),
-            targetDate = LocalDate.now(), // this is no good.
-            dayString = "",
-            info = emptyList()
-        ),
-        tomorrow = tomorrow ?: VpDay( // yeah this sucks
-            substitutions = emptyList(),
-            targetDate = LocalDate.now(), // this is no good.
-            dayString = "",
-            info = emptyList()
-        )
+        today = today,
+        tomorrow = tomorrow
     )
 }
 

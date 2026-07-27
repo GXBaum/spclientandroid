@@ -220,12 +220,12 @@ fun SharedTransitionScope.VpScreen(
                                 }
 
                                 // TODO: remove this, redundant
-                                item {
-                                    Text(
-                                        list?.targetDate?.let {
+                                list?.targetDate?.let {
+                                    item {
+                                        Text(
                                             relativeDateFormatter(it)
-                                        } ?: ""
-                                    )
+                                        )
+                                    }
                                 }
 
                                 if (list?.dayString != null) {
@@ -345,7 +345,27 @@ fun SharedTransitionScope.VpScreen(
                                             it.VpType == VpType.differentRoom
                                 }
 
-                                vpTableItems(substitutionsForCourse.orEmpty())
+                                if (list === null) {
+                                    item { // duplicated from vpTableItems
+                                        Surface(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 1.dp),
+                                            shape = RoundedCornerShape(16.dp),
+                                            color = MaterialTheme.colorScheme.surfaceContainer,
+                                        ) {
+                                            Text(
+                                                text = "In Arbeit",
+                                                fontStyle = FontStyle.Italic,
+                                                modifier = Modifier
+                                                    .padding(16.dp)
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    vpTableItems(substitutionsForCourse.orEmpty())
+                                }
+
 
                                 if (!differentRoomsForCourse.isNullOrEmpty()) {
                                     item(key = "rooms_header_${courseName}_$title") {

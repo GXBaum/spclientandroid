@@ -58,8 +58,8 @@ data class NetworkVpResponse(
 
 
 data class NetworkVpDays(
-    val today: NetworkVpDay,
-    val tomorrow: NetworkVpDay
+    val today: NetworkVpDay?,
+    val tomorrow: NetworkVpDay?
 )
 data class NetworkVpSubstitution(
     val id: Int = 0,

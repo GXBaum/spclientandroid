@@ -246,48 +246,31 @@ class HvkRepositoryImpl @Inject constructor(
             saveFetchResult = { result ->
                 database.withTransaction {
                     // First delete existing entries for these courses
+                    // this is dumb, but nothing lasts longer than a temporary fix
                     cacheDao.deleteVpSubstitutionsForCourses(courseNames)
                     cacheDao.deleteVpDayInfo()
                     cacheDao.clearVpDay()
 
 
-                    // Then save the new data
-                    result.substitutions.today.substitutions.let {
-                        cacheDao.insertVpSubstitution(
-                            it.map { sub -> sub.toEntity() }
-                        )
-                    }
-                    result.substitutions.tomorrow.substitutions.let {
-                        cacheDao.insertVpSubstitution(
-                            it.map { sub -> sub.toEntity() }
-                        )
-                    }
-
-                    result.substitutions.today.let {
+                    result.substitutions.let { data ->
                         cacheDao.insertVpDay(
-                            listOf(
-                                it.toEntity()
-                            )
+                            listOfNotNull(data.today, data.tomorrow)
+                                .map { it.toEntity() }
                         )
-                    }
-                    result.substitutions.tomorrow.let {
-                        cacheDao.insertVpDay(
-                            listOf(
-                                it.toEntity()
-                            )
-                        )
-                    }
 
-                    val infosToday = result.substitutions.today.info?.map {
-                        it.toEntity()
-                    } ?: emptyList()
-                    val infosTomorrow = result.substitutions.tomorrow.info?.map {
-                        it.toEntity()
-                    } ?: emptyList()
+                        val substitutions = listOfNotNull(data.today?.substitutions, data.tomorrow?.substitutions)
+                            .flatten()
+                            .map { it.toEntity() }
 
-                    cacheDao.insertVpDayInfoItems(
-                        infosToday + infosTomorrow
-                    )
+                        cacheDao.insertVpSubstitutions(substitutions)
+
+
+                        val infos = listOfNotNull(data.today?.info, data.tomorrow?.info)
+                            .flatten()
+                            .map { it.toEntity() }
+
+                        cacheDao.insertVpDayInfoItems(infos)
+                    }
                 }
             }
         )
