@@ -15,6 +15,7 @@ import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseEntity
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionEntity
 import de.rafaelbeckmann.hvkclient.data.model.VpType
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCookie
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkFeatureFlag
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkUserCourse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkUserMark
@@ -23,6 +24,7 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpInfoNeu
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSubstitution
 import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
+import okhttp3.Cookie
 import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.time.Instant
@@ -191,5 +193,20 @@ fun UserCourseEntity.toDomain(): UserCourse {
     return UserCourse(
         id = this.courseId,
         name = this.name
+    )
+}
+
+fun Cookie.toDomain(): NetworkCookie {
+    return NetworkCookie(
+        name = this.name,
+        value = this.value,
+        expiresAt = this.expiresAt,
+        domain = this.domain,
+        path = this.path,
+        secure = this.secure,
+        httpOnly = this.httpOnly,
+        persistent = this.persistent,
+        hostOnly = this.hostOnly,
+        sameSite = this.sameSite
     )
 }

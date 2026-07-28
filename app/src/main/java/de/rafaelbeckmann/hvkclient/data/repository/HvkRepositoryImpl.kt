@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import okhttp3.Cookie
 import retrofit2.Response
 import java.io.IOException
 import javax.inject.Inject
@@ -309,9 +310,14 @@ class HvkRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun postSpAuthCookie(authCookie: SpAuthCookieRequest): Result<Unit> {
+    override suspend fun postSpAuthCookie(authCookie: List<Cookie>): Result<Unit> {
         return try {
-            val response = api.postSpAuthCookie(authCookie)
+            val response = api.postSpAuthCookie(
+                SpAuthCookieRequest(
+                    "",
+                    authCookie.map { it.toDomain() }
+                )
+            )
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {

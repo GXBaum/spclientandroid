@@ -11,7 +11,6 @@ import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
-import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
@@ -313,10 +312,7 @@ open class SettingsViewModel @Inject constructor(
             Log.d("TEST", formattedCookie)
 
             repository.postSpAuthCookie(
-                SpAuthCookieRequest(
-                    formattedCookie,
-                    settingsScreenState.value.spAuthTest
-                )
+                settingsScreenState.value.spAuthTest
             )
         }
     }

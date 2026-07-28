@@ -10,9 +10,9 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
-import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
 import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
 import kotlinx.coroutines.flow.Flow
+import okhttp3.Cookie
 
 /**
  * This interface defines the contract for repository operations.
@@ -66,7 +66,7 @@ interface HvkRepository {
 
     fun getFeatureFlags(): Flow<Resource<FeatureFlag>>
 
-    suspend fun postSpAuthCookie(authCookie: SpAuthCookieRequest): Result<Unit>
+    suspend fun postSpAuthCookie(authCookie: List<Cookie>): Result<Unit>
 
     suspend fun getSpTest(): Unit
 

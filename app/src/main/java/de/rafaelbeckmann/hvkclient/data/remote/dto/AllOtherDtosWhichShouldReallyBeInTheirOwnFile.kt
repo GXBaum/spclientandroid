@@ -2,7 +2,6 @@ package de.rafaelbeckmann.hvkclient.data.remote.dto
 
 import com.squareup.moshi.Json
 import kotlinx.serialization.Serializable
-import okhttp3.Cookie
 
 
 data class NetworkUserMarks(
@@ -95,5 +94,18 @@ data class NetworkFeatureFlag(
 
 data class SpAuthCookieRequest(
     val authCookie: String,
-    val cookies: List<Cookie>? = null
+    val cookies: List<NetworkCookie>? = null
+)
+
+data class NetworkCookie(
+    val name: String,
+    val value: String,
+    val expiresAt: Long,
+    val domain: String,
+    val path: String,
+    val secure: Boolean,
+    val httpOnly: Boolean,
+    val persistent: Boolean,
+    val hostOnly: Boolean,
+    val sameSite: String?,
 )
