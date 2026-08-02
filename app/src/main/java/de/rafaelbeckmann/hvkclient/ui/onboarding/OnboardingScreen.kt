@@ -27,7 +27,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -153,6 +152,7 @@ fun OnboardingScreen(
         ){
             when (loginState) {
                 is LoginState.Idle -> {
+                    /* // FIXME: temporary fix for play store approval
                     OutlinedButton(
                         onClick = onLoginClicked,
                         modifier = Modifier
@@ -160,6 +160,7 @@ fun OnboardingScreen(
                     ) {
                         Text("Ich habe einen Account")
                     }
+                    */
                     Button(
                         onClick = {
                             // coroutine to call the suspend function
