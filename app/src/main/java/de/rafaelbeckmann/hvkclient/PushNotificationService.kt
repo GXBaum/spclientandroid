@@ -141,7 +141,8 @@ class PushNotificationService : FirebaseMessagingService() {
 
         val title = message.data["title"] ?: "unbekannte Benachrichtigung"
         val body = message.data["body"] ?: "bitte gib Bescheid, um das Problem zu beheben"
-        val notificationId = message.data["notification_id"]?.toIntOrNull()?: (System.currentTimeMillis() % 10000).toInt()
+        val notificationTag = message.data["notification_tag"]
+        val notificationId = if (!notificationTag.isNullOrEmpty()) 0 else (System.currentTimeMillis() % 10000).toInt()
         // TODO: hvkclient://app ist vlt dumm
         val deepLinkUri = (message.data["deepLink"] ?: "hvkclient://app").toUri()
 
@@ -154,7 +155,7 @@ class PushNotificationService : FirebaseMessagingService() {
         )
 
         val builder = buildNotification(channelId, title, body, pendingIntent)
-        showNotification(builder, notificationId)
+        showNotification(builder, notificationTag, notificationId)
     }
 
     private fun buildNotification(channelId: String, title: String, body: String, pendingIntent: PendingIntent): NotificationCompat.Builder {
@@ -168,13 +169,13 @@ class PushNotificationService : FirebaseMessagingService() {
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
     }
-    private fun showNotification(builder: NotificationCompat.Builder, notificationId: Int) {
+    private fun showNotification(builder: NotificationCompat.Builder, notificationTag: String? = null, notificationId: Int) {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(notificationId, builder.build())
+        notificationManager.notify(notificationTag, notificationId, builder.build())
     }
 
     fun scheduleSyncUserDataTask(channelId: String) {
-
+        // TODO: one request for every notification (how to ddos yourself 101)
         // TODO: the worker may for example be skipped in battery saver. unsure if this is good or not
         val inputData = workDataOf("channel_id" to channelId)
 

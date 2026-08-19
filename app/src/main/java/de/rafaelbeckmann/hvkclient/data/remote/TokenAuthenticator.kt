@@ -15,6 +15,7 @@ class TokenAuthenticator @Inject constructor(
     private val api: HvkClientApi
 ) : Authenticator {
 
+    // TODO: multiple auth requests even though token is still valid
     override fun authenticate(route: Route?, response: Response): Request? {
         Log.d("TokenAuthenticator", "Authenticating request: ${response.request.url}")
         Log.d("TokenAuthenticator", "Response code: ${response.code}")

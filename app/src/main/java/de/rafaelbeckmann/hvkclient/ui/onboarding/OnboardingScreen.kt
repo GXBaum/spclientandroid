@@ -57,7 +57,6 @@ fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val loginState by viewModel.loginState.collectAsState()
-    var isNotificationEnabled by rememberSaveable { mutableStateOf(true) }
 
     var didNavigate by rememberSaveable{ mutableStateOf(false) }
 
