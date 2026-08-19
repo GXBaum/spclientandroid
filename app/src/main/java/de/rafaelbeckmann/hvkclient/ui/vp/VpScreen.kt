@@ -251,9 +251,9 @@ fun SharedTransitionScope.VpScreen(
 
 
                                 val info = if (dayKey == "today") {
-                                    state.substitutions?.today?.info?.firstOrNull()?.text
+                                    state.substitutions?.today?.info?.lastOrNull()?.text
                                 } else {
-                                    state.substitutions?.tomorrow?.info?.firstOrNull()?.text
+                                    state.substitutions?.tomorrow?.info?.lastOrNull()?.text
                                 }
 
                                 if (info?.isNotBlank() == true) {

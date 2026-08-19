@@ -55,6 +55,7 @@ fun mapEntitiesToVpDays(
     val testToday = vpDaysWithInfo.firstOrNull()
     val testTomorrow = vpDaysWithInfo.getOrNull(1)
 
+    // TODO: crashes when only one day exists
     val subsToday = subs.filter { sub ->
         val subDate = LocalDateTime.ofInstant(sub.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate()
         val dayDate = LocalDateTime.ofInstant(testToday?.day?.targetDate?.toJavaInstant(), ZoneId.systemDefault()).toLocalDate()

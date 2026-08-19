@@ -40,6 +40,8 @@ import de.rafaelbeckmann.hvkclient.ui.vp.VpWebViewScreen
 
 const val VP_FAB_EXPLODE_BOUND = "VP_FAB_EXPLODE_BOUND"
 
+const val HTTPS_DEEPLINK_BASE_DOMAIN = "https://hvk.rafaelbeckmann.de"
+
 // TODO: inject via Hilt
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -119,16 +121,14 @@ fun AppNavHost(
             // TODO: vlt müssen die deepLinks sinnvoller benannt werden
             navigation<VpGraph>(
                 startDestination = VpGraph.startDestination(),
-                deepLinks = listOf(
-                    navDeepLink { uriPattern = "hvkclient://vp" },
-                    //navDeepLink { uriPattern = "https://rafaelbeckmann.de/hvkclient/vp" }
-                )
+                deepLinks = listOf()
             ) {
                 composable<VpScreen> (
                     deepLinks = listOf(
-                        navDeepLink<VpScreen>(
-                            basePath = "hvkclient://vpScreen"
-                        )
+                        // TODO: remove old
+                        navDeepLink<VpScreen>(basePath = "hvkclient://vpScreen"),
+                        navDeepLink<VpScreen>(basePath = "hvkclient://vp"),
+                        navDeepLink<VpScreen>(basePath = "$HTTPS_DEEPLINK_BASE_DOMAIN/vp")
                     )
                 ) {
                     val args = it.toRoute<VpScreen>()
@@ -198,9 +198,8 @@ fun AppNavHost(
                 // TODO: soll die Note ein query argument sein?
                 composable<RevealMarkScreen> (
                     deepLinks = listOf(
-                        navDeepLink<RevealMarkScreen>(
-                            basePath = "hvkclient://revealmark"
-                        )
+                        navDeepLink<RevealMarkScreen>(basePath = "hvkclient://revealmark"),
+                        navDeepLink<RevealMarkScreen>(basePath = "$HTTPS_DEEPLINK_BASE_DOMAIN/revealmark")
                     )
                 ) {
                     val args = it.toRoute<RevealMarkScreen>()
@@ -225,9 +224,8 @@ fun AppNavHost(
             navigation<SettingsGraph>(
                 startDestination = SettingsGraph.startDestination(),
                 deepLinks = listOf(
-                    navDeepLink<SettingsGraph>(
-                        basePath = "hvkclient://settings"
-                    )
+                    navDeepLink<SettingsGraph>(basePath = "hvkclient://settings"),
+                    navDeepLink<SettingsGraph>(basePath = "$HTTPS_DEEPLINK_BASE_DOMAIN/settings")
                 )
             ) {
                 composable<SettingsScreen> {
