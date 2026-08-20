@@ -6,7 +6,8 @@ import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import de.rafaelbeckmann.hvkclient.data.model.VpType
+import androidx.room.TypeConverter
+import de.rafaelbeckmann.hvkclient.domain.model.VpType
 import kotlin.time.Instant
 
 @Entity(tableName = "feature_flag")
@@ -85,3 +86,16 @@ data class VpDayWithInfo(
     )
     val info: List<VpDayInfoItem>
 )
+
+// TODO: maybe move this
+class Converters {
+    @TypeConverter
+    fun fromEpochMillis(value: Long?): Instant? {
+        return value?.let { Instant.fromEpochMilliseconds(it) }
+    }
+
+    @TypeConverter
+    fun instantToEpochMillis(value: Instant?): Long? {
+        return value?.toEpochMilliseconds()
+    }
+}

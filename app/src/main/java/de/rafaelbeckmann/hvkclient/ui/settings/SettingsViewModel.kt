@@ -10,8 +10,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
+import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository

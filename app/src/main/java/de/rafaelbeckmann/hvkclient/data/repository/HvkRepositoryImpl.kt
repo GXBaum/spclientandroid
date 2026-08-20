@@ -1,6 +1,5 @@
 package de.rafaelbeckmann.hvkclient.data.repository
 
-import android.app.Application
 import androidx.room.withTransaction
 import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.SnackbarEvent
@@ -11,11 +10,6 @@ import de.rafaelbeckmann.hvkclient.data.Resource.Success
 import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.mapEntitiesToVpDays
-import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
-import de.rafaelbeckmann.hvkclient.data.model.SelectedCourse
-import de.rafaelbeckmann.hvkclient.data.model.UserCourse
-import de.rafaelbeckmann.hvkclient.data.model.UserMark
-import de.rafaelbeckmann.hvkclient.data.model.VpDays
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
 import de.rafaelbeckmann.hvkclient.data.remote.PayloadDecoder
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountRequest
@@ -28,6 +22,9 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseReques
 import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
 import de.rafaelbeckmann.hvkclient.data.toDomain
 import de.rafaelbeckmann.hvkclient.data.toEntity
+import de.rafaelbeckmann.hvkclient.domain.model.FeatureFlag
+import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
+import de.rafaelbeckmann.hvkclient.domain.model.VpDays
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +44,6 @@ class HvkRepositoryImpl @Inject constructor(
     private val api: HvkClientApi,
     private val cacheDao: CacheDao,
     private val database: AppDatabase,
-    private val appContext: Application,
     private val payloadDecoder: PayloadDecoder
 ) : HvkRepository {
 
@@ -129,6 +125,7 @@ class HvkRepositoryImpl @Inject constructor(
         }
     }
 
+    /*
     override fun getUserCourses(): Flow<Resource<List<UserCourse>>> = networkBoundResource(
         query = {
             cacheDao.getUserCourses().map { courses ->
@@ -154,6 +151,7 @@ class HvkRepositoryImpl @Inject constructor(
             )
         }
     )
+    */
 
     override suspend fun updateToken(tokenUpdateRequest: NetworkTokenUpdateRequest): Result<Unit> {
         return try {
@@ -168,6 +166,7 @@ class HvkRepositoryImpl @Inject constructor(
         }
     }
 
+    /*
     override fun getUserMarksForCourse(courseId: Int): Flow<Resource<List<UserMark>>> = networkBoundResource(
         query = {
             cacheDao.getUserMarksForCourse(courseId).map { marks ->
@@ -182,6 +181,7 @@ class HvkRepositoryImpl @Inject constructor(
             )
         }
     )
+    */
 
     override suspend fun postVpSelectedCourses(courseName: NetworkVpSelectedCourseRequest): Result<Unit> {
         return try {

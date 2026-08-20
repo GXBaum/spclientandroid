@@ -26,7 +26,7 @@ interface CacheDao {
     fun getUserCourses(): Flow<List<UserCourseEntity>>
 
     @Query("SELECT * FROM usercourseentity WHERE courseId = :courseId")
-    fun getUserCourseById(courseId: Int): Flow<UserCourseEntity>
+    fun getUserCourseById(courseId: Int): Flow<UserCourseEntity?>
 
     @Query("DELETE FROM usercourseentity")
     suspend fun clearUserCourses()

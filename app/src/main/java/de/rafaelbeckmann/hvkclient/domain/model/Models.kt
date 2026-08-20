@@ -1,12 +1,7 @@
-package de.rafaelbeckmann.hvkclient.data.model
+package de.rafaelbeckmann.hvkclient.domain.model
 
-import androidx.room.TypeConverter
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
-import kotlin.time.Instant
-
-// TODO: split into multiple files
-
 
 data class FeatureFlag(
     val featureFlags: Map<String, Boolean>
@@ -69,16 +64,3 @@ data class SelectedCourse(
     val name: String,
     val verified: Boolean
 )
-
-// TODO: maybe move this
-class Converters {
-    @TypeConverter
-    fun fromEpochMillis(value: Long?): Instant? {
-        return value?.let { Instant.fromEpochMilliseconds(it) }
-    }
-
-    @TypeConverter
-    fun instantToEpochMillis(value: Instant?): Long? {
-        return value?.toEpochMilliseconds()
-    }
-}

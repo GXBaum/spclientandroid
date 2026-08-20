@@ -25,7 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import de.rafaelbeckmann.hvkclient.data.model.UserCourse
+import de.rafaelbeckmann.hvkclient.domain.model.UserCourse
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
@@ -46,7 +46,7 @@ fun CoursesScreen(
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(Unit) {
-        viewModel.fetchCourses()
+        viewModel.refresh()
 
         isDeveloper = viewModel.isDeveloper()
     }
@@ -77,7 +77,7 @@ fun CoursesScreen(
         ) { innerPadding ->
         HapticPullToRefreshBox(
             isRefreshing = uiState.isLoading,
-            onRefresh = { viewModel.fetchCourses() },
+            onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)

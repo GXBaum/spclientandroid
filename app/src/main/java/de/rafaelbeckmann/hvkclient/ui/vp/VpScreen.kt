@@ -56,8 +56,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
-import de.rafaelbeckmann.hvkclient.data.model.VpType
+import de.rafaelbeckmann.hvkclient.domain.model.VpSubstitution
+import de.rafaelbeckmann.hvkclient.domain.model.VpType
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem

@@ -4,9 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
-import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.model.UserCourse
-import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
+import de.rafaelbeckmann.hvkclient.domain.model.UserCourse
+import de.rafaelbeckmann.hvkclient.domain.repository.CoursesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class CoursesUiState(
@@ -23,53 +23,57 @@ data class CoursesUiState(
 )
 
 @HiltViewModel
-open class CoursesViewModel @Inject constructor(
-    private val repository: HvkRepository,
-    open val prefUtils: PrefUtils,
+class CoursesViewModel @Inject constructor(
+    private val coursesRepository: CoursesRepository,
+    val prefUtils: PrefUtils,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CoursesUiState())
-    open val uiState: StateFlow<CoursesUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<CoursesUiState> = _uiState.asStateFlow()
 
-    /**
-     * Fetches courses for the given username
-     */
-    open fun fetchCourses() {
-        repository.getUserCourses().onEach { result ->
-            _uiState.update { currentState ->
-                when (result) {
-                    is Resource.Loading -> {
-                        currentState.copy(
-                            isLoading = true,
-                            error = null,
-                            courses = result.data ?: currentState.courses
-                        )
-                    }
-                    is Resource.Success -> {
-                        currentState.copy(
-                            isLoading = false,
-                            error = null,
-                            courses = result.data ?: emptyList()
-                        )
-                    }
-                    is Resource.Error -> {
-                        currentState.copy(
-                            isLoading = false,
-                            error = result.message,
-                            courses = result.data ?: currentState.courses
+    init {
+        observeCourses()
+    }
+
+    fun refresh() {
+        refreshCourses()
+    }
+
+     private fun observeCourses() {
+        coursesRepository.observeCourses()
+            .onEach { value ->
+                _uiState.update {
+                    it.copy(courses = value)
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun refreshCourses() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(isLoading = true, error = null)
+            }
+
+            coursesRepository.refreshCourses()
+                .onFailure { exception ->
+                    _uiState.update {
+                        it.copy(
+                            error = exception.message ?: "Kurse konnten nicht aktualisiert werden"
                         )
                     }
                 }
-            }
-        }.launchIn(viewModelScope)
+
+            _uiState.update { it.copy(isLoading = false) }
+        }
     }
 
-    open suspend fun getUserId(): String? {
+    suspend fun getUserId(): String? {
         return settingsRepository.getUserId()
     }
 
-    open suspend fun isDeveloper(): Boolean {
+    suspend fun isDeveloper(): Boolean {
         return settingsRepository.isDeveloper()
     }
 }

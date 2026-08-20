@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.model.SelectedCourse
-import de.rafaelbeckmann.hvkclient.data.model.VpDays
+import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
+import de.rafaelbeckmann.hvkclient.domain.model.VpDays
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi

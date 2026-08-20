@@ -46,7 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import de.rafaelbeckmann.hvkclient.data.model.UserMark
+import de.rafaelbeckmann.hvkclient.domain.model.UserMark
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.rememberSmartCollapseTopAppBarBehavior
@@ -69,8 +69,10 @@ fun CourseDetailScreen(
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(courseId) {
         // TODO: ist eigentlich ziemlich dumm gerade, aber kb zu ändern
-        viewModel.fetchUserMarks(courseId)
-        viewModel.fetchCourseName(courseId)
+
+        viewModel.observeMarks(courseId)
+        viewModel.refreshMarks(courseId)
+        viewModel.observeCourse(courseId) // currently doesn't fetch from network as its already cached when coming from CoursesScreen
     }
 
     val lazyColumnState = rememberLazyListState()
@@ -100,7 +102,7 @@ fun CourseDetailScreen(
         HapticPullToRefreshBox(
             isRefreshing = state.isLoading,
             onRefresh = {
-                viewModel.fetchUserMarks(courseId)
+                viewModel.refreshMarks(courseId)
             },
             modifier = Modifier
                 .fillMaxSize()

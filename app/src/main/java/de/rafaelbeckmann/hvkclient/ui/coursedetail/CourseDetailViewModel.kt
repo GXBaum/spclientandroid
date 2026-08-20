@@ -4,15 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
-import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.model.UserMark
-import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
+import de.rafaelbeckmann.hvkclient.domain.model.UserMark
+import de.rafaelbeckmann.hvkclient.domain.repository.CoursesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class CourseDetailScreenState(
@@ -23,74 +24,59 @@ data class CourseDetailScreenState(
 )
 
 @HiltViewModel
-open class CourseDetailViewModel @Inject constructor(
-    private val repository: HvkRepository,
-    open val prefUtils: PrefUtils,
+class CourseDetailViewModel @Inject constructor(
+    private val coursesRepository: CoursesRepository,
+    val prefUtils: PrefUtils,
     private val settingsRepository: SettingsRepository
 ): ViewModel() {
     // UI state
     private val _courseDetailScreenState = MutableStateFlow(CourseDetailScreenState())
     val courseDetailScreenState: StateFlow<CourseDetailScreenState> = _courseDetailScreenState.asStateFlow()
 
-    /**
-     * Fetches courses for the given username
-     */
-    open fun fetchUserMarks(courseId: Int) {
-        repository.getUserMarksForCourse(courseId).onEach { result ->
-            when (result) {
-                is Resource.Loading -> {
-                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
-                        isLoading = true,
-                        marks = result.data ?: courseDetailScreenState.value.marks
-                    )
-                }
-                is Resource.Success -> {
-                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
-                        isLoading = false,
-                        marks = result.data ?: courseDetailScreenState.value.marks,
-                        error = null
-                    )
-                }
-                is Resource.Error -> {
-                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
-                        isLoading = false,
-                        error = result.message,
-                        marks = result.data ?: courseDetailScreenState.value.marks
+    fun observeMarks(courseId: Int) {
+        coursesRepository.observeMarks(courseId)
+            .onEach { value ->
+                _courseDetailScreenState.update {
+                    it.copy(
+                        marks = value
                     )
                 }
             }
-        }.launchIn(viewModelScope)
+            .launchIn(viewModelScope)
     }
 
+    fun refreshMarks(courseId: Int) {
+        viewModelScope.launch {
+            _courseDetailScreenState.update {
+                it.copy(isLoading = true, error = null)
+            }
 
-    fun fetchCourseName(courseId: Int) {
-        repository.getUserCourseById(courseId).onEach { result ->
-            when (result) {
-                is Resource.Loading -> {
-                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
-                        isLoading = true,
-                        courseName = result.data?.name ?: courseDetailScreenState.value.courseName
-                    )
+            coursesRepository.refreshMarks(courseId)
+                .onFailure { exception ->
+                    _courseDetailScreenState.update {
+                        it.copy(
+                            error = exception.message ?: "Noten konnten nicht aktualisiert werden"
+                        )
+                    }
                 }
-                is Resource.Success -> {
-                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
-                        isLoading = false,
-                        courseName = result.data?.name ?: courseDetailScreenState.value.courseName,
-                        error = null
-                    )
-                }
-                is Resource.Error -> {
-                    _courseDetailScreenState.value = _courseDetailScreenState.value.copy(
-                        isLoading = false,
-                        error = result.message,
-                        courseName = result.data?.name ?: courseDetailScreenState.value.courseName
+
+            _courseDetailScreenState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    fun observeCourse(courseId: Int) {
+        coursesRepository.observeCourse(courseId)
+            .onEach { value ->
+                _courseDetailScreenState.update {
+                    it.copy(
+                        courseName = value?.name
                     )
                 }
             }
-        }.launchIn(viewModelScope)
+            .launchIn(viewModelScope)
     }
 
-    open suspend fun getUserId(): String? {
+    suspend fun getUserId(): String? {
         return settingsRepository.getUserId()
     }
 }

@@ -1,16 +1,14 @@
 package de.rafaelbeckmann.hvkclient.domain.repository
 
 import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
-import de.rafaelbeckmann.hvkclient.data.model.SelectedCourse
-import de.rafaelbeckmann.hvkclient.data.model.UserCourse
-import de.rafaelbeckmann.hvkclient.data.model.UserMark
-import de.rafaelbeckmann.hvkclient.data.model.VpDays
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
+import de.rafaelbeckmann.hvkclient.domain.model.FeatureFlag
+import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
+import de.rafaelbeckmann.hvkclient.domain.model.VpDays
 import kotlinx.coroutines.flow.Flow
 import okhttp3.Cookie
 
@@ -32,11 +30,11 @@ interface HvkRepository {
      * @param userId The userId to fetch courses for
      * @return Flow emitting either a success with list of courses or an error
      */
-    fun getUserCourses(): Flow<Resource<List<UserCourse>>>
+    //fun getUserCourses(): Flow<Resource<List<UserCourse>>>
 
-    fun getUserCourseById(courseId: Int): Flow<Resource<UserCourse>>
+    //fun getUserCourseById(courseId: Int): Flow<Resource<UserCourse>>
 
-    fun getUserMarksForCourse(courseId: Int): Flow<Resource<List<UserMark>>>
+    //fun getUserMarksForCourse(courseId: Int): Flow<Resource<List<UserMark>>>
 
     /**
      * Updates the FCM token for a user on the server
