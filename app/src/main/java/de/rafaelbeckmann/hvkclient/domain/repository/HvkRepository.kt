@@ -2,6 +2,7 @@ package de.rafaelbeckmann.hvkclient.domain.repository
 
 import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
+import de.rafaelbeckmann.hvkclient.data.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpDays
@@ -10,7 +11,6 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
-import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
 import kotlinx.coroutines.flow.Flow
 import okhttp3.Cookie
 
@@ -46,7 +46,6 @@ interface HvkRepository {
 
     /**
      * Fetches the selected courses for a user
-     * @param userId The userId to fetch selected courses for
      * @return Flow emitting either a success with list of selected courses or an error
      */
     fun getVpSelectedCourses(): Flow<Resource<List<SelectedCourse>>>

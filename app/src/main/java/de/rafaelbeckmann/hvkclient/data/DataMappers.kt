@@ -1,19 +1,20 @@
 package de.rafaelbeckmann.hvkclient.data
 
-import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.FeatureFlagEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.UserCourseEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.UserMarkEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpDayEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpDayInfoItem
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpDayWithInfo
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpSelectedCourseEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpSubstitutionEntity
+import de.rafaelbeckmann.hvkclient.data.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
-import de.rafaelbeckmann.hvkclient.data.model.UserCourseEntity
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
-import de.rafaelbeckmann.hvkclient.data.model.UserMarkEntity
 import de.rafaelbeckmann.hvkclient.data.model.VpDay
-import de.rafaelbeckmann.hvkclient.data.model.VpDayEntity
-import de.rafaelbeckmann.hvkclient.data.model.VpDayInfoItem
-import de.rafaelbeckmann.hvkclient.data.model.VpDayWithInfo
 import de.rafaelbeckmann.hvkclient.data.model.VpDays
 import de.rafaelbeckmann.hvkclient.data.model.VpInfoNeu
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseEntity
 import de.rafaelbeckmann.hvkclient.data.model.VpSubstitution
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionEntity
 import de.rafaelbeckmann.hvkclient.data.model.VpType
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCookie
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkFeatureFlag
@@ -23,7 +24,6 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpDay
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpInfoNeu
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSubstitution
-import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
 import okhttp3.Cookie
 import java.time.LocalDateTime
 import java.time.ZoneId

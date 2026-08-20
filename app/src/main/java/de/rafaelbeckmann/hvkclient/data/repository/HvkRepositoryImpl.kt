@@ -12,6 +12,7 @@ import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.mapEntitiesToVpDays
 import de.rafaelbeckmann.hvkclient.data.model.FeatureFlag
+import de.rafaelbeckmann.hvkclient.data.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserCourse
 import de.rafaelbeckmann.hvkclient.data.model.UserMark
 import de.rafaelbeckmann.hvkclient.data.model.VpDays
@@ -28,7 +29,6 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
 import de.rafaelbeckmann.hvkclient.data.toDomain
 import de.rafaelbeckmann.hvkclient.data.toEntity
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
-import de.rafaelbeckmann.hvkclient.ui.settings.SelectedCourse
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow

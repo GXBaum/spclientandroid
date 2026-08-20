@@ -3,14 +3,14 @@ package de.rafaelbeckmann.hvkclient.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import de.rafaelbeckmann.hvkclient.data.local.entity.FeatureFlagEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.UserCourseEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.UserMarkEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpDayEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpDayInfoItem
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpSelectedCourseEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpSubstitutionEntity
 import de.rafaelbeckmann.hvkclient.data.model.Converters
-import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
-import de.rafaelbeckmann.hvkclient.data.model.UserCourseEntity
-import de.rafaelbeckmann.hvkclient.data.model.UserMarkEntity
-import de.rafaelbeckmann.hvkclient.data.model.VpDayEntity
-import de.rafaelbeckmann.hvkclient.data.model.VpDayInfoItem
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseEntity
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionEntity
 
 @Database(
     entities = [

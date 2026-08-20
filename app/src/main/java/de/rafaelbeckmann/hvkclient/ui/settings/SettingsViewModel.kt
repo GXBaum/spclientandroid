@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.data.Resource
+import de.rafaelbeckmann.hvkclient.data.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
@@ -26,13 +27,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import okhttp3.Cookie
 import javax.inject.Inject
-
-// TODO: should potentially not exist, as its redundant with other class
-data class SelectedCourse(
-    val id: String,
-    val name: String,
-    val verified: Boolean
-)
 
 data class SettingsScreenState(
     val vpSelectedCourse: List<SelectedCourse> = emptyList(),

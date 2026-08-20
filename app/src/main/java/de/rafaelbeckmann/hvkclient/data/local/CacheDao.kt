@@ -5,14 +5,14 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import de.rafaelbeckmann.hvkclient.data.model.FeatureFlagEntity
-import de.rafaelbeckmann.hvkclient.data.model.UserCourseEntity
-import de.rafaelbeckmann.hvkclient.data.model.UserMarkEntity
-import de.rafaelbeckmann.hvkclient.data.model.VpDayEntity
-import de.rafaelbeckmann.hvkclient.data.model.VpDayInfoItem
-import de.rafaelbeckmann.hvkclient.data.model.VpDayWithInfo
-import de.rafaelbeckmann.hvkclient.data.model.VpSelectedCourseEntity
-import de.rafaelbeckmann.hvkclient.data.model.VpSubstitutionEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.FeatureFlagEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.UserCourseEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.UserMarkEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpDayEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpDayInfoItem
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpDayWithInfo
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpSelectedCourseEntity
+import de.rafaelbeckmann.hvkclient.data.local.entity.VpSubstitutionEntity
 import kotlinx.coroutines.flow.Flow
 
 // TODO: maybe replace replace with ignore?
