@@ -1,27 +1,65 @@
 package de.rafaelbeckmann.hvkclient.ui.common
 
-import java.time.Duration
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.char
+import kotlinx.datetime.minus
+import kotlinx.datetime.plus
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
-private val fullFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
-private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM., HH:mm")
-private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+//private val fullFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
+private val fullFormatter = LocalDateTime.Format {
+    day()
+    char('.')
+    monthNumber()
+    char('.')
+    year()
+    char(' ')
+    hour()
+    char(':')
+    minute()
+}
+//private val dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM., HH:mm")
+private val dateTimeFormatter = LocalDateTime.Format {
+    day()
+    char('.')
+    monthNumber()
+    char('.')
+    char(',')
+    char(' ')
+    hour()
+    char(':')
+    minute()
+}
+//private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+private val timeFormatter = LocalDateTime.Format {
+    hour()
+    char(':')
+    minute()
+}
 
 fun relativeDateTimeFormatter(time: LocalDateTime): String {
-    val now = LocalDateTime.now()
-    val elapsedTime = Duration.between(time, now)
+    val nowInstant = Clock.System.now()
+    val now = nowInstant.toLocalDateTime(TimeZone.currentSystemDefault())
+    val timeInstant = time.toInstant(TimeZone.currentSystemDefault())
+    val elapsedTime = nowInstant.minus(timeInstant)
 
     return when {
-        time.isAfter(now) -> {
+        time > now -> {
             time.format(fullFormatter)
         }
-        time.isAfter(now.minusSeconds(10)) -> {
+        elapsedTime < 10.seconds -> {
             "vor wenigen Sekunden"
         }
-        time.isAfter(now.minusMinutes(10)) -> {
-            val minutes = elapsedTime.toMinutes();
+        elapsedTime < 10.minutes -> {
+            val minutes = elapsedTime.inWholeMinutes;
 
             if (minutes == 1L) {
                 "vor 1 Minute"
@@ -29,10 +67,10 @@ fun relativeDateTimeFormatter(time: LocalDateTime): String {
                 "vor $minutes Minuten"
             }
         }
-        time.toLocalDate() == now.toLocalDate() -> {
+        time.date == now.date -> {
             "Heute, ${time.format(timeFormatter)}"
         }
-        time.toLocalDate() == now.toLocalDate().minusDays(1) -> {
+        time.date == now.date.minus(1, DateTimeUnit.DAY) -> {
             "Gestern, ${time.format(timeFormatter)}"
         }
         time.year == now.year -> {
@@ -59,22 +97,35 @@ fun relativeDateTimeFormatter(time: LocalDateTime): String {
 
 
 
-private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.")
-private val fullDateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+//private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.")
+private val dateFormatter = LocalDate.Format {
+    day()
+    char('.')
+    monthNumber()
+    char('.')
+}
+//private val fullDateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+private val fullDateFormatter = LocalDate.Format {
+    day()
+    char('.')
+    monthNumber()
+    char('.')
+    year()
+}
 
 fun relativeDateFormatter(date: LocalDate): String {
-    val now = LocalDate.now()
+    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
     return when {
         date == now -> {
             "Heute"
         }
-        date == now.plusDays(1) -> {
+        date == now.plus(1, DateTimeUnit.DAY) -> {
             "Morgen"
         }
-        date == now.plusDays(2) -> {
+        date == now.plus(2, DateTimeUnit.DAY) -> {
             "Übermorgen"
         }
-        date == now.minusDays(1) -> {
+        date == now.minus(1, DateTimeUnit.DAY) -> {
             "Gestern"
         }
         date.year == now.year -> {

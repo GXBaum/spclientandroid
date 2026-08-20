@@ -24,11 +24,10 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpDay
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpInfoNeu
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSubstitution
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import okhttp3.Cookie
-import java.time.LocalDateTime
-import java.time.ZoneId
 import kotlin.time.Instant
-import kotlin.time.toJavaInstant
 
 fun NetworkVpDay.toEntity(): VpDayEntity {
     return VpDayEntity(
@@ -40,7 +39,7 @@ fun NetworkVpDay.toEntity(): VpDayEntity {
 fun VpDayEntity.toDomain(substitutions: List<VpSubstitutionEntity>, info: List<VpInfoNeu>): VpDay {
     return VpDay(
         substitutions = substitutions.map { it.toDomain() },
-        targetDate = LocalDateTime.ofInstant(this.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate(),
+        targetDate = this.targetDate.toLocalDateTime(TimeZone.currentSystemDefault()).date,
         dayString = this.dayString,
         info = info
     )
@@ -57,14 +56,14 @@ fun mapEntitiesToVpDays(
 
     // TODO: crashes when only one day exists
     val subsToday = subs.filter { sub ->
-        val subDate = LocalDateTime.ofInstant(sub.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate()
-        val dayDate = LocalDateTime.ofInstant(testToday?.day?.targetDate?.toJavaInstant(), ZoneId.systemDefault()).toLocalDate()
+        val subDate = sub.targetDate
+        val dayDate = testToday?.day?.targetDate
         subDate == dayDate
     }.map { it.toDomain() }
 
     val substTomorrow = subs.filter { sub ->
-        val subDate = LocalDateTime.ofInstant(sub.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate()
-        val dayDate = LocalDateTime.ofInstant(testTomorrow?.day?.targetDate?.toJavaInstant(), ZoneId.systemDefault()).toLocalDate()
+        val subDate = sub.targetDate
+        val dayDate = testTomorrow?.day?.targetDate
         subDate == dayDate
     }.map { it.toDomain() }
 
@@ -103,9 +102,9 @@ fun VpSubstitutionEntity.toDomain(): VpSubstitution {
         isDeleted = this.isDeleted,
         VpType = this.VpType,
         courseName = this.courseName,
-        targetDate = LocalDateTime.ofInstant(this.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate(), // LocalDate.ofInstant() has min API 34
-        createdAt = LocalDateTime.ofInstant(this.createdAt.toJavaInstant(), ZoneId.systemDefault()),
-        updatedAt = LocalDateTime.ofInstant(this.updatedAt.toJavaInstant(), ZoneId.systemDefault())
+        targetDate = this.targetDate.toLocalDateTime(TimeZone.currentSystemDefault()).date,
+        createdAt = this.createdAt.toLocalDateTime(TimeZone.currentSystemDefault()),
+        updatedAt = this.updatedAt.toLocalDateTime(TimeZone.currentSystemDefault())
     )
 }
 
@@ -121,14 +120,14 @@ fun VpDayInfoItem.toDomain(): VpInfoNeu {
     return VpInfoNeu(
         id = this.id,
         text = this.info,
-        targetDate = LocalDateTime.ofInstant(this.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate().toString()
+        targetDate = this.targetDate.toLocalDateTime(TimeZone.currentSystemDefault()).date.toString()
     )
 }
 
 fun VpDayWithInfo.toDomain(substitutions: List<VpSubstitution>): VpDay {
     return VpDay(
         substitutions = substitutions,
-        targetDate = LocalDateTime.ofInstant(this.day.targetDate.toJavaInstant(), ZoneId.systemDefault()).toLocalDate(),
+        targetDate = this.day.targetDate.toLocalDateTime(TimeZone.currentSystemDefault()).date,
         dayString = this.day.dayString,
         info = this.info.map { it.toDomain() }
     )

@@ -1,8 +1,8 @@
 package de.rafaelbeckmann.hvkclient.data.model
 
 import androidx.room.TypeConverter
-import java.time.LocalDate
-import java.time.LocalDateTime
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlin.time.Instant
 
 // TODO: split into multiple files

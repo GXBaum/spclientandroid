@@ -133,4 +133,6 @@ dependencies {
 
     // Jsoup (HTML parsing)
     implementation(libs.jsoup)
+
+    implementation(libs.kotlinx.datetime)
 }
