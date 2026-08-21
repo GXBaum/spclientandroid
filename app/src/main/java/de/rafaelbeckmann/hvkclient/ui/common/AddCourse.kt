@@ -52,11 +52,11 @@ fun AddCourseScreen(
 
     fun onConfirm(courseName: String){
         if (courseName.isNotBlank()) {
-            viewModel.postVpSelectedCourse(courseName)
+            viewModel.postSelectedCourse(courseName)
             Log.d("SettingsScreen", "Neuer Kurs: $courseName")
 
             // TODO: does not fix the issue where the list sometimes doesn't get updated after adding a course
-            viewModel.fetchVpSelectedCourse()
+            viewModel.fetchSelectedCourse()
         }
         onContinue()
     }

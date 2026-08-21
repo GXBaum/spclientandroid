@@ -8,10 +8,8 @@ import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import de.rafaelbeckmann.hvkclient.PushNotificationService.Companion.CHANNEL_VP_UPDATES
-import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
-import kotlinx.coroutines.flow.filter
+import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
 import kotlinx.coroutines.flow.first
 
 // TODO: improve this (mehrere API calls, mehr Sachen synchronisieren)
@@ -22,7 +20,7 @@ class NotificationDataSyncWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted workerParams: WorkerParameters,
     private val settingsRepository: SettingsRepository,
-    private val repository: HvkRepository
+    private val vpRepository: VpRepository
 ): CoroutineWorker(context, workerParams) {
     companion object {
         private const val TAG = "NotificationDataSyncWorker"
@@ -35,24 +33,19 @@ class NotificationDataSyncWorker @AssistedInject constructor(
 
             when (channelId) {
                 CHANNEL_VP_UPDATES -> {
-                    val coursesResource = repository.getVpSelectedCourses()
-                        .filter { it !is Resource.Loading }
-                        .first()
+                    val coursesResource = vpRepository.refreshSelectedCourses()
+                    val courses = vpRepository.observeSelectedCourses().first()
 
-                    if (coursesResource is Resource.Success) {
-                        val courses = coursesResource.data
+                    if (coursesResource.isSuccess) {
+                        if (courses.isNotEmpty()) {
+                            val result = vpRepository.refreshSubstitutions(courses.map { it.name })
 
-                        if (!courses.isNullOrEmpty()) {
-                            val result = repository.getVpSubstitutions(courses.map { it.name })
-                                .filter { it !is Resource.Loading }
-                                .first()
-
-                            if (result is Resource.Error) {
+                            if (!result.isSuccess) {
                                 Log.w(TAG, "Failed to fetch substitutions")
                                 return Result.failure()
                             }
                         }
-                    } else if (coursesResource is Resource.Error) {
+                    } else {
                         Log.w(TAG, "Failed to fetch courses")
                         return Result.failure()
                     }

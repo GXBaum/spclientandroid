@@ -5,10 +5,7 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
 import de.rafaelbeckmann.hvkclient.domain.model.FeatureFlag
-import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
-import de.rafaelbeckmann.hvkclient.domain.model.VpDays
 import kotlinx.coroutines.flow.Flow
 import okhttp3.Cookie
 
@@ -46,18 +43,18 @@ interface HvkRepository {
      * Fetches the selected courses for a user
      * @return Flow emitting either a success with list of selected courses or an error
      */
-    fun getVpSelectedCourses(): Flow<Resource<List<SelectedCourse>>>
+    //fun getVpSelectedCourses(): Flow<Resource<List<SelectedCourse>>>
 
     /**
      * Posts the selected courses for a user
      * @param courseName The name of the course to post
      * @return Flow emitting either a success or an error
      */
-    suspend fun postVpSelectedCourses(courseName: NetworkVpSelectedCourseRequest): Result<Unit>
+    //suspend fun postVpSelectedCourses(courseName: NetworkVpSelectedCourseRequest): Result<Unit>
 
-    suspend fun deleteVpSelectedCourse(courseId: String): Result<Unit>
+    //suspend fun deleteVpSelectedCourse(courseId: String): Result<Unit>
 
-    fun getVpSubstitutions(courseNames: List<String>): Flow<Resource<VpDays>>
+    //fun getVpSubstitutions(courseNames: List<String>): Flow<Resource<VpDays>>
 
     fun getCourseSearch(courseName: String): Flow<Resource<List<String>>>
 

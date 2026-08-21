@@ -10,12 +10,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
 import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
+import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okhttp3.Cookie
 import javax.inject.Inject
@@ -44,6 +45,7 @@ data class SettingsScreenState(
 @HiltViewModel
 open class SettingsViewModel @Inject constructor(
     private val repository: HvkRepository,
+    private val vpRepository: VpRepository,
     private val settingsRepository: SettingsRepository,
     open val prefUtils: PrefUtils,
 
@@ -75,24 +77,42 @@ open class SettingsViewModel @Inject constructor(
 
             Log.d("SettingsViewModel", "refreshToken: ${settingsRepository.getRefreshToken()}")
 
-            fetchVpSelectedCourse()
+            fetchSelectedCourse()
+            observeSelectedCourses()
         }
     }
 
     fun reload() {
-        fetchVpSelectedCourse()
+        fetchSelectedCourse()
     }
 
     fun saveUsername(userId: String) {
         viewModelScope.launch {
             settingsRepository.setUserId(userId)
-            fetchVpSelectedCourse()
+            fetchSelectedCourse()
         }
     }
 
 
     // TODO: fetcht mehrere Male
-    fun fetchVpSelectedCourse() {
+    fun fetchSelectedCourse() {
+        viewModelScope.launch {
+            _settingsScreenState.update {
+                it.copy(isLoading = true, error = null)
+            }
+
+            vpRepository.refreshSelectedCourses()
+                .onFailure { exception ->
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = exception.message ?: "Klassen konnten nicht aktualisiert werden"
+                        )
+                    }
+                }
+
+            _settingsScreenState.update { it.copy(isLoading = false) }
+        }
+        /*
         repository.getVpSelectedCourses().onEach { result ->
             Log.d("SettingsViewModel", "username: ${settingsScreenState.value.userId}")
             when (result) {
@@ -131,14 +151,28 @@ open class SettingsViewModel @Inject constructor(
                 error = exception.message
             )
         }.launchIn(viewModelScope)
+        */
+    }
+
+    fun observeSelectedCourses() {
+        vpRepository.observeSelectedCourses()
+            .onEach { value ->
+                _settingsScreenState.update {
+                    it.copy(
+                        vpSelectedCourse = value
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
 
 
 
-    fun postVpSelectedCourse(courseName: String) {
+    fun postSelectedCourse(courseName: String) {
         if (courseName.isBlank()) return
 
+        /*
         viewModelScope.launch {
             _settingsScreenState.value = _settingsScreenState.value.copy(
                 isLoading = true,
@@ -152,7 +186,7 @@ open class SettingsViewModel @Inject constructor(
 
                 // After posting successfully, refresh the data
                 if (result.isSuccess) {
-                    fetchVpSelectedCourse()
+                    fetchSelectedCourse()
                 }
 
                 _settingsScreenState.value = _settingsScreenState.value.copy(
@@ -166,10 +200,31 @@ open class SettingsViewModel @Inject constructor(
                 )
             }
         }
+        */
+
+        viewModelScope.launch {
+            _settingsScreenState.value = _settingsScreenState.value.copy(
+                isLoading = true,
+                error = null,
+            )
+
+            vpRepository.addSelectedCourse(courseName)
+                .onFailure { exception ->
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = exception.message ?: "Klasse konnte nicht hinzugefügt werden"
+                        )
+                    }
+                }
+
+            _settingsScreenState.update { it.copy(isLoading = false) }
+        }
+
     }
 
     // TODO: irgendwie mehr responsive machen
     fun deleteVpSelectedCourse(courseId: String) {
+        /*
         viewModelScope.launch {
             _settingsScreenState.value = _settingsScreenState.value.copy(
                 isLoading = true,
@@ -180,13 +235,32 @@ open class SettingsViewModel @Inject constructor(
                 repository.deleteVpSelectedCourse(courseId)
 
                 // After deleting successfully, refresh the data
-                fetchVpSelectedCourse()
+                fetchSelectedCourse()
             } catch (exception: Exception) {
                 _settingsScreenState.value = _settingsScreenState.value.copy(
                     isLoading = false,
                     error = exception.message,
                 )
             }
+        }
+        */
+
+        viewModelScope.launch {
+            _settingsScreenState.value = _settingsScreenState.value.copy(
+                isLoading = true,
+                error = null,
+            )
+
+            vpRepository.removeSelectedCourse(courseId)
+                .onFailure { exception ->
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = exception.message ?: "Klasse konnte nicht gelöscht werden"
+                        )
+                    }
+                }
+
+            _settingsScreenState.update { it.copy(isLoading = false) }
         }
     }
 

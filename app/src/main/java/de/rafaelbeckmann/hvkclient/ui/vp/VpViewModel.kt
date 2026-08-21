@@ -1,23 +1,21 @@
 package de.rafaelbeckmann.hvkclient.ui.vp
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.domain.model.VpDays
-import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,7 +29,7 @@ data class VpScreenState(
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 open class VpViewModel @Inject constructor(
-    private val repository: HvkRepository,
+    private val vpRepository: VpRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
     private val _vpScreenState = MutableStateFlow(VpScreenState())
@@ -43,18 +41,23 @@ open class VpViewModel @Inject constructor(
         viewModelScope.launch {
             _vpScreenState.value = _vpScreenState.value.copy(isLoading = true, error = null)
 
-            fetchVpSelectedCourse()
+            //fetchVpSelectedCourse()
+            refresh()
+            observeSelectedCourses()
 
 
             // Observe the selected course and fetch substitutions when it's available
             vpScreenState.map { it.selectedCourses }
                 .distinctUntilChanged()
                 .onEach { courses ->
-                    fetchVpSubstitutions(courses)
+                    //fetchVpSubstitutions(courses)
+                    refresh()
+                    observeSubstitutions(courses)
                 }.launchIn(viewModelScope)
         }
     }
 
+    /*
     fun fetchVpSelectedCourse() {
         repository.getVpSelectedCourses().onEach { result ->
             when (result) {
@@ -130,8 +133,75 @@ open class VpViewModel @Inject constructor(
             }
         }.launchIn(viewModelScope)
     }
+    */
+
+    fun observeSelectedCourses() {
+        vpRepository.observeSelectedCourses()
+            .onEach { value ->
+                _vpScreenState.update {
+                    it.copy(
+                        selectedCourses = value
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun observeSubstitutions(courseNames: List<SelectedCourse>) {
+        vpRepository.observeSubstitutions(courseNames.map { it.name })
+            .onEach { value ->
+                _vpScreenState.update {
+                    it.copy(
+                        substitutions = value
+                    )
+                }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun fetchSelectedCourse() {
+        viewModelScope.launch {
+            _vpScreenState.update {
+                it.copy(isLoading = true, error = null)
+            }
+
+            vpRepository.refreshSelectedCourses()
+                .onFailure { exception ->
+                    _vpScreenState.update {
+                        it.copy(
+                            error = exception.message ?: "Klassen konnten nicht aktualisiert werden"
+                        )
+                    }
+                }
+
+            _vpScreenState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    fun fetchSubstitutions(courseNames: List<SelectedCourse>) {
+        viewModelScope.launch {
+            _vpScreenState.update {
+                it.copy(isLoading = true, error = null)
+            }
+
+            vpRepository.refreshSubstitutions(courseNames.map { it.name })
+                .onFailure { exception ->
+                    _vpScreenState.update {
+                        it.copy(
+                            error = exception.message ?: "Klassen konnten nicht aktualisiert werden"
+                        )
+                    }
+                }
+
+            _vpScreenState.update { it.copy(isLoading = false) }
+        }
+    }
+
     fun refresh() {
         val courses = vpScreenState.value.selectedCourses
-        fetchVpSubstitutions(courses)
+        //fetchVpSubstitutions(courses)
+
+        fetchSelectedCourse()
+        fetchSubstitutions(courses)
     }
 }

@@ -1,6 +1,5 @@
 package de.rafaelbeckmann.hvkclient.data.repository
 
-import androidx.room.withTransaction
 import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.SnackbarEvent
 import de.rafaelbeckmann.hvkclient.data.Resource
@@ -9,7 +8,6 @@ import de.rafaelbeckmann.hvkclient.data.Resource.Loading
 import de.rafaelbeckmann.hvkclient.data.Resource.Success
 import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
-import de.rafaelbeckmann.hvkclient.data.mapEntitiesToVpDays
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
 import de.rafaelbeckmann.hvkclient.data.remote.PayloadDecoder
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountRequest
@@ -18,18 +16,14 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
 import de.rafaelbeckmann.hvkclient.data.toDomain
 import de.rafaelbeckmann.hvkclient.data.toEntity
 import de.rafaelbeckmann.hvkclient.domain.model.FeatureFlag
-import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
-import de.rafaelbeckmann.hvkclient.domain.model.VpDays
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -183,6 +177,7 @@ class HvkRepositoryImpl @Inject constructor(
     )
     */
 
+    /*
     override suspend fun postVpSelectedCourses(courseName: NetworkVpSelectedCourseRequest): Result<Unit> {
         return try {
             val response = api.postVpSelectedCourses(courseName)
@@ -196,7 +191,9 @@ class HvkRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+    */
 
+    /*
     override fun getVpSelectedCourses(): Flow<Resource<List<SelectedCourse>>> = networkBoundResource(
         query = {
             cacheDao.getVpSelectedCourses().map { courses ->
@@ -213,7 +210,9 @@ class HvkRepositoryImpl @Inject constructor(
             cacheDao.insertVpSelectedCourses(courses)
         }
     )
+    */
 
+    /*
     override suspend fun deleteVpSelectedCourse(courseId: String): Result<Unit> {
         return try {
             // TODO: ist es vlt doch besser, es im body zu schicken, dann wäre das nicht nötig
@@ -233,7 +232,9 @@ class HvkRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
+    */
 
+    /*
     override fun getVpSubstitutions(courseNames: List<String>): Flow<Resource<VpDays>> {
         return networkBoundResource(
             query = {
@@ -276,6 +277,7 @@ class HvkRepositoryImpl @Inject constructor(
             }
         )
     }
+    */
 
     // TODO: vielleicht nicht direkt be jedem buchstaben suchen
     override fun getCourseSearch(courseName: String): Flow<Resource<List<String>>> = flow {

@@ -9,11 +9,13 @@ import de.rafaelbeckmann.hvkclient.data.repository.EncryptedUserPreferencesRepos
 import de.rafaelbeckmann.hvkclient.data.repository.HvkRepositoryImpl
 import de.rafaelbeckmann.hvkclient.data.repository.SettingsRepositoryImpl
 import de.rafaelbeckmann.hvkclient.data.repository.SpRepositoryTestImpl
+import de.rafaelbeckmann.hvkclient.data.repository.VpRepositoryImpl
 import de.rafaelbeckmann.hvkclient.domain.repository.CoursesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
+import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
 import javax.inject.Singleton
 
 @Module
@@ -31,6 +33,12 @@ abstract class RepositoryModule {
     abstract fun bindCoursesRepository(
         impl: CoursesRepositoryImpl
     ): CoursesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindVpRepository(
+        impl: VpRepositoryImpl
+    ): VpRepository
 
     @Binds
     @Singleton
