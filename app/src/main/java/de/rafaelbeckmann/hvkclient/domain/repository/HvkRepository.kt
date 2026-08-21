@@ -23,38 +23,10 @@ interface HvkRepository {
     fun login(username: String, password: String): Flow<Resource<NetworkLoginResponse>>
 
     /**
-     * Fetches user courses from the API
-     * @param userId The userId to fetch courses for
-     * @return Flow emitting either a success with list of courses or an error
-     */
-    //fun getUserCourses(): Flow<Resource<List<UserCourse>>>
-
-    //fun getUserCourseById(courseId: Int): Flow<Resource<UserCourse>>
-
-    //fun getUserMarksForCourse(courseId: Int): Flow<Resource<List<UserMark>>>
-
-    /**
      * Updates the FCM token for a user on the server
      * @param tokenUpdateRequest The request containing the token and username
      */
     suspend fun updateToken(tokenUpdateRequest: NetworkTokenUpdateRequest): Result<Unit>
-
-    /**
-     * Fetches the selected courses for a user
-     * @return Flow emitting either a success with list of selected courses or an error
-     */
-    //fun getVpSelectedCourses(): Flow<Resource<List<SelectedCourse>>>
-
-    /**
-     * Posts the selected courses for a user
-     * @param courseName The name of the course to post
-     * @return Flow emitting either a success or an error
-     */
-    //suspend fun postVpSelectedCourses(courseName: NetworkVpSelectedCourseRequest): Result<Unit>
-
-    //suspend fun deleteVpSelectedCourse(courseId: String): Result<Unit>
-
-    //fun getVpSubstitutions(courseNames: List<String>): Flow<Resource<VpDays>>
 
     fun getCourseSearch(courseName: String): Flow<Resource<List<String>>>
 

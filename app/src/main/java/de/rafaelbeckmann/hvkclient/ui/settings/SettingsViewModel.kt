@@ -112,46 +112,6 @@ open class SettingsViewModel @Inject constructor(
 
             _settingsScreenState.update { it.copy(isLoading = false) }
         }
-        /*
-        repository.getVpSelectedCourses().onEach { result ->
-            Log.d("SettingsViewModel", "username: ${settingsScreenState.value.userId}")
-            when (result) {
-                is Resource.Loading -> {
-                    Log.d("SettingsViewModel", "Loading vpSelectedCourse - Result: $result")
-
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = true,
-                        vpSelectedCourse = result.data ?: settingsScreenState.value.vpSelectedCourse
-                    )
-                }
-                is Resource.Success -> {
-                    Log.d("SettingsViewModel", "Success fetching vpSelectedCourse - Data: ${result.data}")
-
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = false,
-                        error = null,
-                        vpSelectedCourse = result.data ?: emptyList()
-                    )
-
-                    Log.d("SettingsViewModel", "vpSelectedCourse: ${result.data}")
-                }
-                is Resource.Error -> {
-                    Log.e("SettingsViewModel", "Error fetching vpSelectedCourse, message: ${result.message}")
-
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = false,
-                        error = result.message,
-                        vpSelectedCourse = result.data ?: settingsScreenState.value.vpSelectedCourse
-                    )
-                }
-            }
-        }.catch { exception ->
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isLoading = false,
-                error = exception.message
-            )
-        }.launchIn(viewModelScope)
-        */
     }
 
     fun observeSelectedCourses() {
@@ -172,36 +132,6 @@ open class SettingsViewModel @Inject constructor(
     fun postSelectedCourse(courseName: String) {
         if (courseName.isBlank()) return
 
-        /*
-        viewModelScope.launch {
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isLoading = true,
-                error = null,
-            )
-
-            try {
-                val courseObject = NetworkVpSelectedCourseRequest(courseName)
-
-                val result = repository.postVpSelectedCourses(courseObject)
-
-                // After posting successfully, refresh the data
-                if (result.isSuccess) {
-                    fetchSelectedCourse()
-                }
-
-                _settingsScreenState.value = _settingsScreenState.value.copy(
-                    isLoading = false,
-                    error = null,
-                )
-            } catch (exception: Exception) {
-                _settingsScreenState.value = _settingsScreenState.value.copy(
-                    isLoading = false,
-                    error = exception.message,
-                )
-            }
-        }
-        */
-
         viewModelScope.launch {
             _settingsScreenState.value = _settingsScreenState.value.copy(
                 isLoading = true,
@@ -219,32 +149,10 @@ open class SettingsViewModel @Inject constructor(
 
             _settingsScreenState.update { it.copy(isLoading = false) }
         }
-
     }
 
     // TODO: irgendwie mehr responsive machen
     fun deleteVpSelectedCourse(courseId: String) {
-        /*
-        viewModelScope.launch {
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isLoading = true,
-                error = null,
-            )
-
-            try {
-                repository.deleteVpSelectedCourse(courseId)
-
-                // After deleting successfully, refresh the data
-                fetchSelectedCourse()
-            } catch (exception: Exception) {
-                _settingsScreenState.value = _settingsScreenState.value.copy(
-                    isLoading = false,
-                    error = exception.message,
-                )
-            }
-        }
-        */
-
         viewModelScope.launch {
             _settingsScreenState.value = _settingsScreenState.value.copy(
                 isLoading = true,
