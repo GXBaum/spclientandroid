@@ -10,6 +10,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.data.Resource
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onError
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
@@ -102,12 +105,18 @@ open class SettingsViewModel @Inject constructor(
             }
 
             vpRepository.refreshSelectedCourses()
-                .onFailure { exception ->
+                .onError { error ->
                     _settingsScreenState.update {
                         it.copy(
-                            error = exception.message ?: "Klassen konnten nicht aktualisiert werden"
+                            error = when (error) {
+                                DataError.Remote.NO_INTERNET -> "kein Internet"
+                                else -> "Klassen konnten nicht geladen werden"
+                            }
                         )
                     }
+                }
+                .onSuccess {
+                    _settingsScreenState.update { it.copy(error = null) }
                 }
 
             _settingsScreenState.update { it.copy(isLoading = false) }
@@ -139,12 +148,18 @@ open class SettingsViewModel @Inject constructor(
             )
 
             vpRepository.addSelectedCourse(courseName)
-                .onFailure { exception ->
+                .onError { error ->
                     _settingsScreenState.update {
                         it.copy(
-                            error = exception.message ?: "Klasse konnte nicht hinzugefügt werden"
+                            error = when (error) {
+                                DataError.Remote.NO_INTERNET -> "kein Internet"
+                                else -> "Klasse konnte nicht hinzugefügt werden"
+                            }
                         )
                     }
+                }
+                .onSuccess {
+                    _settingsScreenState.update { it.copy(error = null) }
                 }
 
             _settingsScreenState.update { it.copy(isLoading = false) }
@@ -160,12 +175,18 @@ open class SettingsViewModel @Inject constructor(
             )
 
             vpRepository.removeSelectedCourse(courseId)
-                .onFailure { exception ->
+                .onError { error ->
                     _settingsScreenState.update {
                         it.copy(
-                            error = exception.message ?: "Klasse konnte nicht gelöscht werden"
+                            error = when (error) {
+                                DataError.Remote.NO_INTERNET -> "kein Internet"
+                                else -> "Klasse konnte nicht gelöscht werden"
+                            }
                         )
                     }
+                }
+                .onSuccess {
+                    _settingsScreenState.update { it.copy(error = null) }
                 }
 
             _settingsScreenState.update { it.copy(isLoading = false) }

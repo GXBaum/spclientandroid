@@ -9,13 +9,6 @@ import de.rafaelbeckmann.hvkclient.domain.model.FeatureFlag
 import kotlinx.coroutines.flow.Flow
 import okhttp3.Cookie
 
-/**
- * This interface defines the contract for repository operations.
- * It specifies WHAT operations can be performed but not HOW they are implemented.
- * This allows us to:
- * 1. Easily swap implementations (e.g., for testing)
- * 2. Keep our ViewModel decoupled from specific implementation details
- */
 interface HvkRepository {
 
     fun createAccount(): Flow<Resource<NetworkCreateAccountResponse>>

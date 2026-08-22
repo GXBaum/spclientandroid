@@ -1,12 +1,15 @@
 package de.rafaelbeckmann.hvkclient.data.remote.dto
 
 import com.squareup.moshi.Json
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
+@Serializable
 data class NetworkUserMarks(
     val marks: List<NetworkUserMark>
 )
+
+@Serializable
 data class NetworkUserMark(
     val id: Int,
     val name: String,
@@ -17,9 +20,12 @@ data class NetworkUserMark(
     val isDeleted: Boolean
 )
 
+@Serializable
 data class NetworkCourseSearchItem(
     val name: String
 )
+
+@Serializable
 data class NetworkCourseSearchResponse(
     val courses: List<NetworkCourseSearchItem>
 )
@@ -30,36 +36,45 @@ data class NetworkUserCourse(
     val name: String
 )
 
+@Serializable
 data class NetworkSingleCourseResponse(
     val course: NetworkUserCourse
 )
 
+@Serializable
 data class NetworkUserCoursesResponse(
     val courses: String // custom decoder for encryption in the future, but still have to decide
 )
 
+@Serializable
 data class NetworkVpSelectedCourseRequest(
     val course: String
 )
 
+@Serializable
 data class NetworkVpSelectedCoursesResponse(
     val courses: List<NetworkVpSelectedCourseResponse>
 )
+
+@Serializable
 data class NetworkVpSelectedCourseResponse(
     val id: String,
     val course: String,
     val verified: Boolean
 )
 
+@Serializable
 data class NetworkVpResponse(
     val substitutions: NetworkVpDays
 )
 
-
+@Serializable
 data class NetworkVpDays(
     val today: NetworkVpDay?,
     val tomorrow: NetworkVpDay?
 )
+
+@Serializable
 data class NetworkVpSubstitution(
     val id: Int = 0,
     val hour: String,
@@ -67,7 +82,7 @@ data class NetworkVpSubstitution(
     val replacement: String,
     val description: String,
     val isDeleted: Boolean,
-    @param:Json(name = "VpType") val vpType: String,
+    @SerialName("VpType") @param:Json(name = "VpType") val vpType: String,
     val courseName: String,
 
     val targetDate: String,
@@ -75,12 +90,14 @@ data class NetworkVpSubstitution(
     val updatedAt: String
 )
 
+@Serializable
 data class NetworkVpInfoNeu(
     val id: Int,
     val text: String,
     val targetDate: String
 )
 
+@Serializable
 data class NetworkVpDay(
     val substitutions: List<NetworkVpSubstitution> = emptyList(),
     val targetDate: String, // TODO: not a string
@@ -88,15 +105,18 @@ data class NetworkVpDay(
     val info: List<NetworkVpInfoNeu>?
 )
 
+@Serializable
 data class NetworkFeatureFlag(
     val featureFlags: Map<String, Boolean>
 )
 
+@Serializable
 data class SpAuthCookieRequest(
     val authCookie: String,
     val cookies: List<NetworkCookie>? = null
 )
 
+@Serializable
 data class NetworkCookie(
     val name: String,
     val value: String,

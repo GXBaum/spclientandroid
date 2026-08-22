@@ -8,6 +8,8 @@ import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import de.rafaelbeckmann.hvkclient.PushNotificationService.Companion.CHANNEL_VP_UPDATES
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onError
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
 import kotlinx.coroutines.flow.first
@@ -36,19 +38,20 @@ class NotificationDataSyncWorker @AssistedInject constructor(
                     val coursesResource = vpRepository.refreshSelectedCourses()
                     val courses = vpRepository.observeSelectedCourses().first()
 
-                    if (coursesResource.isSuccess) {
-                        if (courses.isNotEmpty()) {
-                            val result = vpRepository.refreshSubstitutions(courses.map { it.name })
-
-                            if (!result.isSuccess) {
-                                Log.w(TAG, "Failed to fetch substitutions")
-                                return Result.failure()
+                    coursesResource
+                        .onSuccess {
+                            if (courses.isNotEmpty()) {
+                                vpRepository.refreshSubstitutions(courses.map { it.name })
+                                    .onError {
+                                        Log.w(TAG, "Failed to fetch substitutions")
+                                        return Result.failure()
+                                    }
                             }
                         }
-                    } else {
-                        Log.w(TAG, "Failed to fetch courses")
-                        return Result.failure()
-                    }
+                        .onError {
+                            Log.w(TAG, "Failed to fetch courses")
+                            return Result.failure()
+                        }
                 }
             }
 

@@ -3,6 +3,9 @@ package de.rafaelbeckmann.hvkclient.ui.vp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onError
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.domain.model.VpDays
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
@@ -88,12 +91,18 @@ open class VpViewModel @Inject constructor(
             }
 
             vpRepository.refreshSelectedCourses()
-                .onFailure { exception ->
+                .onError { error ->
                     _vpScreenState.update {
                         it.copy(
-                            error = exception.message ?: "Klassen konnten nicht aktualisiert werden"
+                            error = when (error) {
+                                DataError.Remote.NO_INTERNET -> "kein Internet"
+                                else -> "Klassen konnte nicht geladen werden"
+                            }
                         )
                     }
+                }
+                .onSuccess {
+                    _vpScreenState.update { it.copy(error = null) }
                 }
 
             _vpScreenState.update { it.copy(isLoading = false) }
@@ -107,12 +116,18 @@ open class VpViewModel @Inject constructor(
             }
 
             vpRepository.refreshSubstitutions(courseNames.map { it.name })
-                .onFailure { exception ->
+                .onError { error ->
                     _vpScreenState.update {
                         it.copy(
-                            error = exception.message ?: "Klassen konnten nicht aktualisiert werden"
+                            error = when (error) {
+                                DataError.Remote.NO_INTERNET -> "kein Internet"
+                                else -> "Einträge konnten nicht geladen werden"
+                            }
                         )
                     }
+                }
+                .onSuccess {
+                    _vpScreenState.update { it.copy(error = null) }
                 }
 
             _vpScreenState.update { it.copy(isLoading = false) }

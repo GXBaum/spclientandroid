@@ -135,4 +135,7 @@ dependencies {
     implementation(libs.jsoup)
 
     implementation(libs.kotlinx.datetime)
+
+    implementation(libs.bundles.ktor)
+    implementation(libs.ktor.client.okhttp)
 }
