@@ -1,6 +1,6 @@
 package de.rafaelbeckmann.hvkclient.data.remote
 
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkUserCourse
+import de.rafaelbeckmann.hvkclient.features.courses.data.NetworkUserCourse
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import javax.inject.Inject

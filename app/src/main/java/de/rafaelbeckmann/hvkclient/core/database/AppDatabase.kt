@@ -5,8 +5,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.local.entity.FeatureFlagEntity
-import de.rafaelbeckmann.hvkclient.data.local.entity.UserCourseEntity
-import de.rafaelbeckmann.hvkclient.data.local.entity.UserMarkEntity
+import de.rafaelbeckmann.hvkclient.features.courses.data.UserCourseEntity
+import de.rafaelbeckmann.hvkclient.features.courses.data.UserMarkEntity
 import de.rafaelbeckmann.hvkclient.features.vp.data.VpDayEntity
 import de.rafaelbeckmann.hvkclient.features.vp.data.VpDayInfoItem
 import de.rafaelbeckmann.hvkclient.features.vp.data.VpSelectedCourseEntity

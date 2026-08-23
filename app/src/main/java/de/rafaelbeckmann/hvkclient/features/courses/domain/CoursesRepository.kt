@@ -1,9 +1,7 @@
-package de.rafaelbeckmann.hvkclient.domain.repository
+package de.rafaelbeckmann.hvkclient.features.courses.domain
 
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
-import de.rafaelbeckmann.hvkclient.domain.model.UserCourse
-import de.rafaelbeckmann.hvkclient.domain.model.UserMark
 import kotlinx.coroutines.flow.Flow
 
 interface CoursesRepository {

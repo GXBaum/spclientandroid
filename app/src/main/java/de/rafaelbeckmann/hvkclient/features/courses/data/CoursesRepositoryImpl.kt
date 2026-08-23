@@ -1,4 +1,4 @@
-package de.rafaelbeckmann.hvkclient.data.repository
+package de.rafaelbeckmann.hvkclient.features.courses.data
 
 import androidx.room.withTransaction
 import de.rafaelbeckmann.hvkclient.core.database.AppDatabase
@@ -7,13 +7,10 @@ import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
 import de.rafaelbeckmann.hvkclient.core.domain.asEmptyDataResult
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
-import de.rafaelbeckmann.hvkclient.data.remote.CoursesRemoteDataSource
 import de.rafaelbeckmann.hvkclient.data.remote.PayloadDecoder
-import de.rafaelbeckmann.hvkclient.data.toDomain
-import de.rafaelbeckmann.hvkclient.data.toEntity
-import de.rafaelbeckmann.hvkclient.domain.model.UserCourse
-import de.rafaelbeckmann.hvkclient.domain.model.UserMark
-import de.rafaelbeckmann.hvkclient.domain.repository.CoursesRepository
+import de.rafaelbeckmann.hvkclient.features.courses.domain.CoursesRepository
+import de.rafaelbeckmann.hvkclient.features.courses.domain.UserCourse
+import de.rafaelbeckmann.hvkclient.features.courses.domain.UserMark
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
