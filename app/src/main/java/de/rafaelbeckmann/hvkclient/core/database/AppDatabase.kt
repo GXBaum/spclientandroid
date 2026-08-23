@@ -7,10 +7,10 @@ import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.local.entity.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.data.local.entity.UserCourseEntity
 import de.rafaelbeckmann.hvkclient.data.local.entity.UserMarkEntity
-import de.rafaelbeckmann.hvkclient.data.local.entity.VpDayEntity
-import de.rafaelbeckmann.hvkclient.data.local.entity.VpDayInfoItem
-import de.rafaelbeckmann.hvkclient.data.local.entity.VpSelectedCourseEntity
-import de.rafaelbeckmann.hvkclient.data.local.entity.VpSubstitutionEntity
+import de.rafaelbeckmann.hvkclient.features.vp.data.VpDayEntity
+import de.rafaelbeckmann.hvkclient.features.vp.data.VpDayInfoItem
+import de.rafaelbeckmann.hvkclient.features.vp.data.VpSelectedCourseEntity
+import de.rafaelbeckmann.hvkclient.features.vp.data.VpSubstitutionEntity
 
 @Database(
     entities = [

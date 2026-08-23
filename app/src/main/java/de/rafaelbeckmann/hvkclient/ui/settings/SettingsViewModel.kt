@@ -12,12 +12,12 @@ import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.OtherStuffRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
-import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
+import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
+import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

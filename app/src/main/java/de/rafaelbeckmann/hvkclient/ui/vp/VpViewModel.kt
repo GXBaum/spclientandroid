@@ -6,10 +6,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
-import de.rafaelbeckmann.hvkclient.domain.model.VpDays
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
-import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
+import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
+import de.rafaelbeckmann.hvkclient.features.vp.domain.VpDays
+import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

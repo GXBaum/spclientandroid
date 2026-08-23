@@ -1,12 +1,8 @@
-package de.rafaelbeckmann.hvkclient.data.remote
+package de.rafaelbeckmann.hvkclient.features.vp.data
 
 import de.rafaelbeckmann.hvkclient.core.data.safeCall
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.Result
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCourseSearchResponse
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpResponse
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCoursesResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
 import io.ktor.client.request.get

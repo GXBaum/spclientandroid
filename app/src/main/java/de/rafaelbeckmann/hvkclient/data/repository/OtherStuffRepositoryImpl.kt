@@ -3,12 +3,12 @@ package de.rafaelbeckmann.hvkclient.data.repository
 import androidx.room.withTransaction
 import com.google.firebase.Firebase
 import com.google.firebase.messaging.messaging
+import de.rafaelbeckmann.hvkclient.core.database.AppDatabase
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
 import de.rafaelbeckmann.hvkclient.core.domain.Result
 import de.rafaelbeckmann.hvkclient.core.domain.asEmptyDataResult
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.core.database.AppDatabase
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.remote.OtherStuffRemoteDataSource
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response

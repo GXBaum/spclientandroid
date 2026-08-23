@@ -11,7 +11,7 @@ import de.rafaelbeckmann.hvkclient.PushNotificationService.Companion.CHANNEL_VP_
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
-import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
+import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
 import kotlinx.coroutines.flow.first
 
 // TODO: improve this (mehrere API calls, mehr Sachen synchronisieren)

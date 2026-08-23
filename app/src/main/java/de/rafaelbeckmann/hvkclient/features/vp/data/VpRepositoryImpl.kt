@@ -1,21 +1,17 @@
-package de.rafaelbeckmann.hvkclient.data.repository
+package de.rafaelbeckmann.hvkclient.features.vp.data
 
 import androidx.room.withTransaction
+import de.rafaelbeckmann.hvkclient.core.database.AppDatabase
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
 import de.rafaelbeckmann.hvkclient.core.domain.Result
 import de.rafaelbeckmann.hvkclient.core.domain.asEmptyDataResult
 import de.rafaelbeckmann.hvkclient.core.domain.map
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.core.database.AppDatabase
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
-import de.rafaelbeckmann.hvkclient.data.mapEntitiesToVpDays
-import de.rafaelbeckmann.hvkclient.data.remote.VpRemoteDataSource
-import de.rafaelbeckmann.hvkclient.data.toDomain
-import de.rafaelbeckmann.hvkclient.data.toEntity
-import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
-import de.rafaelbeckmann.hvkclient.domain.model.VpDays
-import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
+import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
+import de.rafaelbeckmann.hvkclient.features.vp.domain.VpDays
+import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map

@@ -10,14 +10,14 @@ import de.rafaelbeckmann.hvkclient.data.repository.EncryptedUserPreferencesRepos
 import de.rafaelbeckmann.hvkclient.data.repository.OtherStuffRepositoryImpl
 import de.rafaelbeckmann.hvkclient.data.repository.SettingsRepositoryImpl
 import de.rafaelbeckmann.hvkclient.data.repository.SpRepositoryTestImpl
-import de.rafaelbeckmann.hvkclient.data.repository.VpRepositoryImpl
 import de.rafaelbeckmann.hvkclient.domain.repository.AuthRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.CoursesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.OtherStuffRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
-import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
+import de.rafaelbeckmann.hvkclient.features.vp.data.VpRepositoryImpl
+import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
 import javax.inject.Singleton
 
 @Module
