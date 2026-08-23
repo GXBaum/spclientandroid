@@ -57,6 +57,7 @@ object NetworkModule {
             }
             install(Auth) {
                 bearer {
+                    //sendWithoutRequest { true } // TODO: not sure if I need this, i think it works without it, Agent wants it though
                     loadTokens {
                         val accessToken = settingsRepository.getAccessToken() ?: return@loadTokens null
                         val refreshToken = settingsRepository.getRefreshToken()

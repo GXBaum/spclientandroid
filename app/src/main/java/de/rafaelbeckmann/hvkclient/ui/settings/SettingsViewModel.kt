@@ -9,13 +9,12 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.UserPreferences
-import de.rafaelbeckmann.hvkclient.data.Resource
 import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
 import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onError
 import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
-import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.OtherStuffRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
 import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
@@ -23,7 +22,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -47,8 +45,8 @@ data class SettingsScreenState(
 
 @HiltViewModel
 open class SettingsViewModel @Inject constructor(
-    private val repository: HvkRepository,
     private val vpRepository: VpRepository,
+    private val otherRepository: OtherStuffRepository,
     private val settingsRepository: SettingsRepository,
     open val prefUtils: PrefUtils,
 
@@ -253,7 +251,7 @@ open class SettingsViewModel @Inject constructor(
     fun clearCache(context: Context) {
         viewModelScope.launch {
             try {
-                repository.clearCache()
+                otherRepository.clearCache()
                 Toast.makeText(context, "Cache geleert", Toast.LENGTH_SHORT).show()
                 Log.d("SettingsViewModel", "Cache cleared successfully")
             } catch (e: Exception) {
@@ -297,7 +295,7 @@ open class SettingsViewModel @Inject constructor(
             val formattedCookie = settingsScreenState.value.spAuthTest.map { cookie -> cookie.toString().split(";")[0] }.joinToString("; ")
             Log.d("TEST", formattedCookie)
 
-            repository.postSpAuthCookie(
+            otherRepository.postSpAuthCookie(
                 settingsScreenState.value.spAuthTest
             )
         }
@@ -305,7 +303,7 @@ open class SettingsViewModel @Inject constructor(
 
     fun getSpTest() {
         viewModelScope.launch {
-            repository.getSpTest()
+            otherRepository.getSpTest()
         }
     }
 

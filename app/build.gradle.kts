@@ -83,13 +83,9 @@ dependencies {
     implementation(libs.firebase.messaging)
 
     //Retrofit
-    implementation(libs.retrofit)
     implementation(libs.okhttp)
-    implementation(libs.converter.moshi)
     implementation(libs.okhttp.urlconnection)
 
-
-    implementation(libs.moshi.kotlin)
 
     // TODO: maybe change to debugImplementation
     implementation(libs.logging.interceptor)

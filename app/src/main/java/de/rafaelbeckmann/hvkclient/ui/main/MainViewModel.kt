@@ -2,55 +2,27 @@ package de.rafaelbeckmann.hvkclient.ui.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Firebase
-import com.google.firebase.messaging.messaging
 import dagger.hilt.android.lifecycle.HiltViewModel
-import de.rafaelbeckmann.hvkclient.PrefUtils
-import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.domain.repository.AuthRepository
-import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
-import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onError
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
+import de.rafaelbeckmann.hvkclient.domain.repository.OtherStuffRepository
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val repository: HvkRepository,
-    private val authRepository: AuthRepository,
-    private val settingsRepository: SettingsRepository,
-    val prefUtils: PrefUtils
+    private val otherRepository: OtherStuffRepository
 ) : ViewModel() {
-
     fun migrateDevV1(userId: Number, refreshToken: String) {
-        repository.devV1Migration(userId, refreshToken).onEach { result ->
-            when (result) {
-                is Resource.Loading -> {
-                    //_loginState.value = LoginState.Loading
-                }
-                is Resource.Success -> {
-                    result.data?.let { response ->
-                        viewModelScope.launch {
-                            settingsRepository.setAccessToken(response.token)
-                            settingsRepository.setUserId(response.id)
-                            settingsRepository.setOnboardingCompleted(true)
 
-                            // TODO: Firebase.messaging.token.await() auch ins repo?
-                            val fcmToken = Firebase.messaging.token.await()
-                            authRepository.addNotificationToken(fcmToken)
+        viewModelScope.launch {
+            otherRepository.devV1Migration(userId, refreshToken)
+                .onSuccess {
 
-                            //_loginState.value = LoginState.Success
-                        }
-                    } ?: run {
-                        //_loginState.value = LoginState.Error("Create account response was empty.")
-                    }
                 }
-                is Resource.Error -> {
-                    //_loginState.value = LoginState.Error(result.message ?: "Ein unbekannter Fehler ist aufgetreten.")
+                .onError {
+
                 }
-            }
-        }.launchIn(viewModelScope)
+        }
     }
 }

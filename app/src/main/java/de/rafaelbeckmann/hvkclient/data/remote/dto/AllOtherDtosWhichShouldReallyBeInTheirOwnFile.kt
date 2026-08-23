@@ -1,6 +1,5 @@
 package de.rafaelbeckmann.hvkclient.data.remote.dto
 
-import com.squareup.moshi.Json
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -82,7 +81,7 @@ data class NetworkVpSubstitution(
     val replacement: String,
     val description: String,
     val isDeleted: Boolean,
-    @SerialName("VpType") @param:Json(name = "VpType") val vpType: String,
+    @SerialName("VpType") val vpType: String,
     val courseName: String,
 
     val targetDate: String,
