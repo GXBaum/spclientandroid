@@ -5,7 +5,6 @@ import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkFeatureFlag
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkRefreshTokenRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkRefreshTokenResponse
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
 import retrofit2.Response
 import retrofit2.http.Body
@@ -20,11 +19,6 @@ interface HvkClientApi {
     suspend fun refreshToken(
         @Body request: NetworkRefreshTokenRequest
     ): Response<NetworkRefreshTokenResponse>
-
-    @POST("users/me/notification-token")
-    suspend fun updateToken(
-        @Body tokenUpdate: NetworkTokenUpdateRequest
-    ): Response<Any>
 
     @GET("featureFlags")
     suspend fun getFeatureFlags(

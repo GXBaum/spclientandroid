@@ -11,7 +11,6 @@ import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
 import de.rafaelbeckmann.hvkclient.data.remote.PayloadDecoder
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
 import de.rafaelbeckmann.hvkclient.data.toDomain
 import de.rafaelbeckmann.hvkclient.data.toEntity
@@ -84,19 +83,6 @@ class HvkRepositoryImpl @Inject constructor(
                 )
             )
             emitAll(query().map { Error(e.message ?: "Unknown error", it) })
-        }
-    }
-
-    override suspend fun updateToken(tokenUpdateRequest: NetworkTokenUpdateRequest): Result<Unit> {
-        return try {
-            val response = api.updateToken(tokenUpdateRequest)
-            if (response.isSuccessful) {
-                Result.success(Unit)
-            } else {
-                Result.failure(IOException("Failed to update token: ${response.code()}"))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
 
