@@ -1,7 +1,7 @@
 package de.rafaelbeckmann.hvkclient.domain.repository
 
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.EmptyResult
+import de.rafaelbeckmann.hvkclient.core.domain.DataError
+import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
 import de.rafaelbeckmann.hvkclient.domain.model.UserCourse
 import de.rafaelbeckmann.hvkclient.domain.model.UserMark
 import kotlinx.coroutines.flow.Flow

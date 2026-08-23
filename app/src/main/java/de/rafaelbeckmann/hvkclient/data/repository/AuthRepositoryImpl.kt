@@ -1,12 +1,12 @@
 package de.rafaelbeckmann.hvkclient.data.repository
 
+import de.rafaelbeckmann.hvkclient.core.domain.DataError
+import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
+import de.rafaelbeckmann.hvkclient.core.domain.asEmptyDataResult
+import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.remote.AuthRemoteDataSource
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.EmptyResult
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.asEmptyDataResult
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.repository.AuthRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import javax.inject.Inject

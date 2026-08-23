@@ -1,9 +1,9 @@
-package de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial
+package de.rafaelbeckmann.hvkclient.core.domain
 
 // from Philipp Lackner Tutorial (https://github.com/philipplackner/CMP-Ktor)
 sealed interface Result<out D, out E: Error> {
     data class Success<out D>(val data: D): Result<D, Nothing>
-    data class Error<out E: de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.Error>(val error: E): Result<Nothing, E>
+    data class Error<out E: de.rafaelbeckmann.hvkclient.core.domain.Error>(val error: E): Result<Nothing, E>
 }
 
 inline fun <T, E: Error, R> Result<T, E>.map(map: (T) -> R): Result<R, E> {

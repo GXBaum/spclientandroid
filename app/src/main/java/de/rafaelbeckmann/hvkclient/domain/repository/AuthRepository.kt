@@ -1,7 +1,7 @@
 package de.rafaelbeckmann.hvkclient.domain.repository
 
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.EmptyResult
+import de.rafaelbeckmann.hvkclient.core.domain.DataError
+import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
 
 interface AuthRepository {
     suspend fun createAccount(): EmptyResult<DataError>

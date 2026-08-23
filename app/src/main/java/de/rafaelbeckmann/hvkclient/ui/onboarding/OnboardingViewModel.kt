@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
 import com.google.firebase.messaging.messaging
 import dagger.hilt.android.lifecycle.HiltViewModel
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onError
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
+import de.rafaelbeckmann.hvkclient.core.domain.onError
+import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

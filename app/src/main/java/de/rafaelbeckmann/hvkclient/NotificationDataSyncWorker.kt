@@ -8,8 +8,8 @@ import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import de.rafaelbeckmann.hvkclient.PushNotificationService.Companion.CHANNEL_VP_UPDATES
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onError
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
+import de.rafaelbeckmann.hvkclient.core.domain.onError
+import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.VpRepository
 import kotlinx.coroutines.flow.first

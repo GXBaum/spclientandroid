@@ -1,5 +1,7 @@
-package de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial
+package de.rafaelbeckmann.hvkclient.core.data
 
+import de.rafaelbeckmann.hvkclient.core.domain.DataError
+import de.rafaelbeckmann.hvkclient.core.domain.Result
 import io.ktor.client.call.NoTransformationFoundException
 import io.ktor.client.call.body
 import io.ktor.client.network.sockets.SocketTimeoutException

@@ -1,13 +1,13 @@
 package de.rafaelbeckmann.hvkclient.data.remote
 
+import de.rafaelbeckmann.hvkclient.core.data.safeCall
+import de.rafaelbeckmann.hvkclient.core.domain.DataError
+import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
+import de.rafaelbeckmann.hvkclient.core.domain.Result
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCookie
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkFeatureFlag
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.EmptyResult
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.Result
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.safeCall
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter

@@ -1,4 +1,4 @@
-package de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial
+package de.rafaelbeckmann.hvkclient.core.domain
 
 sealed interface DataError: Error {
     enum class Remote: DataError {

@@ -1,16 +1,16 @@
 package de.rafaelbeckmann.hvkclient.data.repository
 
 import androidx.room.withTransaction
+import de.rafaelbeckmann.hvkclient.core.domain.DataError
+import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
+import de.rafaelbeckmann.hvkclient.core.domain.Result
+import de.rafaelbeckmann.hvkclient.core.domain.asEmptyDataResult
+import de.rafaelbeckmann.hvkclient.core.domain.map
+import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.mapEntitiesToVpDays
 import de.rafaelbeckmann.hvkclient.data.remote.VpRemoteDataSource
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.EmptyResult
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.Result
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.asEmptyDataResult
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.map
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
 import de.rafaelbeckmann.hvkclient.data.toDomain
 import de.rafaelbeckmann.hvkclient.data.toEntity
 import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse

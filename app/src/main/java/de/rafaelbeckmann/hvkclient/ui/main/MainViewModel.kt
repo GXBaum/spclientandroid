@@ -3,8 +3,8 @@ package de.rafaelbeckmann.hvkclient.ui.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onError
-import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
+import de.rafaelbeckmann.hvkclient.core.domain.onError
+import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.repository.OtherStuffRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
