@@ -1,5 +1,6 @@
 package de.rafaelbeckmann.hvkclient.data.remote
 
+import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCourseSearchResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCoursesResponse
@@ -9,6 +10,7 @@ import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.safeCall
 import io.ktor.client.HttpClient
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import javax.inject.Inject
@@ -55,6 +57,16 @@ class VpRemoteDataSource @Inject constructor(
                 "vp/enrolled/$courseId"
             ) {
 
+            }
+        }
+    }
+
+    suspend fun searchCourses(query: String): Result<NetworkCourseSearchResponse, DataError.Remote> {
+        return safeCall {
+            httpClient.get(
+                "vp/courses"
+            ) {
+                parameter("search", query)
             }
         }
     }

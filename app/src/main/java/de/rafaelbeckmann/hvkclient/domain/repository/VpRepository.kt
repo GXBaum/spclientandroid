@@ -2,6 +2,7 @@ package de.rafaelbeckmann.hvkclient.domain.repository
 
 import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
 import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.EmptyResult
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.Result
 import de.rafaelbeckmann.hvkclient.domain.model.SelectedCourse
 import de.rafaelbeckmann.hvkclient.domain.model.VpDays
 import kotlinx.coroutines.flow.Flow
@@ -15,4 +16,6 @@ interface VpRepository {
 
     fun observeSubstitutions(courseNames: List<String>): Flow<VpDays>
     suspend fun refreshSubstitutions(courseNames: List<String>): EmptyResult<DataError>
+
+    suspend fun searchCourses(query: String): Result<List<String>, DataError>
 }

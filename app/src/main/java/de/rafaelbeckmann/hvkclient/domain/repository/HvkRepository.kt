@@ -8,8 +8,6 @@ import okhttp3.Cookie
 
 interface HvkRepository {
 
-    fun getCourseSearch(courseName: String): Flow<Resource<List<String>>>
-
     fun getFeatureFlags(): Flow<Resource<FeatureFlag>>
 
     suspend fun postSpAuthCookie(authCookie: List<Cookie>): Result<Unit>

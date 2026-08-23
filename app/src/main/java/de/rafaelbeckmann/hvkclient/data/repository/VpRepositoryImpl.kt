@@ -9,6 +9,7 @@ import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
 import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.EmptyResult
 import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.Result
 import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.asEmptyDataResult
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.map
 import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
 import de.rafaelbeckmann.hvkclient.data.toDomain
 import de.rafaelbeckmann.hvkclient.data.toEntity
@@ -94,5 +95,10 @@ class VpRepositoryImpl @Inject constructor(
                 }
             }
             .asEmptyDataResult()
+    }
+
+    override suspend fun searchCourses(query: String): Result<List<String>, DataError> {
+        return remoteDataSource.searchCourses(query)
+            .map { response -> response.courses.map { it.name } }
     }
 }

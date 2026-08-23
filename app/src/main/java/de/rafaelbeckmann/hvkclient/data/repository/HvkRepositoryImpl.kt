@@ -86,22 +86,6 @@ class HvkRepositoryImpl @Inject constructor(
         }
     }
 
-    // TODO: vielleicht nicht direkt be jedem buchstaben suchen
-    override fun getCourseSearch(courseName: String): Flow<Resource<List<String>>> = flow {
-        emit(Loading())
-        try {
-            val response = api.getCourseSearch(courseName)
-            if (response.isSuccessful) {
-                val courses = response.body()?.courses ?: emptyList()
-                emit(Success(courses.map { course -> course.name }))
-            } else {
-                emit(Error("Course search failed: ${response.code()} ${response.message()}"))
-            }
-        } catch (e: Exception) {
-            emit(Error(e.message ?: "Unknown error"))
-        }
-    }
-
     override fun getFeatureFlags(): Flow<Resource<FeatureFlag>> {
         return networkBoundResource(
             query = {

@@ -195,45 +195,34 @@ open class SettingsViewModel @Inject constructor(
 
     // TODO: maybe don't search for every letter and cache?
     fun searchCourses(courseName: String) {
-        repository.getCourseSearch(courseName).onEach { result ->
-            when (result) {
-                is Resource.Loading -> {
-                    result.data?.let {
-                        _courseSearch.value = it
-                    }
-
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = true,
-                        courseSearch = result.data ?: settingsScreenState.value.courseSearch
-                    )
-                }
-                is Resource.Success -> {
-                    _courseSearch.value = result.data ?: emptyList()
-
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = false,
-                        error = null,
-                        courseSearch = result.data ?: emptyList()
-                    )
-                }
-                is Resource.Error -> {
-                    result.data?.let {
-                        _courseSearch.value = it
-                    }
-
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = false,
-                        error = result.message,
-                        courseSearch = result.data ?: settingsScreenState.value.courseSearch
-                    )
-                }
+        viewModelScope.launch {
+            _settingsScreenState.update {
+                it.copy(isLoading = true, error = null)
             }
-        }.catch { exception ->
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isLoading = false,
-                error = exception.message,
-            )
-        }.launchIn(viewModelScope)
+
+            vpRepository.searchCourses(courseName)
+                .onError { error ->
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = when (error) {
+                                DataError.Remote.NO_INTERNET -> "kein Internet"
+                                else -> "Klassensuche fehlgeschlagen"
+                            }
+                        )
+                    }
+                }
+                .onSuccess { courses ->
+                    _courseSearch.value = courses
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = null,
+                            courseSearch = courses
+                        )
+                    }
+                }
+
+            _settingsScreenState.update { it.copy(isLoading = false) }
+        }
     }
 
 
