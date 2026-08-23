@@ -4,12 +4,14 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import de.rafaelbeckmann.hvkclient.data.repository.AuthRepositoryImpl
 import de.rafaelbeckmann.hvkclient.data.repository.CoursesRepositoryImpl
 import de.rafaelbeckmann.hvkclient.data.repository.EncryptedUserPreferencesRepositoryImpl
 import de.rafaelbeckmann.hvkclient.data.repository.HvkRepositoryImpl
 import de.rafaelbeckmann.hvkclient.data.repository.SettingsRepositoryImpl
 import de.rafaelbeckmann.hvkclient.data.repository.SpRepositoryTestImpl
 import de.rafaelbeckmann.hvkclient.data.repository.VpRepositoryImpl
+import de.rafaelbeckmann.hvkclient.domain.repository.AuthRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.CoursesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
@@ -39,6 +41,12 @@ abstract class RepositoryModule {
     abstract fun bindVpRepository(
         impl: VpRepositoryImpl
     ): VpRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        impl: AuthRepositoryImpl
+    ): AuthRepository
 
     @Binds
     @Singleton

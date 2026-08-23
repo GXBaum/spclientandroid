@@ -33,7 +33,6 @@ class VpRemoteDataSource @Inject constructor(
             httpClient.get(
                 "vp/enrolled"
             ) {
-                "vp/enrolled"
             }
         }
     }

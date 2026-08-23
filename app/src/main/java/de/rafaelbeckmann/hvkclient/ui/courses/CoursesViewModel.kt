@@ -4,6 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.PrefUtils
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onError
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.model.UserCourse
 import de.rafaelbeckmann.hvkclient.domain.repository.CoursesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
@@ -57,12 +60,18 @@ class CoursesViewModel @Inject constructor(
             }
 
             coursesRepository.refreshCourses()
-                .onFailure { exception ->
+                .onError { error ->
                     _uiState.update {
                         it.copy(
-                            error = exception.message ?: "Kurse konnten nicht aktualisiert werden"
+                            error = when (error) {
+                                DataError.Remote.NO_INTERNET -> "kein Internet"
+                                else -> "Kurse konnten nicht geladen werden"
+                            }
                         )
                     }
+                }
+                .onSuccess {
+                    _uiState.update { it.copy(error = null) }
                 }
 
             _uiState.update { it.copy(isLoading = false) }

@@ -1,8 +1,6 @@
 package de.rafaelbeckmann.hvkclient.domain.repository
 
 import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountResponse
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.domain.model.FeatureFlag
@@ -10,10 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import okhttp3.Cookie
 
 interface HvkRepository {
-
-    fun createAccount(): Flow<Resource<NetworkCreateAccountResponse>>
-
-    fun login(username: String, password: String): Flow<Resource<NetworkLoginResponse>>
 
     /**
      * Updates the FCM token for a user on the server

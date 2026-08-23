@@ -10,10 +10,6 @@ import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.remote.HvkClientApi
 import de.rafaelbeckmann.hvkclient.data.remote.PayloadDecoder
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountRequest
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountResponse
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginRequest
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
 import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import de.rafaelbeckmann.hvkclient.data.remote.dto.SpAuthCookieRequest
@@ -88,34 +84,6 @@ class HvkRepositoryImpl @Inject constructor(
                 )
             )
             emitAll(query().map { Error(e.message ?: "Unknown error", it) })
-        }
-    }
-
-    override fun createAccount(): Flow<Resource<NetworkCreateAccountResponse>> = flow {
-        emit(Loading())
-        try {
-            val response = api.createAccount(NetworkCreateAccountRequest())
-            if (response.isSuccessful && response.body() != null) {
-                emit(Success(response.body()!!))
-            } else {
-                emit(Error("Account creation failed: ${response.code()} ${response.message()}"))
-            }
-        } catch (e: Exception) {
-            emit(Error(e.message ?: "An unknown error occurred"))
-        }
-    }
-
-    override fun login(username: String, password: String): Flow<Resource<NetworkLoginResponse>> = flow {
-        emit(Loading())
-        try {
-            val response = api.login(NetworkLoginRequest(username, password))
-            if (response.isSuccessful && response.body() != null) {
-                emit(Success(response.body()!!))
-            } else {
-                emit(Error("Login failed: ${response.code()} ${response.message()}"))
-            }
-        } catch (e: Exception) {
-            emit(Error(e.message ?: "An unknown error occurred"))
         }
     }
 

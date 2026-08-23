@@ -31,12 +31,12 @@ data class VpScreenState(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-open class VpViewModel @Inject constructor(
+class VpViewModel @Inject constructor(
     private val vpRepository: VpRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
     private val _vpScreenState = MutableStateFlow(VpScreenState())
-    open val vpScreenState: StateFlow<VpScreenState> = _vpScreenState.asStateFlow()
+    val vpScreenState: StateFlow<VpScreenState> = _vpScreenState.asStateFlow()
 
 
     // TODO: Wenn man aktualisiert, werden manchmal die alten Daten angezeigt, auch wenn es die nicht mehr gibt.

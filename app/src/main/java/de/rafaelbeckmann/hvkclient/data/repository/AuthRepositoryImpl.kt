@@ -1,0 +1,48 @@
+package de.rafaelbeckmann.hvkclient.data.repository
+
+import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
+import de.rafaelbeckmann.hvkclient.data.local.CacheDao
+import de.rafaelbeckmann.hvkclient.data.remote.AuthRemoteDataSource
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.DataError
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.EmptyResult
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.asEmptyDataResult
+import de.rafaelbeckmann.hvkclient.data.remote.philliplacknertutorial.onSuccess
+import de.rafaelbeckmann.hvkclient.domain.repository.AuthRepository
+import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import javax.inject.Inject
+
+class AuthRepositoryImpl @Inject constructor(
+    private val remoteDataSource: AuthRemoteDataSource,
+    private val cacheDao: CacheDao,
+    private val database: AppDatabase,
+    private val settingsRepository: SettingsRepository
+) : AuthRepository {
+    override suspend fun createAccount(): EmptyResult<DataError> {
+        return remoteDataSource.postAccount()
+            .onSuccess {
+                // yup this code sucks
+                settingsRepository.setAccessToken(it.token)
+                settingsRepository.setRefreshToken(it.refreshToken)
+                settingsRepository.setUserId(it.id)
+                settingsRepository.setOnboardingCompleted(true)
+            }
+            .asEmptyDataResult()
+    }
+
+    override suspend fun login(username: String, password: String): EmptyResult<DataError> {
+        return remoteDataSource.login(username, password)
+            .onSuccess {
+                // ...und... NOCH EIN FATALER CODE BLOCK
+                settingsRepository.setAccessToken(it.accessToken)
+                settingsRepository.setRefreshToken(it.refreshToken)
+                settingsRepository.setUserId(it.userId)
+                settingsRepository.setOnboardingCompleted(true)
+            }
+            .asEmptyDataResult()
+    }
+
+    override suspend fun addNotificationToken(token: String): EmptyResult<DataError> {
+        return remoteDataSource.postFcmToken(token)
+    }
+
+}
