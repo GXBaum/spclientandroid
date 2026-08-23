@@ -4,7 +4,7 @@ import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
 import de.rafaelbeckmann.hvkclient.core.domain.asEmptyDataResult
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
+import de.rafaelbeckmann.hvkclient.core.database.AppDatabase
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.remote.AuthRemoteDataSource
 import de.rafaelbeckmann.hvkclient.domain.repository.AuthRepository

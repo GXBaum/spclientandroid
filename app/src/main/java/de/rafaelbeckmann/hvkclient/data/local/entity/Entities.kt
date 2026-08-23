@@ -86,16 +86,3 @@ data class VpDayWithInfo(
     )
     val info: List<VpDayInfoItem>
 )
-
-// TODO: maybe move this
-class Converters {
-    @TypeConverter
-    fun fromEpochMillis(value: Long?): Instant? {
-        return value?.let { Instant.fromEpochMilliseconds(it) }
-    }
-
-    @TypeConverter
-    fun instantToEpochMillis(value: Instant?): Long? {
-        return value?.toEpochMilliseconds()
-    }
-}

@@ -1,9 +1,9 @@
-package de.rafaelbeckmann.hvkclient.data.local
+package de.rafaelbeckmann.hvkclient.core.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import de.rafaelbeckmann.hvkclient.data.local.entity.Converters
+import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.local.entity.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.data.local.entity.UserCourseEntity
 import de.rafaelbeckmann.hvkclient.data.local.entity.UserMarkEntity
