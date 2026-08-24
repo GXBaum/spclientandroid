@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpSubstitution
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpType
+import de.rafaelbeckmann.hvkclient.features.vp.presentation.VpViewModel
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem

@@ -1,4 +1,4 @@
-package de.rafaelbeckmann.hvkclient.ui.coursedetail
+package de.rafaelbeckmann.hvkclient.features.courses.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

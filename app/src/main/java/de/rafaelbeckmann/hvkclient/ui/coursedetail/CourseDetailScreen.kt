@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.features.courses.domain.UserMark
+import de.rafaelbeckmann.hvkclient.features.courses.presentation.CourseDetailViewModel
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.rememberSmartCollapseTopAppBarBehavior

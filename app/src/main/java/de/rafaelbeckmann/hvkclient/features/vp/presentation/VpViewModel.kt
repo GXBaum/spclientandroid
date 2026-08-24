@@ -1,4 +1,4 @@
-package de.rafaelbeckmann.hvkclient.ui.vp
+package de.rafaelbeckmann.hvkclient.features.vp.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

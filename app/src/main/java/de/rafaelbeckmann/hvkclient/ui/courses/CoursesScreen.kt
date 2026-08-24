@@ -26,6 +26,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.features.courses.domain.UserCourse
+import de.rafaelbeckmann.hvkclient.features.courses.presentation.CoursesViewModel
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
