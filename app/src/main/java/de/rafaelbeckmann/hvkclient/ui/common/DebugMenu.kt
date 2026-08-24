@@ -34,7 +34,7 @@ fun DebugMenu(
 ) {
     val state by viewModel.settingsScreenState.collectAsState()
 
-    val isDeveloper by viewModel.isDeveloper
+    val isDeveloper = state.isDeveloper
     val userId = state.userId
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -42,7 +42,14 @@ fun DebugMenu(
 
     Column {
         TextButton(
-            onClick = { viewModel.toggleDeveloperMode(context) }
+            onClick = {
+                viewModel.toggleDeveloperMode()
+                Toast.makeText(
+                    context,
+                    if (!isDeveloper) "Du bist jetzt im Debug Modus (No Diddy)" else "Du bist jetzt wieder im normalen Modus",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         ) {
             Text (
                 text = if(!isDeveloper) "nichts außer Leere..." else "Tippen, um den Entwicklermodus zu deaktivieren.",
@@ -79,7 +86,10 @@ fun DebugMenu(
                 ) { Text("Onboarding Completed zurücksetzen") }
 
                 OutlinedButton(
-                    onClick = { viewModel.clearCache(context) },
+                    onClick = {
+                        viewModel.clearCache()
+                        Toast.makeText(context, "Cache geleert hoffentlich", Toast.LENGTH_SHORT).show()
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("Cache leeren") }
 

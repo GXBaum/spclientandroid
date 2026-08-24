@@ -4,6 +4,8 @@ import android.util.Log
 import de.rafaelbeckmann.hvkclient.di.AppModule
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
+import de.rafaelbeckmann.hvkclient.features.other.data.NetworkCookie
+import de.rafaelbeckmann.hvkclient.features.other.data.toDomain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -20,7 +22,7 @@ class SpRepositoryTestImpl @Inject constructor(
     private val encryptedUserPreferencesRepository: EncryptedUserPreferencesRepository
 ) : SpRepositoryTest {
 
-    override suspend fun getSpAuthCookiesTest(): List<Cookie> = withContext(Dispatchers.IO) {
+    override suspend fun getSpAuthCookiesTest(): List<NetworkCookie> = withContext(Dispatchers.IO) {
 
         val schoolId = 6078
 
@@ -73,6 +75,6 @@ class SpRepositoryTestImpl @Inject constructor(
             Log.d("TEST", "Authentication failed. Invalid credentials? (Missing 'sid')")
         }
 
-        return@withContext returnVal
+        return@withContext returnVal.map { it.toDomain() }
     }
 }

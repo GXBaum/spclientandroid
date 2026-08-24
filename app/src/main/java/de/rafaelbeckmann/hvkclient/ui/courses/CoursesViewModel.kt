@@ -3,7 +3,6 @@ package de.rafaelbeckmann.hvkclient.ui.courses
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
@@ -28,7 +27,6 @@ data class CoursesUiState(
 @HiltViewModel
 class CoursesViewModel @Inject constructor(
     private val coursesRepository: CoursesRepository,
-    val prefUtils: PrefUtils,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 

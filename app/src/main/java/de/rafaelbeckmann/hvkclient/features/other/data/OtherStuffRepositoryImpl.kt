@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import okhttp3.Cookie
 import javax.inject.Inject
 
 class OtherStuffRepositoryImpl @Inject constructor(
@@ -57,8 +56,8 @@ class OtherStuffRepositoryImpl @Inject constructor(
         return remoteDataSource.getSpTest()
     }
 
-    override suspend fun postSpAuthCookie(authCookie: List<Cookie>): EmptyResult<DataError> {
-        return remoteDataSource.postSpAuthCookie("", authCookie.map { it.toDomain() })
+    override suspend fun postSpAuthCookie(authCookie: List<NetworkCookie>): EmptyResult<DataError> {
+        return remoteDataSource.postSpAuthCookie("", authCookie)
     }
 
     override suspend fun devV1Migration(

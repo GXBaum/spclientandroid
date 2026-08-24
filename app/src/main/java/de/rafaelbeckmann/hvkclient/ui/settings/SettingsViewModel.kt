@@ -1,13 +1,9 @@
 package de.rafaelbeckmann.hvkclient.ui.settings
 
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.onError
@@ -15,6 +11,7 @@ import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
+import de.rafaelbeckmann.hvkclient.features.other.data.NetworkCookie
 import de.rafaelbeckmann.hvkclient.features.other.domain.OtherStuffRepository
 import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
@@ -27,7 +24,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.Cookie
 import javax.inject.Inject
 
 data class SettingsScreenState(
@@ -39,7 +35,7 @@ data class SettingsScreenState(
     val useDynamicColor: Boolean? = null,
     val userId: String? = null,
 
-    val spAuthTest: List<Cookie> = emptyList(),
+    val spAuthTest: List<NetworkCookie> = emptyList(),
     val encryptedUserPreferences: UserPreferences? = null
 )
 
@@ -48,8 +44,6 @@ open class SettingsViewModel @Inject constructor(
     private val vpRepository: VpRepository,
     private val otherRepository: OtherStuffRepository,
     private val settingsRepository: SettingsRepository,
-    open val prefUtils: PrefUtils,
-
     private val spTestRepository: SpRepositoryTest,
     private val encryptedUserPreferencesRepository: EncryptedUserPreferencesRepository
 ) : ViewModel() {
@@ -60,8 +54,6 @@ open class SettingsViewModel @Inject constructor(
     private val _courseSearch = MutableStateFlow<List<String>>(emptyList())
     open val courseSearch: StateFlow<List<String>> = _courseSearch
 
-    var isDeveloper = mutableStateOf(false)
-
     // TODO ich verstehe .stateIn nicht
     val useDynamicColor: StateFlow<Boolean?> = settingsRepository
         .useDynamicColorFlow()
@@ -69,14 +61,15 @@ open class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            isDeveloper.value = settingsRepository.isDeveloper()
+            val isDev = settingsRepository.isDeveloper()
+            val userId = settingsRepository.getUserId()
 
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isDeveloper = settingsRepository.isDeveloper(),
-                userId = settingsRepository.getUserId()
-            )
-
-            Log.d("SettingsViewModel", "refreshToken: ${settingsRepository.getRefreshToken()}")
+            _settingsScreenState.update {
+                it.copy(
+                    isDeveloper = isDev,
+                    userId = userId
+                )
+            }
 
             fetchSelectedCourse()
             observeSelectedCourses()
@@ -93,7 +86,6 @@ open class SettingsViewModel @Inject constructor(
             fetchSelectedCourse()
         }
     }
-
 
     // TODO: fetcht mehrere Male
     fun fetchSelectedCourse() {
@@ -133,17 +125,16 @@ open class SettingsViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-
-
-
     fun postSelectedCourse(courseName: String) {
         if (courseName.isBlank()) return
 
         viewModelScope.launch {
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isLoading = true,
-                error = null,
-            )
+            _settingsScreenState.update {
+                it.copy(
+                    isLoading = true,
+                    error = null,
+                )
+            }
 
             vpRepository.addSelectedCourse(courseName)
                 .onError { error ->
@@ -167,10 +158,12 @@ open class SettingsViewModel @Inject constructor(
     // TODO: irgendwie mehr responsive machen
     fun deleteVpSelectedCourse(courseId: String) {
         viewModelScope.launch {
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isLoading = true,
-                error = null,
-            )
+            _settingsScreenState.update {
+                it.copy(
+                    isLoading = true,
+                    error = null,
+                )
+            }
 
             vpRepository.removeSelectedCourse(courseId)
                 .onError { error ->
@@ -223,40 +216,29 @@ open class SettingsViewModel @Inject constructor(
         }
     }
 
-
-    fun toggleDeveloperMode(context: Context) {
+    fun toggleDeveloperMode() {
         viewModelScope.launch {
-            isDeveloper.value = !isDeveloper.value
+            val newDevMode = !_settingsScreenState.value.isDeveloper
 
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isDeveloper = !settingsScreenState.value.isDeveloper
-            )
+            _settingsScreenState.update {
+                it.copy(isDeveloper = newDevMode)
+            }
 
-            settingsRepository.setIsDeveloper(isDeveloper.value)
-            Toast.makeText(
-                context,
-                if (isDeveloper.value) "Du bist jetzt im Debug Modus (No Diddy)" else "Du bist jetzt wieder im normalen Modus",
-                Toast.LENGTH_LONG
-            ).show()
+            settingsRepository.setIsDeveloper(newDevMode)
         }
     }
 
     fun resetOnboardingCompleted() {
         viewModelScope.launch {
             settingsRepository.setOnboardingCompleted(false)
-            Log.d("SettingsViewModel", "Onboarding completed reset")
         }
     }
 
-    fun clearCache(context: Context) {
+    fun clearCache() {
         viewModelScope.launch {
             try {
                 otherRepository.clearCache()
-                Toast.makeText(context, "Cache geleert", Toast.LENGTH_SHORT).show()
-                Log.d("SettingsViewModel", "Cache cleared successfully")
             } catch (e: Exception) {
-                Toast.makeText(context, "Fehler beim leeren des Caches", Toast.LENGTH_SHORT).show()
-                Log.e("SettingsViewModel", "Failed to clear cache", e)
             }
         }
     }
@@ -264,14 +246,12 @@ open class SettingsViewModel @Inject constructor(
     fun deleteAccessToken() {
         viewModelScope.launch {
             settingsRepository.setAccessToken("")
-            Log.d("SettingsViewModel", "Access token deleted")
         }
     }
 
     fun deleteRefreshToken() {
         viewModelScope.launch {
             settingsRepository.setRefreshToken("")
-            Log.d("SettingsViewModel", "Refresh token deleted")
         }
     }
 
@@ -280,10 +260,6 @@ open class SettingsViewModel @Inject constructor(
             settingsRepository.setUseDynamicColor(enabled)
         }
     }
-
-
-
-
 
     fun getSpAuthCookieTest() {
         viewModelScope.launch {
@@ -309,9 +285,9 @@ open class SettingsViewModel @Inject constructor(
 
     fun getEncryptedUserPreferences() {
         encryptedUserPreferencesRepository.getUserPreferences().onEach { result ->
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                encryptedUserPreferences = result
-            )
+            _settingsScreenState.update {
+                it.copy(encryptedUserPreferences = result)
+            }
         }.launchIn(viewModelScope)
     }
 
