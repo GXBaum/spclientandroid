@@ -126,7 +126,7 @@ fun SharedTransitionScope.VpScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 expanded = fabExpanded,
-                onClick = { onVpOpenClick(state.selectedCourses[safeSelectedIndex].name) },
+                onClick = { onVpOpenClick(state.selectedCourses.getOrNull(safeSelectedIndex)?.name) },
                 icon = {
                     Icon(
                         imageVector = Icons.Rounded.SwapHoriz,
