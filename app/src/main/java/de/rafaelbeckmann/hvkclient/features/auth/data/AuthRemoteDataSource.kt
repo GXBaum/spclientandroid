@@ -1,13 +1,9 @@
-package de.rafaelbeckmann.hvkclient.data.remote
+package de.rafaelbeckmann.hvkclient.features.auth.data
 
 import de.rafaelbeckmann.hvkclient.core.data.safeCall
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
 import de.rafaelbeckmann.hvkclient.core.domain.Result
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCreateAccountResponse
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginRequest
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkLoginResponse
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody

@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.domain.repository.OtherStuffRepository
+import de.rafaelbeckmann.hvkclient.features.other.domain.OtherStuffRepository
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

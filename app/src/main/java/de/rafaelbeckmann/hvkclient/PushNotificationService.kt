@@ -15,8 +15,8 @@ import androidx.work.workDataOf
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
-import de.rafaelbeckmann.hvkclient.domain.repository.AuthRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

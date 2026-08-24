@@ -1,4 +1,4 @@
-package de.rafaelbeckmann.hvkclient.domain.repository
+package de.rafaelbeckmann.hvkclient.features.auth.domain
 
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult

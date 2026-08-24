@@ -1,4 +1,4 @@
-package de.rafaelbeckmann.hvkclient.data.repository
+package de.rafaelbeckmann.hvkclient.features.auth.data
 
 import de.rafaelbeckmann.hvkclient.core.database.AppDatabase
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
@@ -6,9 +6,8 @@ import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
 import de.rafaelbeckmann.hvkclient.core.domain.asEmptyDataResult
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
-import de.rafaelbeckmann.hvkclient.data.remote.AuthRemoteDataSource
-import de.rafaelbeckmann.hvkclient.domain.repository.AuthRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(

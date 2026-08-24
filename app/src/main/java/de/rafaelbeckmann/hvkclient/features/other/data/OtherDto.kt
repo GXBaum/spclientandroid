@@ -1,6 +1,12 @@
-package de.rafaelbeckmann.hvkclient.data.remote.dto
+package de.rafaelbeckmann.hvkclient.features.other.data
 
 import kotlinx.serialization.Serializable
+
+@Serializable
+data class NetworkMigrateAccountDevV1Response(
+    val token: String,
+    val id: String
+)
 
 @Serializable
 data class NetworkFeatureFlag(

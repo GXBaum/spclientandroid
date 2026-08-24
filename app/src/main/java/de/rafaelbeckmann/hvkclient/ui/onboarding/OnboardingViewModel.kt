@@ -7,7 +7,7 @@ import com.google.firebase.messaging.messaging
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.domain.repository.AuthRepository
+import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

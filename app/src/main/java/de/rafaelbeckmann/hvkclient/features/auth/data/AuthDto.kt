@@ -1,4 +1,4 @@
-package de.rafaelbeckmann.hvkclient.data.remote.dto
+package de.rafaelbeckmann.hvkclient.features.auth.data
 
 import kotlinx.serialization.Serializable
 
@@ -40,10 +40,4 @@ data class NetworkRefreshTokenResponse(
 @Serializable
 data class NetworkTokenUpdateRequest(
     val token: String
-)
-
-@Serializable
-data class NetworkMigrateAccountDevV1Response(
-    val token: String,
-    val id: String
 )

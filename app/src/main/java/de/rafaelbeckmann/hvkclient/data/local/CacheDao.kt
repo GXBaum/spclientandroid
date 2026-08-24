@@ -5,9 +5,9 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import de.rafaelbeckmann.hvkclient.data.local.entity.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.features.courses.data.UserCourseEntity
 import de.rafaelbeckmann.hvkclient.features.courses.data.UserMarkEntity
+import de.rafaelbeckmann.hvkclient.features.other.data.FeatureFlagEntity
 import de.rafaelbeckmann.hvkclient.features.vp.data.VpDayEntity
 import de.rafaelbeckmann.hvkclient.features.vp.data.VpDayInfoItem
 import de.rafaelbeckmann.hvkclient.features.vp.data.VpDayWithInfo

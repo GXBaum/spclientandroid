@@ -1,4 +1,4 @@
-package de.rafaelbeckmann.hvkclient.data.local.entity
+package de.rafaelbeckmann.hvkclient.features.other.data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

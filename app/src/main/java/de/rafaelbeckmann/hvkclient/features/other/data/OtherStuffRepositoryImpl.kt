@@ -1,4 +1,4 @@
-package de.rafaelbeckmann.hvkclient.data.repository
+package de.rafaelbeckmann.hvkclient.features.other.data
 
 import androidx.room.withTransaction
 import com.google.firebase.Firebase
@@ -10,14 +10,10 @@ import de.rafaelbeckmann.hvkclient.core.domain.Result
 import de.rafaelbeckmann.hvkclient.core.domain.asEmptyDataResult
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.data.local.CacheDao
-import de.rafaelbeckmann.hvkclient.data.remote.OtherStuffRemoteDataSource
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkMigrateAccountDevV1Response
-import de.rafaelbeckmann.hvkclient.data.toDomain
-import de.rafaelbeckmann.hvkclient.data.toEntity
-import de.rafaelbeckmann.hvkclient.domain.model.FeatureFlag
-import de.rafaelbeckmann.hvkclient.domain.repository.AuthRepository
-import de.rafaelbeckmann.hvkclient.domain.repository.OtherStuffRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
+import de.rafaelbeckmann.hvkclient.features.other.domain.FeatureFlag
+import de.rafaelbeckmann.hvkclient.features.other.domain.OtherStuffRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

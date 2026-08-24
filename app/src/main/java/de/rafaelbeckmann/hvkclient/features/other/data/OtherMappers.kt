@@ -1,8 +1,5 @@
-package de.rafaelbeckmann.hvkclient.data
+package de.rafaelbeckmann.hvkclient.features.other.data
 
-import de.rafaelbeckmann.hvkclient.data.local.entity.FeatureFlagEntity
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkCookie
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkFeatureFlag
 import okhttp3.Cookie
 
 fun NetworkFeatureFlag.toEntity(): List<FeatureFlagEntity> {
