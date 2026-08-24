@@ -6,7 +6,6 @@ import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
 import de.rafaelbeckmann.hvkclient.core.domain.asEmptyDataResult
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.data.remote.PayloadDecoder
 import de.rafaelbeckmann.hvkclient.features.courses.domain.CoursesRepository
 import de.rafaelbeckmann.hvkclient.features.courses.domain.UserCourse
@@ -16,13 +15,13 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class CoursesRepositoryImpl @Inject constructor(
-    private val cacheDao: CacheDao,
+    private val dao: CourseDao,
     private val database: AppDatabase,
     private val remoteDataSource: CoursesRemoteDataSource,
     private val payloadDecoder: PayloadDecoder
 ) : CoursesRepository {
     override fun observeCourses(): Flow<List<UserCourse>> {
-        return cacheDao.getUserCourses().map { list ->
+        return dao.getUserCourses().map { list ->
             list.map { it.toDomain() }
         }
     }
@@ -35,15 +34,15 @@ class CoursesRepositoryImpl @Inject constructor(
                     .map { it.toEntity() }
 
                 database.withTransaction {
-                    cacheDao.clearUserCourses()
-                    cacheDao.insertUserCourses(parsed)
+                    dao.clearUserCourses()
+                    dao.insertUserCourses(parsed)
                 }
             }
             .asEmptyDataResult()
     }
 
     override fun observeCourse(courseId: Int): Flow<UserCourse?> {
-        return cacheDao.getUserCourseById(courseId).map {
+        return dao.getUserCourseById(courseId).map {
             it?.toDomain()
         }
     }
@@ -51,13 +50,13 @@ class CoursesRepositoryImpl @Inject constructor(
     override suspend fun refreshCourse(courseId: Int): EmptyResult<DataError> {
         return remoteDataSource.getCourse(courseId)
             .onSuccess {
-                cacheDao.insertUserCourses(listOf(it.course.toEntity()))
+                dao.insertUserCourses(listOf(it.course.toEntity()))
             }
             .asEmptyDataResult()
     }
 
     override fun observeMarks(courseId: Int): Flow<List<UserMark>> {
-        return cacheDao.getUserMarksForCourse(courseId).map { list ->
+        return dao.getUserMarksForCourse(courseId).map { list ->
             list.map { it.toDomain() }
         }
     }
@@ -67,8 +66,8 @@ class CoursesRepositoryImpl @Inject constructor(
             .onSuccess { response ->
                 // improve this
                 database.withTransaction {
-                    cacheDao.deleteUserMarksForCourse(courseId)
-                    cacheDao.insertUserMarks(response.marks.map {it.toEntity()})
+                    dao.deleteUserMarksForCourse(courseId)
+                    dao.insertUserMarks(response.marks.map {it.toEntity()})
                 }
             }
             .asEmptyDataResult()

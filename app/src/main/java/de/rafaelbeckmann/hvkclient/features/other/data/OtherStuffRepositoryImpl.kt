@@ -9,7 +9,6 @@ import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
 import de.rafaelbeckmann.hvkclient.core.domain.Result
 import de.rafaelbeckmann.hvkclient.core.domain.asEmptyDataResult
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
 import de.rafaelbeckmann.hvkclient.features.other.domain.FeatureFlag
@@ -23,7 +22,7 @@ import okhttp3.Cookie
 import javax.inject.Inject
 
 class OtherStuffRepositoryImpl @Inject constructor(
-    private val cacheDao: CacheDao,
+    private val dao: OtherDao,
     private val database: AppDatabase,
     private val settingsRepository: SettingsRepository,
     private val remoteDataSource: OtherStuffRemoteDataSource,
@@ -36,7 +35,7 @@ class OtherStuffRepositoryImpl @Inject constructor(
     }
 
     override fun observeFeatureFlags(): Flow<FeatureFlag> {
-        return cacheDao.getFeatureFlags().map { rows ->
+        return dao.getFeatureFlags().map { rows ->
             FeatureFlag(rows.associate { it.key to it.value })
         }
     }
@@ -45,10 +44,10 @@ class OtherStuffRepositoryImpl @Inject constructor(
         return remoteDataSource.getFeatureFlags()
             .onSuccess {
                 database.withTransaction {
-                    cacheDao.clearFeatureFlags()
+                    dao.clearFeatureFlags()
 
                     val rows = it.toEntity()
-                    cacheDao.upsertFeatureFlags(rows)
+                    dao.upsertFeatureFlags(rows)
                 }
             }
             .asEmptyDataResult()

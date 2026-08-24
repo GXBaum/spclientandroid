@@ -8,7 +8,6 @@ import de.rafaelbeckmann.hvkclient.core.domain.Result
 import de.rafaelbeckmann.hvkclient.core.domain.asEmptyDataResult
 import de.rafaelbeckmann.hvkclient.core.domain.map
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.data.local.CacheDao
 import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpDays
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
@@ -18,13 +17,13 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class VpRepositoryImpl @Inject constructor(
-    private val cacheDao: CacheDao,
+    private val dao: VpDao,
     private val database: AppDatabase,
     private val remoteDataSource: VpRemoteDataSource
 ) : VpRepository {
 
     override fun observeSelectedCourses(): Flow<List<SelectedCourse>> {
-        return cacheDao.getVpSelectedCourses().map { list ->
+        return dao.getVpSelectedCourses().map { list ->
             list.map { it.toDomain() }
         }
     }
@@ -33,8 +32,8 @@ class VpRepositoryImpl @Inject constructor(
         return remoteDataSource.getSelectedCourses()
             .onSuccess { data ->
                 database.withTransaction {
-                    cacheDao.clearVpSelectedCourses()
-                    cacheDao.insertVpSelectedCourses(data.courses.map { it.toEntity() })
+                    dao.clearVpSelectedCourses()
+                    dao.insertVpSelectedCourses(data.courses.map { it.toEntity() })
                 }
             }
             .asEmptyDataResult()
@@ -57,8 +56,8 @@ class VpRepositoryImpl @Inject constructor(
     }
 
     override fun observeSubstitutions(courseNames: List<String>): Flow<VpDays> {
-        return cacheDao.getVpSubstitutionsForCourses(courseNames)
-            .combine(cacheDao.getVpDay()) { subs, days ->
+        return dao.getVpSubstitutionsForCourses(courseNames)
+            .combine(dao.getVpDay()) { subs, days ->
                 mapEntitiesToVpDays(days, subs)
             }
     }
@@ -70,11 +69,11 @@ class VpRepositoryImpl @Inject constructor(
                 database.withTransaction {
                     // First delete existing entries for these courses
                     // this is dumb, but nothing lasts longer than a temporary fix
-                    cacheDao.deleteVpSubstitutionsForCourses(courseNames)
-                    cacheDao.deleteVpDayInfo()
-                    cacheDao.clearVpDay()
+                    dao.deleteVpSubstitutionsForCourses(courseNames)
+                    dao.deleteVpDayInfo()
+                    dao.clearVpDay()
 
-                    cacheDao.insertVpDay(
+                    dao.insertVpDay(
                         listOfNotNull(parsed.today, parsed.tomorrow)
                             .map { it.toEntity() }
                     )
@@ -82,12 +81,12 @@ class VpRepositoryImpl @Inject constructor(
                     val substitutions = listOfNotNull(parsed.today?.substitutions, parsed.tomorrow?.substitutions)
                             .flatten()
                             .map { it.toEntity() }
-                    cacheDao.insertVpSubstitutions(substitutions)
+                    dao.insertVpSubstitutions(substitutions)
 
                     val infos = listOfNotNull(parsed.today?.info, parsed.tomorrow?.info)
                         .flatten()
                         .map { it.toEntity() }
-                    cacheDao.insertVpDayInfoItems(infos)
+                    dao.insertVpDayInfoItems(infos)
                 }
             }
             .asEmptyDataResult()
