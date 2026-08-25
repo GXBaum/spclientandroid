@@ -23,7 +23,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +33,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rafaelbeckmann.hvkclient.ui.settings.SettingsViewModel
 import kotlinx.coroutines.android.awaitFrame
 import org.koin.compose.viewmodel.koinViewModel
@@ -46,7 +46,7 @@ fun AddCourseScreen(
     onContinue: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
-    val suggestions by viewModel.courseSearch.collectAsState()
+    val suggestions by viewModel.courseSearch.collectAsStateWithLifecycle()
     var courseName by rememberSaveable { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 

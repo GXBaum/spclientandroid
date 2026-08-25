@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rafaelbeckmann.hvkclient.features.courses.domain.UserCourse
 import de.rafaelbeckmann.hvkclient.features.courses.presentation.CoursesViewModel
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
@@ -41,7 +41,7 @@ fun CoursesScreen(
     viewModel: CoursesViewModel = koinViewModel(),
     onCourseClick: (UserCourse) -> Unit = {},
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var userId by remember { mutableStateOf<String?>(null) }
     var isDeveloper by remember { mutableStateOf(false) }
 

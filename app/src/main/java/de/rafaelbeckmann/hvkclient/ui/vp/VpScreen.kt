@@ -37,7 +37,6 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -55,6 +54,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpSubstitution
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpType
 import de.rafaelbeckmann.hvkclient.features.vp.presentation.VpViewModel
@@ -79,7 +79,7 @@ fun SharedTransitionScope.VpScreen(
     onVpOpenClick: (String?) -> Unit = {},
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
-    val state by viewModel.vpScreenState.collectAsState()
+    val state by viewModel.vpScreenState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { state.selectedCourses.size })
 

@@ -12,7 +12,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,6 +19,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.SnackbarEvent
 import de.rafaelbeckmann.hvkclient.UserPreferences
@@ -32,7 +32,7 @@ fun DebugMenu(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
-    val state by viewModel.settingsScreenState.collectAsState()
+    val state by viewModel.settingsScreenState.collectAsStateWithLifecycle()
 
     val isDeveloper = state.isDeveloper
     val userId = state.userId
@@ -129,7 +129,7 @@ fun DebugMenu(
             ) {
                 Text("get token")
             }
-            Text(viewModel.settingsScreenState.collectAsState().value.spAuthTest.toString())
+            Text(state.spAuthTest.toString())
 
             TextButton(
                 onClick = {
