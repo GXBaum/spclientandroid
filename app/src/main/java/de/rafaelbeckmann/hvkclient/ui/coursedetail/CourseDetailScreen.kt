@@ -45,7 +45,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.features.courses.domain.UserMark
 import de.rafaelbeckmann.hvkclient.features.courses.presentation.CourseDetailViewModel
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
@@ -53,13 +52,14 @@ import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.rememberSmartCollapseTopAppBarBehavior
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 import de.rafaelbeckmann.hvkclient.ui.main.LocalSnackbarHostState
+import org.koin.compose.viewmodel.koinViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseDetailScreen(
     modifier: Modifier = Modifier,
-    viewModel: CourseDetailViewModel = hiltViewModel(),
+    viewModel: CourseDetailViewModel = koinViewModel(),
     courseId: Int,
     onNavigateToRevealMark: (String) -> Unit = {}
 ) {

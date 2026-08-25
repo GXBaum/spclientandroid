@@ -2,7 +2,6 @@ package de.rafaelbeckmann.hvkclient.features.courses.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
@@ -16,7 +15,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.core.annotation.KoinViewModel
 
 data class CoursesUiState(
     val courses: List<UserCourse> = emptyList(),
@@ -24,8 +23,8 @@ data class CoursesUiState(
     val error: String? = null
 )
 
-@HiltViewModel
-class CoursesViewModel @Inject constructor(
+@KoinViewModel
+class CoursesViewModel(
     private val coursesRepository: CoursesRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {

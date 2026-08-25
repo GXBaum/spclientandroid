@@ -60,7 +60,7 @@
             android:resource="@color/hvk_lila_logo_2" />
 
 
-        <!-- This is used for ServiceWorkers with @HiltWorker since it's already instantiated in the file with @HiltAndroidApp. Not totally sure if you can do this in a better way. -->
+        <!-- This is used for ServiceWorkers with @KoinWorker since it's already instantiated. -->
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"

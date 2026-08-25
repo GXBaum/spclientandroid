@@ -9,9 +9,10 @@ import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import javax.inject.Inject
+import org.koin.core.annotation.Single
 
-class VpRemoteDataSource @Inject constructor(
+@Single
+class VpRemoteDataSource(
     private val httpClient: HttpClient
 ) {
     suspend fun getSubstitutions(courses: List<String>): Result<NetworkVpResponse, DataError.Remote> {

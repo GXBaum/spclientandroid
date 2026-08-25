@@ -5,9 +5,10 @@ import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
-import javax.inject.Inject
+import org.koin.core.annotation.Single
 
-class CoursesRemoteDataSource @Inject constructor(
+@Single
+class CoursesRemoteDataSource(
     private val httpClient: HttpClient
 ) {
     suspend fun getCourses(): Result<NetworkUserCoursesResponse, DataError.Remote> {

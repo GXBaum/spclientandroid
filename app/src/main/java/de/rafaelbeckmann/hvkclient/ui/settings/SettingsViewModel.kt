@@ -3,7 +3,6 @@ package de.rafaelbeckmann.hvkclient.ui.settings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.onError
@@ -24,7 +23,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.core.annotation.KoinViewModel
 
 data class SettingsScreenState(
     val vpSelectedCourse: List<SelectedCourse> = emptyList(),
@@ -39,8 +38,8 @@ data class SettingsScreenState(
     val encryptedUserPreferences: UserPreferences? = null
 )
 
-@HiltViewModel
-open class SettingsViewModel @Inject constructor(
+@KoinViewModel
+class SettingsViewModel(
     private val vpRepository: VpRepository,
     private val otherRepository: OtherStuffRepository,
     private val settingsRepository: SettingsRepository,

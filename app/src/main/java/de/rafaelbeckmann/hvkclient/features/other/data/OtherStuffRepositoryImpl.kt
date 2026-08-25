@@ -18,9 +18,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
+import org.koin.core.annotation.Single
 
-class OtherStuffRepositoryImpl @Inject constructor(
+@Single(binds = [OtherStuffRepository::class])
+class OtherStuffRepositoryImpl(
     private val dao: OtherDao,
     private val database: AppDatabase,
     private val settingsRepository: SettingsRepository,

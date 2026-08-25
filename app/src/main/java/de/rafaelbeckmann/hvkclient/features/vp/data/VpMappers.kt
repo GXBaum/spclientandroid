@@ -48,8 +48,8 @@ fun mapEntitiesToVpDays(
         subDate == dayDate
     }.map { it.toDomain() }
 
-    val today = vpDaysWithInfo.firstOrNull()?.toDomain(subsToday)
-    val tomorrow = vpDaysWithInfo.getOrNull(1)?.toDomain(substTomorrow)
+    val today = testToday?.toDomain(subsToday)
+    val tomorrow = testTomorrow?.toDomain(substTomorrow)
 
     return VpDays(
         today = today,

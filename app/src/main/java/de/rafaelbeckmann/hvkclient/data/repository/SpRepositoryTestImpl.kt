@@ -1,7 +1,6 @@
 package de.rafaelbeckmann.hvkclient.data.repository
 
 import android.util.Log
-import de.rafaelbeckmann.hvkclient.di.AppModule
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
 import de.rafaelbeckmann.hvkclient.features.other.data.NetworkCookie
@@ -14,11 +13,12 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import javax.inject.Inject
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 
-class SpRepositoryTestImpl @Inject constructor(
-    @param:AppModule.UsingThisToNotHaveTheProvidesAnnotationDuplicationError
-    private val spAuthOkHttp: OkHttpClient,
+@Single(binds = [SpRepositoryTest::class])
+class SpRepositoryTestImpl(
+    @Named("spAuthTest") private val spAuthOkHttp: OkHttpClient,
     private val encryptedUserPreferencesRepository: EncryptedUserPreferencesRepository
 ) : SpRepositoryTest {
 

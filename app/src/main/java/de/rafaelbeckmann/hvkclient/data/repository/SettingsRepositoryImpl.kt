@@ -4,7 +4,7 @@ import android.util.Log
 import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
+import org.koin.core.annotation.Single
 
 object PreferenceKeys {
     const val USERNAME = "username"
@@ -15,7 +15,8 @@ object PreferenceKeys {
     const val USE_DYNAMIC_COLOR = "use_dynamic_color"
 }
 
-class SettingsRepositoryImpl @Inject constructor(
+@Single(binds = [SettingsRepository::class])
+class SettingsRepositoryImpl(
     private val prefUtils: PrefUtils
 ) : SettingsRepository {
 

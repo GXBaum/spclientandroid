@@ -3,15 +3,14 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.services)
 
-    //alias(libs.plugins.hilt.android) // TODO: error weil es schon in classpath im anderen build.gradle ist
-    id("dagger.hilt.android.plugin")
-
     // Navigation Compose
     alias(libs.plugins.kotlin.serialization)
 
     alias(libs.plugins.ksp)
 
     alias(libs.plugins.aboutlibraries.plugin.android)
+
+    alias(libs.plugins.koin.compiler)
 }
 
 
@@ -93,12 +92,6 @@ dependencies {
     // ViewModel Compose
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-    //Dagger - Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler)
-    ksp(libs.androidx.hilt.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
-
     // Navigation Compose
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
@@ -125,7 +118,6 @@ dependencies {
 
     // Work manager
     implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.androidx.hilt.work)
 
     // Jsoup (HTML parsing)
     implementation(libs.jsoup)
@@ -134,4 +126,12 @@ dependencies {
 
     implementation(libs.bundles.ktor)
     implementation(libs.ktor.client.okhttp)
+
+    implementation(libs.koin.core)
+    implementation(libs.koin.annotations)  // For annotation support
+    implementation(libs.koin.compose)
+    implementation(libs.koin.compose.viewmodel)
+    implementation(libs.koin.compose.viewmodel.navigation)
+    implementation(libs.koin.androidx.workmanager)
+
 }

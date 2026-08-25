@@ -4,10 +4,12 @@ import androidx.datastore.core.DataStore
 import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
-import javax.inject.Inject
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 
-class EncryptedUserPreferencesRepositoryImpl @Inject constructor(
-    private val dataStore: DataStore<UserPreferences>
+@Single(binds = [EncryptedUserPreferencesRepository::class])
+class EncryptedUserPreferencesRepositoryImpl(
+    @Named("encrypted") private val dataStore: DataStore<UserPreferences>
 ) : EncryptedUserPreferencesRepository {
 
     override fun getUserPreferences(): Flow<UserPreferences> {

@@ -14,9 +14,10 @@ import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
+import org.koin.core.annotation.Single
 
-class VpRepositoryImpl @Inject constructor(
+@Single(binds = [VpRepository::class])
+class VpRepositoryImpl(
     private val dao: VpDao,
     private val database: AppDatabase,
     private val remoteDataSource: VpRemoteDataSource

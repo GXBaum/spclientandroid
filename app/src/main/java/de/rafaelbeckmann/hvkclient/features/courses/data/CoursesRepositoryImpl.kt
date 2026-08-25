@@ -12,9 +12,10 @@ import de.rafaelbeckmann.hvkclient.features.courses.domain.UserCourse
 import de.rafaelbeckmann.hvkclient.features.courses.domain.UserMark
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
+import org.koin.core.annotation.Single
 
-class CoursesRepositoryImpl @Inject constructor(
+@Single(binds = [CoursesRepository::class])
+class CoursesRepositoryImpl(
     private val dao: CourseDao,
     private val database: AppDatabase,
     private val remoteDataSource: CoursesRemoteDataSource,

@@ -2,11 +2,9 @@ package de.rafaelbeckmann.hvkclient.features.vp.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpDays
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
@@ -20,7 +18,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.core.annotation.KoinViewModel
 
 data class VpScreenState(
     val isLoading: Boolean = false,
@@ -30,10 +28,9 @@ data class VpScreenState(
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@HiltViewModel
-class VpViewModel @Inject constructor(
-    private val vpRepository: VpRepository,
-    private val settingsRepository: SettingsRepository
+@KoinViewModel
+class VpViewModel(
+    private val vpRepository: VpRepository
 ) : ViewModel() {
     private val _vpScreenState = MutableStateFlow(VpScreenState())
     val vpScreenState: StateFlow<VpScreenState> = _vpScreenState.asStateFlow()

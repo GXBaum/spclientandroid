@@ -2,26 +2,22 @@ package de.rafaelbeckmann.hvkclient
 
 import android.content.Context
 import android.util.Log
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import de.rafaelbeckmann.hvkclient.PushNotificationService.Companion.CHANNEL_VP_UPDATES
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
-import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
 import kotlinx.coroutines.flow.first
+import org.koin.android.annotation.KoinWorker
 
 // TODO: improve this (mehrere API calls, mehr Sachen synchronisieren)
 
 // TODO: top 3 wege eine ddos Attacke zu erstellen
-@HiltWorker
-class NotificationDataSyncWorker @AssistedInject constructor(
-    @Assisted context: Context,
-    @Assisted workerParams: WorkerParameters,
-    private val settingsRepository: SettingsRepository,
+@KoinWorker
+class NotificationDataSyncWorker(
+    context: Context,
+    workerParams: WorkerParameters,
     private val vpRepository: VpRepository
 ): CoroutineWorker(context, workerParams) {
     companion object {

@@ -55,7 +55,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpSubstitution
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpType
 import de.rafaelbeckmann.hvkclient.features.vp.presentation.VpViewModel
@@ -69,12 +68,13 @@ import de.rafaelbeckmann.hvkclient.ui.main.LocalSnackbarHostState
 import de.rafaelbeckmann.hvkclient.ui.navigation.VP_FAB_EXPLODE_BOUND
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.VpScreen(
     modifier: Modifier = Modifier,
-    viewModel: VpViewModel = hiltViewModel(),
+    viewModel: VpViewModel = koinViewModel(),
     course: String? = null,
     onVpOpenClick: (String?) -> Unit = {},
     animatedVisibilityScope: AnimatedVisibilityScope

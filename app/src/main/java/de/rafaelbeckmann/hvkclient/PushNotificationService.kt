@@ -14,21 +14,17 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import dagger.hilt.android.AndroidEntryPoint
-import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 
 // TODO: komplett neu machen
-@AndroidEntryPoint
 class PushNotificationService : FirebaseMessagingService() {
 
-    @Inject lateinit var authRepository: AuthRepository
-    @Inject lateinit var settingsRepository: SettingsRepository
+    val authRepository: AuthRepository by inject()
 
     // Single coroutine scope for the service
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

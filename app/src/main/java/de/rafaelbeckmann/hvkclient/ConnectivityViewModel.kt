@@ -2,13 +2,12 @@ package de.rafaelbeckmann.hvkclient
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
+import org.koin.core.annotation.KoinViewModel
 
-@HiltViewModel
-open class ConnectivityViewModel @Inject constructor(
+@KoinViewModel
+class ConnectivityViewModel(
     private val connectivityObserver: ConnectivityObserver
 ): ViewModel() {
     val isConnected = connectivityObserver

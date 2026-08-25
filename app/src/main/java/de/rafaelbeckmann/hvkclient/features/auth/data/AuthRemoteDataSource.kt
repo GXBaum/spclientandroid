@@ -7,9 +7,10 @@ import de.rafaelbeckmann.hvkclient.core.domain.Result
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import javax.inject.Inject
+import org.koin.core.annotation.Single
 
-class AuthRemoteDataSource @Inject constructor(
+@Single
+class AuthRemoteDataSource(
     private val httpClient: HttpClient
 ) {
     suspend fun postAccount(): Result<NetworkCreateAccountResponse, DataError.Remote> {
