@@ -1,5 +1,8 @@
 [versions]
 agp = "9.2.1"
+android-compileSdk = "37"
+android-minSdk = "29"
+android-targetSdk = "36"
 coreSplashscreen = "1.2.0"
 datastorePreferences = "1.2.1"
 firebaseBom = "34.12.0"
@@ -35,6 +38,10 @@ workRuntimeKtx = "2.11.2"
 animation = "1.11.0"
 
 jsoup = "1.22.2"
+kotlinStdlib = "2.3.21"
+kotlinTest = "2.3.21"
+runner = "1.5.2"
+core = "1.5.0"
 
 
 [libraries]
@@ -93,6 +100,10 @@ koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
 koin-compose-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
 koin-compose-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation", version.ref = "koin" }
 koin-androidx-workmanager = { module = "io.insert-koin:koin-androidx-workmanager", version.ref = "koin" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlinTest" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
+androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -103,6 +114,9 @@ google-services = { id = "com.google.gms.google-services", version = "4.4.4" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 aboutlibraries-plugin-android = { id = "com.mikepenz.aboutlibraries.plugin.android", version.ref = "aboutLibraries" }
 koin-compiler = { id = "io.insert-koin.compiler.plugin", version.ref = "koin-plugin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+android-lint = { id = "com.android.lint", version.ref = "agp" }
 
 [bundles]
 ktor = [

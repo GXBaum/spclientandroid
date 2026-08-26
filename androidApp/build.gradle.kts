@@ -16,12 +16,12 @@ plugins {
 
 android {
     namespace = "de.rafaelbeckmann.hvkclient"
-    compileSdk = 37
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "de.rafaelbeckmann.hvkclient"
-        minSdk = 29
-        targetSdk = 36
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 24
         versionName = "1.0.1-alpha.1"
 
