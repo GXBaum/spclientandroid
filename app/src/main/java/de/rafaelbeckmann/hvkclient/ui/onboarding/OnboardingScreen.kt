@@ -31,7 +31,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,8 +43,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 
 // TODO: make screens into reusable component
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -54,9 +54,9 @@ fun OnboardingScreen(
     modifier: Modifier = Modifier,
     onContinueClicked: () -> Unit = {},
     onLoginClicked: () -> Unit = {},
-    viewModel: OnboardingViewModel = hiltViewModel()
+    viewModel: OnboardingViewModel = koinViewModel()
 ) {
-    val loginState by viewModel.loginState.collectAsState()
+    val loginState by viewModel.loginState.collectAsStateWithLifecycle()
 
     var didNavigate by rememberSaveable{ mutableStateOf(false) }
 

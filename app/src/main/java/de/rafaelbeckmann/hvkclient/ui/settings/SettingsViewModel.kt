@@ -1,38 +1,29 @@
 package de.rafaelbeckmann.hvkclient.ui.settings
 
-import android.content.Context
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
-import de.rafaelbeckmann.hvkclient.PrefUtils
 import de.rafaelbeckmann.hvkclient.UserPreferences
-import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkVpSelectedCourseRequest
+import de.rafaelbeckmann.hvkclient.core.domain.DataError
+import de.rafaelbeckmann.hvkclient.core.domain.onError
+import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
-import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
+import de.rafaelbeckmann.hvkclient.features.other.data.NetworkCookie
+import de.rafaelbeckmann.hvkclient.features.other.domain.OtherStuffRepository
+import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
+import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import okhttp3.Cookie
-import javax.inject.Inject
-
-// TODO: should potentially not exist, as its redundant with other class
-data class SelectedCourse(
-    val id: String,
-    val name: String,
-    val verified: Boolean
-)
+import org.koin.core.annotation.KoinViewModel
 
 data class SettingsScreenState(
     val vpSelectedCourse: List<SelectedCourse> = emptyList(),
@@ -43,16 +34,15 @@ data class SettingsScreenState(
     val useDynamicColor: Boolean? = null,
     val userId: String? = null,
 
-    val spAuthTest: List<Cookie> = emptyList(),
+    val spAuthTest: List<NetworkCookie> = emptyList(),
     val encryptedUserPreferences: UserPreferences? = null
 )
 
-@HiltViewModel
-open class SettingsViewModel @Inject constructor(
-    private val repository: HvkRepository,
+@KoinViewModel
+class SettingsViewModel(
+    private val vpRepository: VpRepository,
+    private val otherRepository: OtherStuffRepository,
     private val settingsRepository: SettingsRepository,
-    open val prefUtils: PrefUtils,
-
     private val spTestRepository: SpRepositoryTest,
     private val encryptedUserPreferencesRepository: EncryptedUserPreferencesRepository
 ) : ViewModel() {
@@ -63,8 +53,6 @@ open class SettingsViewModel @Inject constructor(
     private val _courseSearch = MutableStateFlow<List<String>>(emptyList())
     open val courseSearch: StateFlow<List<String>> = _courseSearch
 
-    var isDeveloper = mutableStateOf(false)
-
     // TODO ich verstehe .stateIn nicht
     val useDynamicColor: StateFlow<Boolean?> = settingsRepository
         .useDynamicColorFlow()
@@ -72,207 +60,184 @@ open class SettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            isDeveloper.value = settingsRepository.isDeveloper()
+            val isDev = settingsRepository.isDeveloper()
+            val userId = settingsRepository.getUserId()
 
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isDeveloper = settingsRepository.isDeveloper(),
-                userId = settingsRepository.getUserId()
-            )
+            _settingsScreenState.update {
+                it.copy(
+                    isDeveloper = isDev,
+                    userId = userId
+                )
+            }
 
-            Log.d("SettingsViewModel", "refreshToken: ${settingsRepository.getRefreshToken()}")
-
-            fetchVpSelectedCourse()
+            fetchSelectedCourse()
+            observeSelectedCourses()
         }
     }
 
     fun reload() {
-        fetchVpSelectedCourse()
+        fetchSelectedCourse()
     }
 
     fun saveUsername(userId: String) {
         viewModelScope.launch {
             settingsRepository.setUserId(userId)
-            fetchVpSelectedCourse()
+            fetchSelectedCourse()
         }
     }
 
-
     // TODO: fetcht mehrere Male
-    fun fetchVpSelectedCourse() {
-        repository.getVpSelectedCourses().onEach { result ->
-            Log.d("SettingsViewModel", "username: ${settingsScreenState.value.userId}")
-            when (result) {
-                is Resource.Loading -> {
-                    Log.d("SettingsViewModel", "Loading vpSelectedCourse - Result: $result")
+    fun fetchSelectedCourse() {
+        viewModelScope.launch {
+            _settingsScreenState.update {
+                it.copy(isLoading = true, error = null)
+            }
 
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = true,
-                        vpSelectedCourse = result.data ?: settingsScreenState.value.vpSelectedCourse
-                    )
+            vpRepository.refreshSelectedCourses()
+                .onError { error ->
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = when (error) {
+                                DataError.Remote.NO_INTERNET -> "kein Internet"
+                                else -> "Klassen konnten nicht geladen werden"
+                            }
+                        )
+                    }
                 }
-                is Resource.Success -> {
-                    Log.d("SettingsViewModel", "Success fetching vpSelectedCourse - Data: ${result.data}")
-
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = false,
-                        error = null,
-                        vpSelectedCourse = result.data ?: emptyList()
-                    )
-
-                    Log.d("SettingsViewModel", "vpSelectedCourse: ${result.data}")
+                .onSuccess {
+                    _settingsScreenState.update { it.copy(error = null) }
                 }
-                is Resource.Error -> {
-                    Log.e("SettingsViewModel", "Error fetching vpSelectedCourse, message: ${result.message}")
 
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = false,
-                        error = result.message,
-                        vpSelectedCourse = result.data ?: settingsScreenState.value.vpSelectedCourse
+            _settingsScreenState.update { it.copy(isLoading = false) }
+        }
+    }
+
+    fun observeSelectedCourses() {
+        vpRepository.observeSelectedCourses()
+            .onEach { value ->
+                _settingsScreenState.update {
+                    it.copy(
+                        vpSelectedCourse = value
                     )
                 }
             }
-        }.catch { exception ->
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isLoading = false,
-                error = exception.message
-            )
-        }.launchIn(viewModelScope)
+            .launchIn(viewModelScope)
     }
 
-
-
-
-    fun postVpSelectedCourse(courseName: String) {
+    fun postSelectedCourse(courseName: String) {
         if (courseName.isBlank()) return
 
         viewModelScope.launch {
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isLoading = true,
-                error = null,
-            )
-
-            try {
-                val courseObject = NetworkVpSelectedCourseRequest(courseName)
-
-                val result = repository.postVpSelectedCourses(courseObject)
-
-                // After posting successfully, refresh the data
-                if (result.isSuccess) {
-                    fetchVpSelectedCourse()
-                }
-
-                _settingsScreenState.value = _settingsScreenState.value.copy(
-                    isLoading = false,
+            _settingsScreenState.update {
+                it.copy(
+                    isLoading = true,
                     error = null,
                 )
-            } catch (exception: Exception) {
-                _settingsScreenState.value = _settingsScreenState.value.copy(
-                    isLoading = false,
-                    error = exception.message,
-                )
             }
+
+            vpRepository.addSelectedCourse(courseName)
+                .onError { error ->
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = when (error) {
+                                DataError.Remote.NO_INTERNET -> "kein Internet"
+                                else -> "Klasse konnte nicht hinzugefügt werden"
+                            }
+                        )
+                    }
+                }
+                .onSuccess {
+                    _settingsScreenState.update { it.copy(error = null) }
+                }
+
+            _settingsScreenState.update { it.copy(isLoading = false) }
         }
     }
 
     // TODO: irgendwie mehr responsive machen
     fun deleteVpSelectedCourse(courseId: String) {
         viewModelScope.launch {
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isLoading = true,
-                error = null,
-            )
-
-            try {
-                repository.deleteVpSelectedCourse(courseId)
-
-                // After deleting successfully, refresh the data
-                fetchVpSelectedCourse()
-            } catch (exception: Exception) {
-                _settingsScreenState.value = _settingsScreenState.value.copy(
-                    isLoading = false,
-                    error = exception.message,
+            _settingsScreenState.update {
+                it.copy(
+                    isLoading = true,
+                    error = null,
                 )
             }
+
+            vpRepository.removeSelectedCourse(courseId)
+                .onError { error ->
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = when (error) {
+                                DataError.Remote.NO_INTERNET -> "kein Internet"
+                                else -> "Klasse konnte nicht gelöscht werden"
+                            }
+                        )
+                    }
+                }
+                .onSuccess {
+                    _settingsScreenState.update { it.copy(error = null) }
+                }
+
+            _settingsScreenState.update { it.copy(isLoading = false) }
         }
     }
 
     // TODO: maybe don't search for every letter and cache?
     fun searchCourses(courseName: String) {
-        repository.getCourseSearch(courseName).onEach { result ->
-            when (result) {
-                is Resource.Loading -> {
-                    result.data?.let {
-                        _courseSearch.value = it
-                    }
-
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = true,
-                        courseSearch = result.data ?: settingsScreenState.value.courseSearch
-                    )
-                }
-                is Resource.Success -> {
-                    _courseSearch.value = result.data ?: emptyList()
-
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = false,
-                        error = null,
-                        courseSearch = result.data ?: emptyList()
-                    )
-                }
-                is Resource.Error -> {
-                    result.data?.let {
-                        _courseSearch.value = it
-                    }
-
-                    _settingsScreenState.value = _settingsScreenState.value.copy(
-                        isLoading = false,
-                        error = result.message,
-                        courseSearch = result.data ?: settingsScreenState.value.courseSearch
-                    )
-                }
+        viewModelScope.launch {
+            _settingsScreenState.update {
+                it.copy(isLoading = true, error = null)
             }
-        }.catch { exception ->
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isLoading = false,
-                error = exception.message,
-            )
-        }.launchIn(viewModelScope)
+
+            vpRepository.searchCourses(courseName)
+                .onError { error ->
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = when (error) {
+                                DataError.Remote.NO_INTERNET -> "kein Internet"
+                                else -> "Klassensuche fehlgeschlagen"
+                            }
+                        )
+                    }
+                }
+                .onSuccess { courses ->
+                    _courseSearch.value = courses
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = null,
+                            courseSearch = courses
+                        )
+                    }
+                }
+
+            _settingsScreenState.update { it.copy(isLoading = false) }
+        }
     }
 
-
-    fun toggleDeveloperMode(context: Context) {
+    fun toggleDeveloperMode() {
         viewModelScope.launch {
-            isDeveloper.value = !isDeveloper.value
+            val newDevMode = !_settingsScreenState.value.isDeveloper
 
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                isDeveloper = !settingsScreenState.value.isDeveloper
-            )
+            _settingsScreenState.update {
+                it.copy(isDeveloper = newDevMode)
+            }
 
-            settingsRepository.setIsDeveloper(isDeveloper.value)
-            Toast.makeText(
-                context,
-                if (isDeveloper.value) "Du bist jetzt im Debug Modus (No Diddy)" else "Du bist jetzt wieder im normalen Modus",
-                Toast.LENGTH_LONG
-            ).show()
+            settingsRepository.setIsDeveloper(newDevMode)
         }
     }
 
     fun resetOnboardingCompleted() {
         viewModelScope.launch {
             settingsRepository.setOnboardingCompleted(false)
-            Log.d("SettingsViewModel", "Onboarding completed reset")
         }
     }
 
-    fun clearCache(context: Context) {
+    fun clearCache() {
         viewModelScope.launch {
             try {
-                repository.clearCache()
-                Toast.makeText(context, "Cache geleert", Toast.LENGTH_SHORT).show()
-                Log.d("SettingsViewModel", "Cache cleared successfully")
+                otherRepository.clearCache()
             } catch (e: Exception) {
-                Toast.makeText(context, "Fehler beim leeren des Caches", Toast.LENGTH_SHORT).show()
-                Log.e("SettingsViewModel", "Failed to clear cache", e)
             }
         }
     }
@@ -280,14 +245,12 @@ open class SettingsViewModel @Inject constructor(
     fun deleteAccessToken() {
         viewModelScope.launch {
             settingsRepository.setAccessToken("")
-            Log.d("SettingsViewModel", "Access token deleted")
         }
     }
 
     fun deleteRefreshToken() {
         viewModelScope.launch {
             settingsRepository.setRefreshToken("")
-            Log.d("SettingsViewModel", "Refresh token deleted")
         }
     }
 
@@ -296,10 +259,6 @@ open class SettingsViewModel @Inject constructor(
             settingsRepository.setUseDynamicColor(enabled)
         }
     }
-
-
-
-
 
     fun getSpAuthCookieTest() {
         viewModelScope.launch {
@@ -311,7 +270,7 @@ open class SettingsViewModel @Inject constructor(
             val formattedCookie = settingsScreenState.value.spAuthTest.map { cookie -> cookie.toString().split(";")[0] }.joinToString("; ")
             Log.d("TEST", formattedCookie)
 
-            repository.postSpAuthCookie(
+            otherRepository.postSpAuthCookie(
                 settingsScreenState.value.spAuthTest
             )
         }
@@ -319,15 +278,15 @@ open class SettingsViewModel @Inject constructor(
 
     fun getSpTest() {
         viewModelScope.launch {
-            repository.getSpTest()
+            otherRepository.getSpTest()
         }
     }
 
     fun getEncryptedUserPreferences() {
         encryptedUserPreferencesRepository.getUserPreferences().onEach { result ->
-            _settingsScreenState.value = _settingsScreenState.value.copy(
-                encryptedUserPreferences = result
-            )
+            _settingsScreenState.update {
+                it.copy(encryptedUserPreferences = result)
+            }
         }.launchIn(viewModelScope)
     }
 

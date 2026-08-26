@@ -33,7 +33,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,32 +44,36 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import de.rafaelbeckmann.hvkclient.data.model.UserMark
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.rafaelbeckmann.hvkclient.features.courses.domain.UserMark
+import de.rafaelbeckmann.hvkclient.features.courses.presentation.CourseDetailViewModel
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.rememberSmartCollapseTopAppBarBehavior
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 import de.rafaelbeckmann.hvkclient.ui.main.LocalSnackbarHostState
+import org.koin.compose.viewmodel.koinViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseDetailScreen(
     modifier: Modifier = Modifier,
-    viewModel: CourseDetailViewModel = hiltViewModel(),
+    viewModel: CourseDetailViewModel = koinViewModel(),
     courseId: Int,
     onNavigateToRevealMark: (String) -> Unit = {}
 ) {
-    val state by viewModel.courseDetailScreenState.collectAsState()
+    val state by viewModel.courseDetailScreenState.collectAsStateWithLifecycle()
 
     var userId by remember { mutableStateOf<String?>(null) }
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(courseId) {
         // TODO: ist eigentlich ziemlich dumm gerade, aber kb zu ändern
-        viewModel.fetchUserMarks(courseId)
-        viewModel.fetchCourseName(courseId)
+
+        viewModel.observeMarks(courseId)
+        viewModel.refreshMarks(courseId)
+        viewModel.observeCourse(courseId) // currently doesn't fetch from network as its already cached when coming from CoursesScreen
     }
 
     val lazyColumnState = rememberLazyListState()
@@ -100,7 +103,7 @@ fun CourseDetailScreen(
         HapticPullToRefreshBox(
             isRefreshing = state.isLoading,
             onRefresh = {
-                viewModel.fetchUserMarks(courseId)
+                viewModel.refreshMarks(courseId)
             },
             modifier = Modifier
                 .fillMaxSize()

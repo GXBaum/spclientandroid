@@ -95,6 +95,7 @@ fun VpWebViewScreen(
         floatingActionButton = {
             if (activeState.errorCode != null) return@Scaffold
             if (activeState.isLoading) return@Scaffold
+            if (course.isNullOrEmpty()) return@Scaffold
 
             ExtendedFloatingActionButton(
                 expanded = true,

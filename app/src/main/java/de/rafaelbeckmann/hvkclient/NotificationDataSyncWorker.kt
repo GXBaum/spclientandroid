@@ -2,27 +2,23 @@ package de.rafaelbeckmann.hvkclient
 
 import android.content.Context
 import android.util.Log
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import de.rafaelbeckmann.hvkclient.PushNotificationService.Companion.CHANNEL_VP_UPDATES
-import de.rafaelbeckmann.hvkclient.data.Resource
-import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
-import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
-import kotlinx.coroutines.flow.filter
+import de.rafaelbeckmann.hvkclient.core.domain.onError
+import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
+import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
 import kotlinx.coroutines.flow.first
+import org.koin.android.annotation.KoinWorker
 
 // TODO: improve this (mehrere API calls, mehr Sachen synchronisieren)
 
 // TODO: top 3 wege eine ddos Attacke zu erstellen
-@HiltWorker
-class NotificationDataSyncWorker @AssistedInject constructor(
-    @Assisted context: Context,
-    @Assisted workerParams: WorkerParameters,
-    private val settingsRepository: SettingsRepository,
-    private val repository: HvkRepository
+@KoinWorker
+class NotificationDataSyncWorker(
+    context: Context,
+    workerParams: WorkerParameters,
+    private val vpRepository: VpRepository
 ): CoroutineWorker(context, workerParams) {
     companion object {
         private const val TAG = "NotificationDataSyncWorker"
@@ -35,27 +31,23 @@ class NotificationDataSyncWorker @AssistedInject constructor(
 
             when (channelId) {
                 CHANNEL_VP_UPDATES -> {
-                    val coursesResource = repository.getVpSelectedCourses()
-                        .filter { it !is Resource.Loading }
-                        .first()
+                    val coursesResource = vpRepository.refreshSelectedCourses()
+                    val courses = vpRepository.observeSelectedCourses().first()
 
-                    if (coursesResource is Resource.Success) {
-                        val courses = coursesResource.data
-
-                        if (!courses.isNullOrEmpty()) {
-                            val result = repository.getVpSubstitutions(courses.map { it.name })
-                                .filter { it !is Resource.Loading }
-                                .first()
-
-                            if (result is Resource.Error) {
-                                Log.w(TAG, "Failed to fetch substitutions")
-                                return Result.failure()
+                    coursesResource
+                        .onSuccess {
+                            if (courses.isNotEmpty()) {
+                                vpRepository.refreshSubstitutions(courses.map { it.name })
+                                    .onError {
+                                        Log.w(TAG, "Failed to fetch substitutions")
+                                        return Result.failure()
+                                    }
                             }
                         }
-                    } else if (coursesResource is Resource.Error) {
-                        Log.w(TAG, "Failed to fetch courses")
-                        return Result.failure()
-                    }
+                        .onError {
+                            Log.w(TAG, "Failed to fetch courses")
+                            return Result.failure()
+                        }
                 }
             }
 

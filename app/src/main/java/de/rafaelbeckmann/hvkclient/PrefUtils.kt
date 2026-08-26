@@ -1,21 +1,18 @@
 package de.rafaelbeckmann.hvkclient
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 
-@Singleton
-class PrefUtils @Inject constructor(
-    @param:ApplicationContext private val context: Context,
-    private val dataStore: DataStore<Preferences>
+@Single
+class PrefUtils(
+    @Named("preferences") private val dataStore: DataStore<Preferences>
 ) {
     suspend fun saveString(key: String, value: String) {
         dataStore.edit {

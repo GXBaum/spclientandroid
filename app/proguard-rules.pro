@@ -22,16 +22,6 @@
 
 
 
-# Keep data classes used by Moshi for serialization.
-# Replace 'de.rafaelbeckmann.hvkclient.data.model.**' with the actual package
-# where your data model classes are located.
--keep class de.rafaelbeckmann.hvkclient.data.model.** { *; }
--keepnames class de.rafaelbeckmann.hvkclient.data.model.**
-
-# this could probably be optimized. i may not need the one above anymore? this is where these dtos were previously
--keep class de.rafaelbeckmann.hvkclient.data.remote.** { *; }
--keepnames class de.rafaelbeckmann.hvkclient.data.remote.**
-
 # Keep any class that is annotated with @JsonClass and its constructor.
 # This is for Moshi's reflection-based adapter.
 #-keep @com.squareup.moshi.JsonClass class * {

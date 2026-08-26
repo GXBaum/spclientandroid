@@ -2,22 +2,18 @@ package de.rafaelbeckmann.hvkclient.di
 
 import android.content.Context
 import androidx.room.Room
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
-import de.rafaelbeckmann.hvkclient.data.local.AppDatabase
-import de.rafaelbeckmann.hvkclient.data.local.CacheDao
-import javax.inject.Singleton
+import de.rafaelbeckmann.hvkclient.core.database.AppDatabase
+import de.rafaelbeckmann.hvkclient.features.courses.data.CourseDao
+import de.rafaelbeckmann.hvkclient.features.other.data.OtherDao
+import de.rafaelbeckmann.hvkclient.features.vp.data.VpDao
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
 
 @Module
-@InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    @Provides
-    @Singleton
-    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+    @Single
+    fun provideAppDatabase(context: Context): AppDatabase {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
@@ -27,9 +23,18 @@ object DatabaseModule {
             .build()
     }
 
-    @Provides
-    @Singleton
-    fun provideCacheDao(appDatabase: AppDatabase): CacheDao {
-        return appDatabase.cacheDao()
+    @Single
+    fun provideVpDao(appDatabase: AppDatabase): VpDao {
+        return appDatabase.vpDao()
+    }
+
+    @Single
+    fun provideCourseDao(appDatabase: AppDatabase): CourseDao {
+        return appDatabase.courseDao()
+    }
+
+    @Single
+    fun provideOtherDao(appDatabase: AppDatabase): OtherDao {
+        return appDatabase.otherDao()
     }
 }

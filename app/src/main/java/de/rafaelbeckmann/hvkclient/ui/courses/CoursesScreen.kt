@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,29 +23,31 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import de.rafaelbeckmann.hvkclient.data.model.UserCourse
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.rafaelbeckmann.hvkclient.features.courses.domain.UserCourse
+import de.rafaelbeckmann.hvkclient.features.courses.presentation.CoursesViewModel
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.rememberSmartCollapseTopAppBarBehavior
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 import de.rafaelbeckmann.hvkclient.ui.main.LocalSnackbarHostState
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun CoursesScreen(
     modifier: Modifier = Modifier,
-    viewModel: CoursesViewModel = hiltViewModel(),
+    viewModel: CoursesViewModel = koinViewModel(),
     onCourseClick: (UserCourse) -> Unit = {},
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var userId by remember { mutableStateOf<String?>(null) }
     var isDeveloper by remember { mutableStateOf(false) }
 
     // Use LaunchedEffect to fetch data only once when the screen is composed
     LaunchedEffect(Unit) {
-        viewModel.fetchCourses()
+        viewModel.refresh()
 
         isDeveloper = viewModel.isDeveloper()
     }
@@ -77,7 +78,7 @@ fun CoursesScreen(
         ) { innerPadding ->
         HapticPullToRefreshBox(
             isRefreshing = uiState.isLoading,
-            onRefresh = { viewModel.fetchCourses() },
+            onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)

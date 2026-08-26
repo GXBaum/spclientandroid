@@ -36,21 +36,21 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import de.rafaelbeckmann.hvkclient.ConnectivityViewModel
-import de.rafaelbeckmann.hvkclient.ObserveAsEvents
 import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import de.rafaelbeckmann.hvkclient.ui.common.ObserveAsEvents
 import de.rafaelbeckmann.hvkclient.ui.navigation.AppNavHost
 import de.rafaelbeckmann.hvkclient.ui.navigation.OnboardingGraph
 import de.rafaelbeckmann.hvkclient.ui.navigation.RevealMarkScreen
 import de.rafaelbeckmann.hvkclient.ui.navigation.VpGraph
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 
 
 val LocalSnackbarHostState = staticCompositionLocalOf<SnackbarHostState> {
@@ -60,9 +60,9 @@ val LocalSnackbarHostState = staticCompositionLocalOf<SnackbarHostState> {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun MainScreen(
-    settingsRepository: SettingsRepository,
-    connectivityViewModel: ConnectivityViewModel = hiltViewModel(),
-    viewModel: MainViewModel = hiltViewModel()
+    settingsRepository: SettingsRepository, // TODO inject this, but actually just not use it in the first place, put it in MainViewModel
+    connectivityViewModel: ConnectivityViewModel = koinViewModel(),
+    viewModel: MainViewModel = koinViewModel()
 ) {
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()

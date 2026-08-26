@@ -7,20 +7,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dagger.hilt.android.AndroidEntryPoint
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.ui.main.MainScreen
 import de.rafaelbeckmann.hvkclient.ui.theme.HvKClientTheme
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 
-@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var settingsRepository: SettingsRepository
-
-    @Inject
-    lateinit var prefUtils: PrefUtils
+    val settingsRepository: SettingsRepository by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,7 +34,7 @@ class MainActivity : ComponentActivity() {
 
                 // TODO: inject with Hilt
                 MainScreen(
-                    settingsRepository = settingsRepository,
+                    settingsRepository = settingsRepository
                 )
             }
         }

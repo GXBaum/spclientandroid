@@ -1,11 +1,12 @@
 package de.rafaelbeckmann.hvkclient.data.remote
 
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkUserCourse
+import de.rafaelbeckmann.hvkclient.features.courses.data.NetworkUserCourse
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
-import javax.inject.Inject
+import org.koin.core.annotation.Single
 
-class PayloadDecoderImpl @Inject constructor(
+@Single(binds = [PayloadDecoder::class])
+class PayloadDecoderImpl(
     private val json: Json
 ) : PayloadDecoder {
     override fun <T> decodeJson(input: String, serializer: KSerializer<T>): T {

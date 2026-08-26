@@ -14,22 +14,17 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import dagger.hilt.android.AndroidEntryPoint
-import de.rafaelbeckmann.hvkclient.data.remote.dto.NetworkTokenUpdateRequest
-import de.rafaelbeckmann.hvkclient.domain.repository.HvkRepository
-import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 
 // TODO: komplett neu machen
-@AndroidEntryPoint
 class PushNotificationService : FirebaseMessagingService() {
 
-    @Inject lateinit var repository: HvkRepository
-    @Inject lateinit var settingsRepository: SettingsRepository
+    val authRepository: AuthRepository by inject()
 
     // Single coroutine scope for the service
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -48,7 +43,7 @@ class PushNotificationService : FirebaseMessagingService() {
         Log.d(TAG, "New FCM token received: $token")
 
         serviceScope.launch {
-            // TODO: this failes on signup since you're not registered/logged in but it does'nt matter, it gets resent on signup
+            // TODO: this fails on signup since you're not registered/logged in but it doesn't matter, it gets resent on signup
             sendTokenToServer(token)
         }
     }
@@ -58,9 +53,7 @@ class PushNotificationService : FirebaseMessagingService() {
             try {
                 Log.d(TAG, "Sending token to server")
 
-                // make NetworkTokenUpdateRequest object
-                val tokenUpdateRequest = NetworkTokenUpdateRequest(token)
-                repository.updateToken(tokenUpdateRequest)
+                authRepository.addNotificationToken(token)
 
                 Log.d(TAG, "Token sent successfully")
             } catch (e: Exception) {

@@ -23,7 +23,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,9 +33,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rafaelbeckmann.hvkclient.ui.settings.SettingsViewModel
 import kotlinx.coroutines.android.awaitFrame
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,19 +44,19 @@ fun AddCourseScreen(
     modifier: Modifier = Modifier,
     onBack: () -> Unit,
     onContinue: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = koinViewModel()
 ) {
-    val suggestions by viewModel.courseSearch.collectAsState()
+    val suggestions by viewModel.courseSearch.collectAsStateWithLifecycle()
     var courseName by rememberSaveable { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
     fun onConfirm(courseName: String){
         if (courseName.isNotBlank()) {
-            viewModel.postVpSelectedCourse(courseName)
+            viewModel.postSelectedCourse(courseName)
             Log.d("SettingsScreen", "Neuer Kurs: $courseName")
 
             // TODO: does not fix the issue where the list sometimes doesn't get updated after adding a course
-            viewModel.fetchVpSelectedCourse()
+            viewModel.fetchSelectedCourse()
         }
         onContinue()
     }

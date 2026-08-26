@@ -1,7 +1,7 @@
 package de.rafaelbeckmann.hvkclient.domain.repository
 
-import okhttp3.Cookie
+import de.rafaelbeckmann.hvkclient.features.other.data.NetworkCookie
 
 interface SpRepositoryTest {
-    suspend fun getSpAuthCookiesTest(): List<Cookie>
+    suspend fun getSpAuthCookiesTest(): List<NetworkCookie>
 }

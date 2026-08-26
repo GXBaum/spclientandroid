@@ -12,7 +12,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,21 +19,22 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.SnackbarEvent
 import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun DebugMenu(
     modifier: Modifier = Modifier,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = koinViewModel()
 ) {
-    val state by viewModel.settingsScreenState.collectAsState()
+    val state by viewModel.settingsScreenState.collectAsStateWithLifecycle()
 
-    val isDeveloper by viewModel.isDeveloper
+    val isDeveloper = state.isDeveloper
     val userId = state.userId
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -42,7 +42,14 @@ fun DebugMenu(
 
     Column {
         TextButton(
-            onClick = { viewModel.toggleDeveloperMode(context) }
+            onClick = {
+                viewModel.toggleDeveloperMode()
+                Toast.makeText(
+                    context,
+                    if (!isDeveloper) "Du bist jetzt im Debug Modus (No Diddy)" else "Du bist jetzt wieder im normalen Modus",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         ) {
             Text (
                 text = if(!isDeveloper) "nichts außer Leere..." else "Tippen, um den Entwicklermodus zu deaktivieren.",
@@ -79,7 +86,10 @@ fun DebugMenu(
                 ) { Text("Onboarding Completed zurücksetzen") }
 
                 OutlinedButton(
-                    onClick = { viewModel.clearCache(context) },
+                    onClick = {
+                        viewModel.clearCache()
+                        Toast.makeText(context, "Cache geleert hoffentlich", Toast.LENGTH_SHORT).show()
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("Cache leeren") }
 
@@ -119,7 +129,7 @@ fun DebugMenu(
             ) {
                 Text("get token")
             }
-            Text(viewModel.settingsScreenState.collectAsState().value.spAuthTest.toString())
+            Text(state.spAuthTest.toString())
 
             TextButton(
                 onClick = {

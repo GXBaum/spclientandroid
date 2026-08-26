@@ -41,7 +41,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,10 +53,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
 import de.rafaelbeckmann.hvkclient.ui.common.DebugMenu
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
@@ -65,6 +65,7 @@ import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.rememberSmartCollapseTopAppBarBehavior
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 import de.rafaelbeckmann.hvkclient.ui.main.LocalSnackbarHostState
+import org.koin.compose.viewmodel.koinViewModel
 
 sealed class CourseListItem {
     data class Course(val course: SelectedCourse) : CourseListItem()
@@ -90,13 +91,13 @@ sealed class SettingsItem {
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
-    viewModel: SettingsViewModel = hiltViewModel(),
+    viewModel: SettingsViewModel = koinViewModel(),
     onAddCourseClick: () -> Unit = {},
     onLibrariesClick: () -> Unit = {}
 ) {
-    val state by viewModel.settingsScreenState.collectAsState()
+    val state by viewModel.settingsScreenState.collectAsStateWithLifecycle()
 
-    val useDynamicColor by viewModel.useDynamicColor.collectAsState()
+    val useDynamicColor by viewModel.useDynamicColor.collectAsStateWithLifecycle()
 
     var showWarning by remember { mutableStateOf(false) }
 

@@ -1,19 +1,14 @@
 package de.rafaelbeckmann.hvkclient
 
 import android.app.Application
-import androidx.hilt.work.HiltWorkerFactory
-import androidx.work.Configuration
-import dagger.hilt.android.HiltAndroidApp
-import javax.inject.Inject
+import de.rafaelbeckmann.hvkclient.core.di.initKoin
+import org.koin.android.ext.koin.androidContext
 
-@HiltAndroidApp
-class MyApp: Application(), Configuration.Provider {
-
-    @Inject
-    lateinit var workerFactory: HiltWorkerFactory
-
-    override val workManagerConfiguration: Configuration
-        get() = Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
+class MyApp: Application() {
+    override fun onCreate() {
+        super.onCreate()
+        initKoin {
+            androidContext(this@MyApp)
+        }
+    }
 }

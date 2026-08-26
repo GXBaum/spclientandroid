@@ -1,9 +1,10 @@
 package de.rafaelbeckmann.hvkclient.data.repository
 
 import android.util.Log
-import de.rafaelbeckmann.hvkclient.di.AppModule
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
+import de.rafaelbeckmann.hvkclient.features.other.data.NetworkCookie
+import de.rafaelbeckmann.hvkclient.features.other.data.toDomain
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -12,15 +13,16 @@ import okhttp3.FormBody
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import javax.inject.Inject
+import org.koin.core.annotation.Named
+import org.koin.core.annotation.Single
 
-class SpRepositoryTestImpl @Inject constructor(
-    @param:AppModule.UsingThisToNotHaveTheProvidesAnnotationDuplicationError
-    private val spAuthOkHttp: OkHttpClient,
+@Single(binds = [SpRepositoryTest::class])
+class SpRepositoryTestImpl(
+    @Named("spAuthTest") private val spAuthOkHttp: OkHttpClient,
     private val encryptedUserPreferencesRepository: EncryptedUserPreferencesRepository
 ) : SpRepositoryTest {
 
-    override suspend fun getSpAuthCookiesTest(): List<Cookie> = withContext(Dispatchers.IO) {
+    override suspend fun getSpAuthCookiesTest(): List<NetworkCookie> = withContext(Dispatchers.IO) {
 
         val schoolId = 6078
 
@@ -73,6 +75,6 @@ class SpRepositoryTestImpl @Inject constructor(
             Log.d("TEST", "Authentication failed. Invalid credentials? (Missing 'sid')")
         }
 
-        return@withContext returnVal
+        return@withContext returnVal.map { it.toDomain() }
     }
 }
