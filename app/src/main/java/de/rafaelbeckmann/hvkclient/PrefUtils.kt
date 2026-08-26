@@ -1,6 +1,5 @@
 package de.rafaelbeckmann.hvkclient
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -13,7 +12,6 @@ import org.koin.core.annotation.Single
 
 @Single
 class PrefUtils(
-    private val context: Context,
     @Named("preferences") private val dataStore: DataStore<Preferences>
 ) {
     suspend fun saveString(key: String, value: String) {

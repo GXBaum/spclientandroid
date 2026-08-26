@@ -42,9 +42,9 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import de.rafaelbeckmann.hvkclient.ConnectivityViewModel
-import de.rafaelbeckmann.hvkclient.ObserveAsEvents
 import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
+import de.rafaelbeckmann.hvkclient.ui.common.ObserveAsEvents
 import de.rafaelbeckmann.hvkclient.ui.navigation.AppNavHost
 import de.rafaelbeckmann.hvkclient.ui.navigation.OnboardingGraph
 import de.rafaelbeckmann.hvkclient.ui.navigation.RevealMarkScreen

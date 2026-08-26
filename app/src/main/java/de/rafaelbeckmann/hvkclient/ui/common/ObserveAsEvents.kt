@@ -1,4 +1,4 @@
-package de.rafaelbeckmann.hvkclient
+package de.rafaelbeckmann.hvkclient.ui.common
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
