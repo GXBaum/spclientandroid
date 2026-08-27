@@ -1,4 +1,4 @@
-package de.rafaelbeckmann.shared
+package de.rafaelbeckmann.hvkclient
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
