@@ -50,12 +50,6 @@ kotlin {
     // https://developer.android.com/kotlin/multiplatform/migrate
     val xcfName = "sharedKit"
 
-    iosX64 {
-        binaries.framework {
-            baseName = xcfName
-        }
-    }
-
     iosArm64 {
         binaries.framework {
             baseName = xcfName
@@ -138,6 +132,7 @@ kotlin {
                 // part of KMP’s default source set hierarchy. Note that this source set depends
                 // on common by default and will correctly pull the iOS artifacts of any
                 // KMP dependencies declared in commonMain.
+                implementation(libs.ktor.client.darwin)
             }
         }
     }
@@ -147,7 +142,6 @@ kotlin {
 dependencies {
     add("kspAndroid", libs.androidx.room.ksp)
     add("kspIosSimulatorArm64", libs.androidx.room.ksp)
-    add("kspIosX64", libs.androidx.room.ksp)
     add("kspIosArm64", libs.androidx.room.ksp)
     // Add any other platform target you use in your project, for example kspDesktop
 }

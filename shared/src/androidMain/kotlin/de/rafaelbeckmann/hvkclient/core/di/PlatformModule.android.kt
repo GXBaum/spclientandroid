@@ -11,9 +11,6 @@ import androidx.room.Room
 import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.UserPreferencesSerializer
 import de.rafaelbeckmann.hvkclient.core.database.AppDatabase
-import de.rafaelbeckmann.hvkclient.features.courses.data.CourseDao
-import de.rafaelbeckmann.hvkclient.features.other.data.OtherDao
-import de.rafaelbeckmann.hvkclient.features.vp.data.VpDao
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.okhttp.OkHttp
 import kotlinx.coroutines.CoroutineScope
@@ -61,22 +58,6 @@ actual class PlatformModule {
             .fallbackToDestructiveMigration(true)
             .build()
     }
-
-    @Single
-    fun provideVpDao(appDatabase: AppDatabase): VpDao {
-        return appDatabase.vpDao()
-    }
-
-    @Single
-    fun provideCourseDao(appDatabase: AppDatabase): CourseDao {
-        return appDatabase.courseDao()
-    }
-
-    @Single
-    fun provideOtherDao(appDatabase: AppDatabase): OtherDao {
-        return appDatabase.otherDao()
-    }
-
 
 
 

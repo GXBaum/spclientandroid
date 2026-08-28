@@ -24,4 +24,32 @@ interface OtherDao {
         clearFeatureFlags()
         upsertFeatureFlags(flags)
     }
+
+
+
+    @Query("DELETE FROM usercourseentity")
+    suspend fun clearUserCourses()
+    @Query("DELETE FROM usermarkentity")
+    suspend fun clearUserMarks()
+    @Query("DELETE FROM vpselectedcourseentity")
+    suspend fun clearVpSelectedCourses()
+    @Query("DELETE FROM vpsubstitutionentity")
+    suspend fun clearVpSubstitutions()
+    @Query("DELETE FROM vpdayentity")
+    suspend fun clearVpDays()
+    @Query("DELETE FROM vpdayinfoitem")
+    suspend fun clearVpInfos()
+
+    // TODO: this sucks hard but i don't care right now
+    @Transaction
+    suspend fun clearAllTablesButManualAgainThanksToKmp() {
+        clearUserCourses()
+        clearUserMarks()
+        clearVpSelectedCourses()
+        clearVpSubstitutions()
+        clearVpDays()
+        clearVpInfos()
+        clearFeatureFlags()
+    }
+
 }

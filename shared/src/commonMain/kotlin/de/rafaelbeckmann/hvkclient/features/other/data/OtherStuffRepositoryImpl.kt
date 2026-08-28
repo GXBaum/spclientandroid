@@ -11,11 +11,8 @@ import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
 import de.rafaelbeckmann.hvkclient.features.other.domain.FeatureFlag
 import de.rafaelbeckmann.hvkclient.features.other.domain.OtherStuffRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withContext
 import org.koin.core.annotation.Single
 
 @Single(binds = [OtherStuffRepository::class])
@@ -28,10 +25,8 @@ class OtherStuffRepositoryImpl(
     private val notificationTokenProvider: NotificationTokenProvider
 ) : OtherStuffRepository {
     override suspend fun clearCache() {
-        // FIXME ANDROID SPECIFIC
-        withContext(Dispatchers.IO) {
-            database.clearAllTables()
-        }
+        // TODO: improve this
+        dao.clearAllTablesButManualAgainThanksToKmp()
     }
 
     override fun observeFeatureFlags(): Flow<FeatureFlag> {
