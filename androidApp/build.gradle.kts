@@ -53,19 +53,7 @@ android {
 }
 
 dependencies {
-
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-
-    //implementation(libs.androidx.material3)
-    implementation(libs.material3)
-    implementation(libs.androidx.compose.animation)
-
+    implementation(project(":shared"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -75,13 +63,30 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    implementation(platform(libs.androidx.compose.bom))
+
+    implementation(platform(libs.firebase.bom))
+
+    ksp(libs.androidx.room.ksp)
+
+
+    implementation(libs.kotlin.stdlib)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+
+    //implementation(libs.androidx.material3)
+    implementation(libs.material3)
+    implementation(libs.androidx.compose.animation)
+
 
     //Firebase
-    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.messaging)
 
-    //Retrofit
     implementation(libs.okhttp)
     implementation(libs.okhttp.urlconnection)
 
@@ -94,18 +99,10 @@ dependencies {
 
     // Navigation Compose
     implementation(libs.navigation.compose)
-    implementation(libs.kotlinx.serialization.json)
-
-    // data store
-    implementation(libs.androidx.datastore.preferences)
 
     // icons
     implementation(libs.androidx.material.icons.extended)
 
-    // Room
-    implementation(libs.androidx.room)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.ksp)
 
     // für SplashScreen (Theme.Material3.DayNight.NoActionBar)
     implementation(libs.material)
@@ -122,16 +119,20 @@ dependencies {
     // Jsoup (HTML parsing)
     implementation(libs.jsoup)
 
-    implementation(libs.kotlinx.datetime)
-
-    implementation(libs.bundles.ktor)
-    implementation(libs.ktor.client.okhttp)
-
-    implementation(libs.koin.core)
-    implementation(libs.koin.annotations)  // For annotation support
     implementation(libs.koin.compose)
     implementation(libs.koin.compose.viewmodel)
     implementation(libs.koin.compose.viewmodel.navigation)
     implementation(libs.koin.androidx.workmanager)
 
+
+    implementation(libs.koin.core)
+    implementation(libs.koin.annotations)
+
+    implementation(libs.kotlinx.datetime)
+
+    implementation(libs.androidx.room)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.ktor.client.okhttp)
 }

@@ -34,7 +34,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.rafaelbeckmann.hvkclient.ui.settings.SettingsViewModel
+import de.rafaelbeckmann.hvkclient.SettingsViewModel
 import kotlinx.coroutines.android.awaitFrame
 import org.koin.compose.viewmodel.koinViewModel
 

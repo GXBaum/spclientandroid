@@ -58,11 +58,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpSubstitution
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpType
 import de.rafaelbeckmann.hvkclient.features.vp.presentation.VpViewModel
+import de.rafaelbeckmann.hvkclient.relativeDateFormatter
+import de.rafaelbeckmann.hvkclient.relativeDateTimeFormatter
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
-import de.rafaelbeckmann.hvkclient.ui.common.relativeDateFormatter
-import de.rafaelbeckmann.hvkclient.ui.common.relativeDateTimeFormatter
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
 import de.rafaelbeckmann.hvkclient.ui.main.LocalSnackbarHostState
 import de.rafaelbeckmann.hvkclient.ui.navigation.VP_FAB_EXPLODE_BOUND

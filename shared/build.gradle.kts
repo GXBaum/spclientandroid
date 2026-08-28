@@ -1,7 +1,20 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.android.lint)
+
+    alias(libs.plugins.koin.compiler)
+
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.androidx.room)
+
+    alias(libs.plugins.kotlin.serialization)
+}
+
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 kotlin {
@@ -10,9 +23,13 @@ kotlin {
     // which platforms this KMP module supports.
     // See: https://kotlinlang.org/docs/multiplatform-discover-project.html#targets
     android {
-        namespace = "de.rafaelbeckmann.hvkclient"
+        namespace = "de.rafaelbeckmann.hvkclient.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
+
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_11
+        }
 
         withHostTestBuilder {
         }
@@ -59,8 +76,24 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(libs.kotlin.stdlib)
-                // Add KMP dependencies here
+                implementation(libs.bundles.ktor)
+
+                implementation(libs.kotlinx.serialization.json)
+
+                implementation(libs.kotlinx.datetime)
+
+                implementation(libs.koin.core)
+                implementation(libs.koin.annotations)  // For annotation support
+                implementation(libs.koin.core.viewmodel)
+
+                // Room
+                implementation(libs.androidx.room)
+
+                // lifecycle / ViewModel
+                implementation(libs.androidx.lifecycle.viewmodel)
+
+                // data store
+                implementation(libs.androidx.datastore.preferences)
             }
         }
 
@@ -75,6 +108,18 @@ kotlin {
                 // Add Android-specific dependencies here. Note that this source set depends on
                 // commonMain by default and will correctly pull the Android artifacts of any KMP
                 // dependencies declared in commonMain.
+                implementation(libs.ktor.client.okhttp)
+
+                implementation(libs.okhttp)
+                implementation(libs.okhttp.urlconnection)
+                implementation(libs.logging.interceptor)
+
+                //Firebase
+                implementation(project.dependencies.platform(libs.firebase.bom))
+                implementation(libs.firebase.analytics)
+                implementation(libs.firebase.messaging)
+
+                implementation(libs.androidx.core.ktx)
             }
         }
 
@@ -97,4 +142,12 @@ kotlin {
         }
     }
 
+}
+
+dependencies {
+    add("kspAndroid", libs.androidx.room.ksp)
+    add("kspIosSimulatorArm64", libs.androidx.room.ksp)
+    add("kspIosX64", libs.androidx.room.ksp)
+    add("kspIosArm64", libs.androidx.room.ksp)
+    // Add any other platform target you use in your project, for example kspDesktop
 }

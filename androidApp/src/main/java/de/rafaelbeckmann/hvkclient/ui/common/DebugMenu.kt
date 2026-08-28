@@ -20,10 +20,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.rafaelbeckmann.hvkclient.SettingsViewModel
 import de.rafaelbeckmann.hvkclient.SnackbarController
 import de.rafaelbeckmann.hvkclient.SnackbarEvent
 import de.rafaelbeckmann.hvkclient.UserPreferences
-import de.rafaelbeckmann.hvkclient.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
