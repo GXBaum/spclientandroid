@@ -64,7 +64,7 @@ class OtherStuffRepositoryImpl(
                 settingsRepository.setOnboardingCompleted(true)
 
                 runCatching {
-                    val fcmToken = notificationTokenProvider.getToken()
+                    val fcmToken = notificationTokenProvider.getToken().orEmpty() // FIXME: improve this, orEmpty to not have null
                     authRepository.addNotificationToken(fcmToken)
                 }
             }

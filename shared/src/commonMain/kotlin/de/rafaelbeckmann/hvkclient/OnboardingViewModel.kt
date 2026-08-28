@@ -2,8 +2,6 @@ package de.rafaelbeckmann.hvkclient
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.Firebase
-import com.google.firebase.messaging.messaging
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
@@ -11,12 +9,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import org.koin.core.annotation.KoinViewModel
 
 @KoinViewModel
 class OnboardingViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val notificationTokenProvider: NotificationTokenProvider
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
@@ -30,7 +28,7 @@ class OnboardingViewModel(
                 .onSuccess {
                     // should this be in here?
                     // also i think this can crash lol. but its at least not worse than before, just the same ¯\_(ツ)_/¯
-                    val fcmToken = Firebase.messaging.token.await()
+                    val fcmToken = notificationTokenProvider.getToken().orEmpty() // FIXME: improve this, orEmpty to not have null
                     authRepository.addNotificationToken(fcmToken)
                         .onSuccess {
                             _loginState.value = LoginState.Success
@@ -53,7 +51,7 @@ class OnboardingViewModel(
             authRepository.createAccount()
                 .onSuccess {
                     // TODO: Firebase.messaging.token.await() auch ins repo?
-                    val fcmToken = Firebase.messaging.token.await()
+                    val fcmToken = notificationTokenProvider.getToken().orEmpty() // FIXME: improve this, orEmpty to not have null
                     authRepository.addNotificationToken(fcmToken)
                         .onSuccess {
                             _loginState.value = LoginState.Success
