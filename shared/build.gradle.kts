@@ -11,6 +11,8 @@ plugins {
     alias(libs.plugins.androidx.room)
 
     alias(libs.plugins.kotlin.serialization)
+
+    alias(libs.plugins.skie)
 }
 
 room {

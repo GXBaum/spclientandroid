@@ -18,4 +18,6 @@ plugins {
     alias(libs.plugins.androidx.room) apply false
 
     alias(libs.plugins.kotlin.serialization) apply false
+
+    alias(libs.plugins.skie) apply false
 }
