@@ -1,11 +1,10 @@
 package de.rafaelbeckmann.hvkclient.core.di
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.core.DataStoreFactory
-import androidx.datastore.core.okio.OkioStorage
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.PreferencesSerializer
 import androidx.room.Room
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import de.rafaelbeckmann.hvkclient.UserPreferences
 import de.rafaelbeckmann.hvkclient.core.database.AppDatabase
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
@@ -13,10 +12,11 @@ import de.rafaelbeckmann.hvkclient.features.other.data.NetworkCookie
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.darwin.Darwin
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.updateAndGet
-import okio.FileSystem
 import okio.Path.Companion.toPath
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Named
@@ -36,20 +36,18 @@ actual class PlatformModule {
         return Room.databaseBuilder<AppDatabase>(
             name = dbFilePath,
         )
+            .setDriver(BundledSQLiteDriver())
+            .setQueryCoroutineContext(Dispatchers.IO)
             .fallbackToDestructiveMigration(true)
             .build()
     }
 
     @Single
     @Named("preferences")
-    fun provideDataStore(): DataStore<Preferences> = DataStoreFactory.create(
-        storage = OkioStorage(
-            fileSystem = FileSystem.SYSTEM,
-            serializer = PreferencesSerializer,
-            producePath = {
-                (documentDirectory() + "/local.preferences_pb").toPath()
-            }
-        )
+    fun provideDataStore(): DataStore<Preferences> = PreferenceDataStoreFactory.createWithPath(
+        produceFile = {
+            (documentDirectory() + "/local.preferences_pb").toPath()
+        }
     )
 
     // FIXME: PLACEHOLDER

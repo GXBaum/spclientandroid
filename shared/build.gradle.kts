@@ -90,6 +90,8 @@ kotlin {
 
                 // data store
                 implementation(libs.androidx.datastore.preferences)
+
+                implementation(libs.androidx.sqlite.bundled)
             }
         }
 
