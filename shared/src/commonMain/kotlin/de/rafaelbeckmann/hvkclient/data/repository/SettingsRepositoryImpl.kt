@@ -43,6 +43,10 @@ class SettingsRepositoryImpl(
         return prefUtils.getString(PreferenceKeys.IS_ONBOARDING_COMPLETED)?.toBoolean() ?: false
     }
 
+    override fun observeIsOnboardingCompleted(): Flow<Boolean> {
+        return prefUtils.booleanFlow(PreferenceKeys.IS_ONBOARDING_COMPLETED, default = false)
+    }
+
     override suspend fun setAccessToken(token: String) {
         prefUtils.saveString(PreferenceKeys.ACCESS_TOKEN, token)
         println("Access token set: $token")

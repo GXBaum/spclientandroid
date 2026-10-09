@@ -11,12 +11,7 @@ interface SettingsRepository {
 
     suspend fun setOnboardingCompleted(completed: Boolean)
     suspend fun isOnboardingCompleted(): Boolean
-
-    /*
-    suspend fun setVpSelectedCourseName(courseName: String)
-    suspend fun getVpSelectedCourseName(): String?
-
-     */
+    fun observeIsOnboardingCompleted(): Flow<Boolean>
 
     // TODO: Store Token in Encrypted DataStore
     suspend fun setAccessToken(token: String)

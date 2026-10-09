@@ -462,7 +462,7 @@ fun LazyListScope.vpTableItems(
     }
 
     if (deleted.isNotEmpty()){
-        item{
+        item {
             Text("gelöscht")
         }
         vpTableItemsNotSureHowToNameThis(deleted, isDeleted = true, isDefaultExtended = true)
