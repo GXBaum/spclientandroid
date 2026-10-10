@@ -99,11 +99,11 @@ fun AddCourseScreen(
         }
     ) { innerPadding ->
 
-        LazyColumn (
+        LazyColumn(
             modifier = Modifier
                 .padding(innerPadding),
-        ){
-            item{
+        ) {
+            item {
                 OutlinedTextField(
                     value = courseName,
                     onValueChange = {
@@ -121,7 +121,7 @@ fun AddCourseScreen(
                     )
                 )
             }
-            item{
+            item {
                 Spacer(Modifier.height(16.dp))
             }
 

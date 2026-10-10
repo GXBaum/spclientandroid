@@ -5,10 +5,10 @@ struct SettingsView: View {
     private let settingsViewModel = KoinHelper.shared.settingsViewModel
 
     @State private var state = KoinHelper.shared.settingsViewModel.settingsScreenState.value
-    @State private var selectedCourseName: String = ""
-    @State private var newCourseInput = ""
     @Environment(\.dismiss) private var dismiss
 
+    @State private var showAddCourse = false
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -38,17 +38,14 @@ struct SettingsView: View {
                             }
                         }
                     }
-                    HStack {
-                        Image(systemName: "plus")
-                        
-                        TextField("Klassenname (z. B. G10a, Q1/Q2)", text: $newCourseInput)
-                            .textInputAutocapitalization(.characters)
-                            .autocorrectionDisabled()
-                        
-                        Button("Hinzufügen") {
-                            addCourse(newCourseInput)
+                    
+                    Button {
+                        showAddCourse = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus")
+                            Text("Klasse hinzufügen")
                         }
-                        .disabled(newCourseInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
                 }
             }
@@ -61,18 +58,15 @@ struct SettingsView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showAddCourse) {
+                CourseAddView()
+            }
         }
         .task {
             for await newState in settingsViewModel.settingsScreenState {
                 self.state = newState
             }
         }
-    }
-    
-    private func addCourse(_ name: String) {
-        settingsViewModel.postSelectedCourse(courseName: name)
-        newCourseInput = ""
-        selectedCourseName = name
     }
 }
 
