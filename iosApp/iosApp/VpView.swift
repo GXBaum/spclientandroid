@@ -39,10 +39,17 @@ struct VpView: View {
                         Image(systemName: "gearshape")
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink {
+                        VpWebView()
+                    } label: {
+                        Image(systemName: "safari")
+                    }
+                }
                 
                 ToolbarItem(placement: .principal) {
                     if state.selectedCourses.count > 1 {
-                        Picker("Picker", selection: $selectedCourseId.animation(.snappy(duration: 0.35))) {
+                        Picker("Klasse", selection: $selectedCourseId.animation(.snappy(duration: 0.35))) {
                             ForEach(state.selectedCourses, id: \.id) { course in
                                 Text(course.name)
                                     .tag(course.id)
