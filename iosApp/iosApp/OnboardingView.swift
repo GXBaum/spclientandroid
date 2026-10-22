@@ -26,8 +26,8 @@ struct OnboardingView: View {
             image: Image(systemName: "info.circle")
         ),
         Page(
-            title: "Auch für Android verfügbar",
-            description: "Empfehle es deinen Freunden weiter.",
+            title: "Teile die App",
+            description: "Empfehle sie deinen Mitschülern weiter.",
             image: Image(systemName: "megaphone")
         )
     ]

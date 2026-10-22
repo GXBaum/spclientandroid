@@ -116,13 +116,13 @@ struct FallbackWebView: UIViewRepresentable {
 func makeUserScript() -> WKUserScript {
     let themeFg = "#000000"
     let themeBg = "#FFFFFF"
-    let themeBorder = "#777777"
+    let themeBorder = "#CCCCCC"
     let themeBgHighlight = "#DDDDDD"
     let themeMatchBg = "#000000"
     
     let themeFgDark = "#FFFFFF"
     let themeBgDark = "#000000"
-    let themeBorderDark = "#888888"
+    let themeBorderDark = "#333333"
     let themeBgHighlightDark = "#222222"
     let themeMatchBgDark = "#FFFFFF"
     
@@ -141,6 +141,7 @@ func makeUserScript() -> WKUserScript {
         }
         h3 { /* Heinrich-von-Kleist-Schule Eschborn und Vertetungsplan für... */
         font-size: 18px !important;
+        display: none !important;
         }
         b { /* in Arbeit */
         font-size: 30px !important; /* for "In Arbeit..." */
@@ -213,6 +214,15 @@ func makeUserScript() -> WKUserScript {
         """
     
     let js = """
+    // Disable built-in autoscroll and auto-reload script (<body onload="windowSize()">)
+    window.windowSize = () => {};
+    window.auto = () => {};
+    window.scrollen = () => {};
+    window.laden = () => {};
+    if (document.body) {
+        document.body.onload = null;
+    }
+
     const style = document.createElement('style');
     style.innerHTML = `\(css)`;
     document.head.appendChild(style);

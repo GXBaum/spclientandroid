@@ -39,13 +39,13 @@ struct VpView: View {
                         Image(systemName: "gearshape")
                     }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
+                /*ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink {
                         VpWebView()
                     } label: {
                         Image(systemName: "safari")
                     }
-                }
+                }*/
                 
                 ToolbarItem(placement: .principal) {
                     if state.selectedCourses.count > 1 {
