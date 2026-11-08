@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -41,8 +42,7 @@ class VpViewModel(
         viewModelScope.launch {
             _vpScreenState.value = _vpScreenState.value.copy(isLoading = true, error = null)
 
-            //fetchVpSelectedCourse()
-            refresh()
+            refreshAsync()
             observeSelectedCourses()
 
 
@@ -50,10 +50,19 @@ class VpViewModel(
             vpScreenState.map { it.selectedCourses }
                 .distinctUntilChanged()
                 .onEach { courses ->
-                    //fetchVpSubstitutions(courses)
-                    refresh()
-                    observeSubstitutions(courses)
-                }.launchIn(viewModelScope)
+                    refreshAsync()
+                }
+                .flatMapLatest { courses ->
+                    vpRepository.observeSubstitutions(courses.map { it.name })
+                        .onEach { value ->
+                            _vpScreenState.update {
+                                it.copy(
+                                    substitutions = value
+                                )
+                            }
+                        }
+                }
+                .launchIn(viewModelScope)
         }
     }
 
@@ -69,73 +78,54 @@ class VpViewModel(
             .launchIn(viewModelScope)
     }
 
-    fun observeSubstitutions(courseNames: List<SelectedCourse>) {
-        vpRepository.observeSubstitutions(courseNames.map { it.name })
-            .onEach { value ->
+    private suspend fun fetchSelectedCourse() {
+        vpRepository.refreshSelectedCourses()
+            .onError { error ->
                 _vpScreenState.update {
                     it.copy(
-                        substitutions = value
+                        error = when (error) {
+                            DataError.Remote.NO_INTERNET -> "kein Internet"
+                            else -> "Klassen konnte nicht geladen werden"
+                        }
                     )
                 }
             }
-            .launchIn(viewModelScope)
+            .onSuccess {
+                _vpScreenState.update { it.copy(error = null) }
+            }
     }
 
-    fun fetchSelectedCourse() {
-        viewModelScope.launch {
-            _vpScreenState.update {
-                it.copy(isLoading = true, error = null)
+    private suspend fun fetchSubstitutions(courseNames: List<SelectedCourse>) {
+        vpRepository.refreshSubstitutions(courseNames.map { it.name })
+            .onError { error ->
+                _vpScreenState.update {
+                    it.copy(
+                        error = when (error) {
+                            DataError.Remote.NO_INTERNET -> "kein Internet"
+                            else -> "Einträge konnten nicht geladen werden"
+                        }
+                    )
+                }
             }
+            .onSuccess {
+                _vpScreenState.update { it.copy(error = null) }
+            }
+    }
 
-            vpRepository.refreshSelectedCourses()
-                .onError { error ->
-                    _vpScreenState.update {
-                        it.copy(
-                            error = when (error) {
-                                DataError.Remote.NO_INTERNET -> "kein Internet"
-                                else -> "Klassen konnte nicht geladen werden"
-                            }
-                        )
-                    }
-                }
-                .onSuccess {
-                    _vpScreenState.update { it.copy(error = null) }
-                }
+    suspend fun refresh() {
+        _vpScreenState.update {
+            it.copy(isLoading = true, error = null)
+        }
 
+        try {
+            fetchSelectedCourse()
+            fetchSubstitutions(vpScreenState.value.selectedCourses)
+        } finally {
             _vpScreenState.update { it.copy(isLoading = false) }
         }
     }
 
-    fun fetchSubstitutions(courseNames: List<SelectedCourse>) {
-        viewModelScope.launch {
-            _vpScreenState.update {
-                it.copy(isLoading = true, error = null)
-            }
-
-            vpRepository.refreshSubstitutions(courseNames.map { it.name })
-                .onError { error ->
-                    _vpScreenState.update {
-                        it.copy(
-                            error = when (error) {
-                                DataError.Remote.NO_INTERNET -> "kein Internet"
-                                else -> "Einträge konnten nicht geladen werden"
-                            }
-                        )
-                    }
-                }
-                .onSuccess {
-                    _vpScreenState.update { it.copy(error = null) }
-                }
-
-            _vpScreenState.update { it.copy(isLoading = false) }
-        }
-    }
-
-    fun refresh() {
-        val courses = vpScreenState.value.selectedCourses
-        //fetchVpSubstitutions(courses)
-
-        fetchSelectedCourse()
-        fetchSubstitutions(courses)
+    fun refreshAsync() {
+        viewModelScope.launch { refresh() }
     }
 }

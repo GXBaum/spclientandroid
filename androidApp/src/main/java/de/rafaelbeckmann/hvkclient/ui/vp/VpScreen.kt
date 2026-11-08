@@ -20,7 +20,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,6 +71,7 @@ import de.rafaelbeckmann.hvkclient.ui.navigation.VP_FAB_EXPLODE_BOUND
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
@@ -89,7 +92,7 @@ fun SharedTransitionScope.VpScreen(
     // Animate FAB collapse
     var fabExpanded by rememberSaveable { mutableStateOf(true) }
     LaunchedEffect(Unit) {
-        delay(8_000)
+        delay(8.seconds)
         fabExpanded = false
     }
 
@@ -151,7 +154,7 @@ fun SharedTransitionScope.VpScreen(
         HapticPullToRefreshBox(
             isRefreshing = state.isLoading,
             onRefresh = {
-                viewModel.refresh()
+                viewModel.refreshAsync()
             },
             modifier = Modifier
                 .fillMaxSize()
@@ -181,6 +184,8 @@ fun SharedTransitionScope.VpScreen(
                             TabsContent()
                         }
                     }
+
+                    state.error?.let { ErrorCard(it) }
 
 
                     HorizontalPager(
@@ -400,9 +405,12 @@ fun SharedTransitionScope.VpScreen(
                         }
                     }
                 } else if (!state.isLoading) {
+                    state.error?.let { ErrorCard(it) }
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
                             .padding(32.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -410,7 +418,6 @@ fun SharedTransitionScope.VpScreen(
                     }
                 }
 
-                state.error?.let { ErrorCard(it) }
             }
         }
     }

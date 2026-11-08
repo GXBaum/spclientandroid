@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,19 +26,7 @@ class OnboardingViewModel(
             _loginState.value = LoginState.Loading
 
             authRepository.login(username, password)
-                .onSuccess {
-                    // should this be in here?
-                    // also i think this can crash lol. but its at least not worse than before, just the same ¯\_(ツ)_/¯
-                    val fcmToken = notificationTokenProvider.getToken().orEmpty() // FIXME: improve this, orEmpty to not have null
-                    authRepository.addNotificationToken(fcmToken)
-                        .onSuccess {
-                            _loginState.value = LoginState.Success
-                        }
-                        .onError {
-                            // TODO: no error handling
-                            _loginState.value = LoginState.Success
-                        }
-                }
+                .onSuccess { completeSignIn() }
                 .onError {
                     _loginState.value = LoginState.Error("Ein Fehler ist aufgetreten. $it")
                 }
@@ -49,22 +38,26 @@ class OnboardingViewModel(
             _loginState.value = LoginState.Loading
 
             authRepository.createAccount()
-                .onSuccess {
-                    // TODO: Firebase.messaging.token.await() auch ins repo?
-                    val fcmToken = notificationTokenProvider.getToken().orEmpty() // FIXME: improve this, orEmpty to not have null
-                    authRepository.addNotificationToken(fcmToken)
-                        .onSuccess {
-                            _loginState.value = LoginState.Success
-                        }
-                        .onError {
-                            // TODO: no error handling
-                            _loginState.value = LoginState.Success
-                        }
-                }
+                .onSuccess { completeSignIn() }
                 .onError {
                     _loginState.value = LoginState.Error("Ein Fehler ist aufgetreten. $it")
                 }
         }
+    }
+
+    private suspend fun completeSignIn() {
+        try {
+            val token = notificationTokenProvider.getToken()
+            if (!token.isNullOrBlank()) {
+                authRepository.addNotificationToken(token)
+            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            // Push registration is optional after successful authentication.
+        }
+
+        _loginState.value = LoginState.Success
     }
 }
 

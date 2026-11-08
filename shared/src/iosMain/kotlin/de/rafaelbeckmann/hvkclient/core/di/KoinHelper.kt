@@ -2,6 +2,7 @@ package de.rafaelbeckmann.hvkclient.core.di
 
 import de.rafaelbeckmann.hvkclient.ConnectivityViewModel
 import de.rafaelbeckmann.hvkclient.MainViewModel
+import de.rafaelbeckmann.hvkclient.NotificationTokenProviderImpl
 import de.rafaelbeckmann.hvkclient.OnboardingViewModel
 import de.rafaelbeckmann.hvkclient.SettingsViewModel
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
@@ -20,4 +21,5 @@ object KoinHelper : KoinComponent {
     val courseDetailViewModel: CourseDetailViewModel get() = get()
     val connectivityViewModel: ConnectivityViewModel get() = get()
     val settingsRepository: SettingsRepository get() = get()
+    val notificationTokenProvider: NotificationTokenProviderImpl get() = get()
 }

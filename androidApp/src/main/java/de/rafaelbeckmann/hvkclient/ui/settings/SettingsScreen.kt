@@ -367,7 +367,6 @@ fun SettingsScreen(
 
 
 
-                //if (vpSelectedCourse.any { it.name =="_DEBUG" }) {
                 if (state.vpSelectedCourse.any { it.name == "_DEBUG" }) {
                     item {
                         DebugMenu()

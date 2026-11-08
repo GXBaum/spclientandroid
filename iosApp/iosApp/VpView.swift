@@ -12,20 +12,35 @@ struct VpView: View {
     
     var body: some View {
         NavigationStack {
-            Group {
-                if state.isLoading && state.substitutions == nil && state.selectedCourses.isEmpty {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if state.selectedCourses.isEmpty {
-                    VStack(spacing: 12) {
-                        Text("Keine Klassen ausgewählt")
-                        Button("Klasse hinzufügen") {
-                            showManageCoursesSheet = true
+            VStack(spacing: 0) {
+                if let error = state.error {
+                    HStack {
+                        Label(error, systemImage: "exclamationmark.triangle")
+                        Spacer()
+                        Button("Erneut versuchen") {
+                            viewModel.refreshAsync()
                         }
-                        .buttonStyle(.borderedProminent)
                     }
-                } else {
-                    pagingView
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.red.opacity(0.15))
+                }
+
+                Group {
+                    if state.isLoading && state.substitutions == nil && state.selectedCourses.isEmpty {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if state.selectedCourses.isEmpty {
+                        VStack(spacing: 12) {
+                            Text("Keine Klassen ausgewählt")
+                            Button("Klasse hinzufügen") {
+                                showManageCoursesSheet = true
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                    } else {
+                        pagingView
+                    }
                 }
             }
             .sheet(isPresented: $showManageCoursesSheet) {
@@ -117,7 +132,7 @@ struct VpView: View {
             DaySection(title: "Nächster Schultag", day: state.substitutions?.tomorrow, courseName: course.name)
         }
         .refreshable {
-            viewModel.refresh()
+            try? await viewModel.refresh()
         }
     }
     
