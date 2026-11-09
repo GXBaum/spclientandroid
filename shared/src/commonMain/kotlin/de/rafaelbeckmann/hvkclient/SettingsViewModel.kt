@@ -2,9 +2,9 @@ package de.rafaelbeckmann.hvkclient
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
+import de.rafaelbeckmann.hvkclient.core.presentation.toUiText
 import de.rafaelbeckmann.hvkclient.domain.repository.EncryptedUserPreferencesRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.domain.repository.SpRepositoryTest
@@ -94,12 +94,7 @@ class SettingsViewModel(
             vpRepository.refreshSelectedCourses()
                 .onError { error ->
                     _settingsScreenState.update {
-                        it.copy(
-                            error = when (error) {
-                                DataError.Remote.NO_INTERNET -> "kein Internet"
-                                else -> "Klassen konnten nicht geladen werden"
-                            }
-                        )
+                        it.copy(error = error.toUiText())
                     }
                 }
                 .onSuccess {
@@ -136,12 +131,7 @@ class SettingsViewModel(
             vpRepository.addSelectedCourse(courseName)
                 .onError { error ->
                     _settingsScreenState.update {
-                        it.copy(
-                            error = when (error) {
-                                DataError.Remote.NO_INTERNET -> "kein Internet"
-                                else -> "Klasse konnte nicht hinzugefügt werden"
-                            }
-                        )
+                        it.copy(error = error.toUiText())
                     }
                 }
                 .onSuccess {
@@ -165,12 +155,7 @@ class SettingsViewModel(
             vpRepository.removeSelectedCourse(courseId)
                 .onError { error ->
                     _settingsScreenState.update {
-                        it.copy(
-                            error = when (error) {
-                                DataError.Remote.NO_INTERNET -> "kein Internet"
-                                else -> "Klasse konnte nicht gelöscht werden"
-                            }
-                        )
+                        it.copy(error = error.toUiText())
                     }
                 }
                 .onSuccess {
@@ -191,12 +176,7 @@ class SettingsViewModel(
             vpRepository.searchCourses(courseName)
                 .onError { error ->
                     _settingsScreenState.update {
-                        it.copy(
-                            error = when (error) {
-                                DataError.Remote.NO_INTERNET -> "kein Internet"
-                                else -> "Klassensuche fehlgeschlagen"
-                            }
-                        )
+                        it.copy(error = error.toUiText())
                     }
                 }
                 .onSuccess { courses ->

@@ -2,9 +2,9 @@ package de.rafaelbeckmann.hvkclient.features.courses.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
+import de.rafaelbeckmann.hvkclient.core.presentation.toUiText
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.features.courses.domain.CoursesRepository
 import de.rafaelbeckmann.hvkclient.features.courses.domain.UserCourse
@@ -59,12 +59,7 @@ class CoursesViewModel(
             coursesRepository.refreshCourses()
                 .onError { error ->
                     _uiState.update {
-                        it.copy(
-                            error = when (error) {
-                                DataError.Remote.NO_INTERNET -> "kein Internet"
-                                else -> "Kurse konnten nicht geladen werden"
-                            }
-                        )
+                        it.copy(error = error.toUiText())
                     }
                 }
                 .onSuccess {

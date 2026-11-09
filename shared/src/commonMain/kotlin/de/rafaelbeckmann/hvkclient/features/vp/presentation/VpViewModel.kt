@@ -2,9 +2,9 @@ package de.rafaelbeckmann.hvkclient.features.vp.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
+import de.rafaelbeckmann.hvkclient.core.presentation.toUiText
 import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpDays
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
@@ -82,12 +82,7 @@ class VpViewModel(
         vpRepository.refreshSelectedCourses()
             .onError { error ->
                 _vpScreenState.update {
-                    it.copy(
-                        error = when (error) {
-                            DataError.Remote.NO_INTERNET -> "kein Internet"
-                            else -> "Klassen konnte nicht geladen werden"
-                        }
-                    )
+                    it.copy(error = error.toUiText())
                 }
             }
             .onSuccess {
@@ -99,12 +94,7 @@ class VpViewModel(
         vpRepository.refreshSubstitutions(courseNames.map { it.name })
             .onError { error ->
                 _vpScreenState.update {
-                    it.copy(
-                        error = when (error) {
-                            DataError.Remote.NO_INTERNET -> "kein Internet"
-                            else -> "Einträge konnten nicht geladen werden"
-                        }
-                    )
+                    it.copy(error = error.toUiText())
                 }
             }
             .onSuccess {
