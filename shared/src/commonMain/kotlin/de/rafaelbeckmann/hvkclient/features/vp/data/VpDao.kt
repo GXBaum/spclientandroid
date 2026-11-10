@@ -17,6 +17,9 @@ interface VpDao {
     @Query("SELECT * FROM vpselectedcourseentity")
     fun getVpSelectedCourses(): Flow<List<VpSelectedCourseEntity>>
 
+    @Query("DELETE FROM vpselectedcourseentity WHERE id = :courseId")
+    suspend fun deleteVpSelectedCourse(courseId: String)
+
     @Query("DELETE FROM vpselectedcourseentity")
     suspend fun clearVpSelectedCourses()
 

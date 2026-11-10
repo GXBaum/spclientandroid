@@ -45,11 +45,8 @@ class VpRepositoryImpl(
     }
 
     override suspend fun removeSelectedCourse(courseId: String): EmptyResult<DataError> {
-        val result = remoteDataSource.deleteSelectedCourse(courseId)
-        return when (result) {
-            is Result.Error -> result.asEmptyDataResult()
-            is Result.Success -> refreshSelectedCourses()
-        }
+        return remoteDataSource.deleteSelectedCourse(courseId)
+            .onSuccess { dao.deleteVpSelectedCourse(courseId) }
     }
 
     override fun observeSubstitutions(courseNames: List<String>): Flow<VpDays> {
