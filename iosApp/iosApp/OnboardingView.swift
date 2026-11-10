@@ -54,13 +54,6 @@ struct OnboardingView: View {
                     withAnimation {
                         if currentPage == pages.count - 1 {
                             onboardingViewModel.createAccount()
-                            Task {
-                                do {
-                                    try await settingsRepo.setOnboardingCompleted(completed: true)
-                                } catch {
-                                    
-                                }
-                            }
                         } else {
                             currentPage += 1
                         }
