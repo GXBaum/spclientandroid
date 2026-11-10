@@ -36,30 +36,21 @@ class VpViewModel(
     private val _vpScreenState = MutableStateFlow(VpScreenState())
     val vpScreenState: StateFlow<VpScreenState> = _vpScreenState.asStateFlow()
 
-
-    // TODO: Wenn man aktualisiert, werden manchmal die alten Daten angezeigt, auch wenn es die nicht mehr gibt.
     init {
         viewModelScope.launch {
-            _vpScreenState.value = _vpScreenState.value.copy(isLoading = true, error = null)
+            _vpScreenState.update { it.copy(isLoading = true, error = null) }
 
             refreshAsync()
             observeSelectedCourses()
 
-
             // Observe the selected course and fetch substitutions when it's available
             vpScreenState.map { it.selectedCourses }
                 .distinctUntilChanged()
-                .onEach { courses ->
-                    refreshAsync()
-                }
+                .onEach { refreshAsync() }
                 .flatMapLatest { courses ->
                     vpRepository.observeSubstitutions(courses.map { it.name })
-                        .onEach { value ->
-                            _vpScreenState.update {
-                                it.copy(
-                                    substitutions = value
-                                )
-                            }
+                        .onEach { substitutions ->
+                            _vpScreenState.update { it.copy(substitutions = substitutions) }
                         }
                 }
                 .launchIn(viewModelScope)
@@ -68,12 +59,8 @@ class VpViewModel(
 
     fun observeSelectedCourses() {
         vpRepository.observeSelectedCourses()
-            .onEach { value ->
-                _vpScreenState.update {
-                    it.copy(
-                        selectedCourses = value
-                    )
-                }
+            .onEach { courses ->
+                _vpScreenState.update { it.copy(selectedCourses = courses) }
             }
             .launchIn(viewModelScope)
     }
@@ -103,9 +90,7 @@ class VpViewModel(
     }
 
     suspend fun refresh() {
-        _vpScreenState.update {
-            it.copy(isLoading = true, error = null)
-        }
+        _vpScreenState.update { it.copy(isLoading = true, error = null) }
 
         try {
             fetchSelectedCourse()
