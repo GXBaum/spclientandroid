@@ -1,18 +1,17 @@
-package de.rafaelbeckmann.hvkclient
+package de.rafaelbeckmann.hvkclient.workers
 
 import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import de.rafaelbeckmann.hvkclient.PushNotificationService.Companion.CHANNEL_VP_UPDATES
+import de.rafaelbeckmann.hvkclient.PushNotificationService
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
 import kotlinx.coroutines.flow.first
 import org.koin.android.annotation.KoinWorker
 
-// TODO: improve this (mehrere API calls, mehr Sachen synchronisieren)
-
+// TODO: improve this
 // TODO: top 3 wege eine ddos Attacke zu erstellen
 @KoinWorker
 class NotificationDataSyncWorker(
@@ -30,7 +29,7 @@ class NotificationDataSyncWorker(
             val channelId = inputData.getString("channel_id") ?: return Result.failure()
 
             when (channelId) {
-                CHANNEL_VP_UPDATES -> {
+                PushNotificationService.CHANNEL_VP_UPDATES -> {
                     val coursesResource = vpRepository.refreshSelectedCourses()
                     val courses = vpRepository.observeSelectedCourses().first()
 
