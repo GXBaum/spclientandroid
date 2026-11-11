@@ -37,11 +37,11 @@ class VpRepositoryImpl(
     }
 
     override suspend fun addSelectedCourse(courseName: String): EmptyResult<DataError> {
-        val result = remoteDataSource.postSelectedCourse(courseName)
-        return when (result) {
-            is Result.Error -> result.asEmptyDataResult()
-            is Result.Success -> refreshSelectedCourses()
-        }
+        return remoteDataSource.postSelectedCourse(courseName)
+            .onSuccess { result ->
+                dao.insertVpSelectedCourses(listOf(result.toEntity()))
+            }
+            .asEmptyDataResult()
     }
 
     override suspend fun removeSelectedCourse(courseId: String): EmptyResult<DataError> {

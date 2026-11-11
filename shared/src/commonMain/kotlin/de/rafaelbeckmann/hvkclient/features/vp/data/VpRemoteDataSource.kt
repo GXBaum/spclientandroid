@@ -36,7 +36,7 @@ class VpRemoteDataSource(
         }
     }
 
-    suspend fun postSelectedCourse(courseName: String): Result<Unit, DataError.Remote> {
+    suspend fun postSelectedCourse(courseName: String): Result<NetworkVpSelectedCourseResponse, DataError.Remote> {
         return safeCall {
             httpClient.post(
                 "vp/enrolled"

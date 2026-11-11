@@ -49,7 +49,7 @@ class SettingsViewModel(
     val settingsScreenState: StateFlow<SettingsScreenState> = _settingsScreenState.asStateFlow()
 
     private val _courseSearch = MutableStateFlow<List<String>>(emptyList())
-    open val courseSearch: StateFlow<List<String>> = _courseSearch
+    val courseSearch: StateFlow<List<String>> = _courseSearch
 
     // TODO ich verstehe .stateIn nicht
     val useDynamicColor: StateFlow<Boolean?> = settingsRepository
@@ -93,9 +93,7 @@ class SettingsViewModel(
 
             vpRepository.refreshSelectedCourses()
                 .onError { error ->
-                    _settingsScreenState.update {
-                        it.copy(error = error.toUiText())
-                    }
+                    _settingsScreenState.update { it.copy(error = error.toUiText()) }
                 }
                 .onSuccess {
                     _settingsScreenState.update { it.copy(error = null) }
@@ -130,9 +128,7 @@ class SettingsViewModel(
 
             vpRepository.addSelectedCourse(courseName)
                 .onError { error ->
-                    _settingsScreenState.update {
-                        it.copy(error = error.toUiText())
-                    }
+                    _settingsScreenState.update { it.copy(error = error.toUiText()) }
                 }
                 .onSuccess {
                     _settingsScreenState.update { it.copy(error = null) }
