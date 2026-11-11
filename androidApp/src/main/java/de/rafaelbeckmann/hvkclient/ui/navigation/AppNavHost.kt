@@ -144,6 +144,7 @@ fun AppNavHost(
                                 )
                             )
                         },
+                        onAddCourseClick = { navController.navigate(AddCourseScreen) },
                         animatedVisibilityScope = this
                     )
                 }

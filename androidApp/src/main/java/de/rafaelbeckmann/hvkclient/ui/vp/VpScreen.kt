@@ -7,6 +7,7 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.SwapHoriz
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -80,6 +82,7 @@ fun SharedTransitionScope.VpScreen(
     viewModel: VpViewModel = koinViewModel(),
     course: String? = null,
     onVpOpenClick: (String?) -> Unit = {},
+    onAddCourseClick: () -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val state by viewModel.vpScreenState.collectAsStateWithLifecycle()
@@ -414,7 +417,17 @@ fun SharedTransitionScope.VpScreen(
                             .padding(32.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text("Keine Kurse ausgewählt.")
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text("Keine Kurse ausgewählt.")
+                            Button(
+                                onClick = onAddCourseClick
+                            ) {
+                                Text("Kurs hinzufügen")
+                            }
+                        }
                     }
                 }
 
