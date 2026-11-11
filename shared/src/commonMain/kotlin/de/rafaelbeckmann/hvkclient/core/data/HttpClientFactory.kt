@@ -62,6 +62,7 @@ object HttpClientFactory {
                         val response = client.post(
                             "auth/refresh"
                         ) {
+                            markAsRefreshTokenRequest()
                             setBody(
                                 NetworkRefreshTokenRequest(
                                     refreshToken
