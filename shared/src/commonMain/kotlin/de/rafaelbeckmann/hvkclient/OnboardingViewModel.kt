@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
+import de.rafaelbeckmann.hvkclient.core.presentation.toUiText
 import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +29,7 @@ class OnboardingViewModel(
             authRepository.login(username, password)
                 .onSuccess { completeSignIn() }
                 .onError {
-                    _loginState.value = LoginState.Error("Ein Fehler ist aufgetreten. $it")
+                    _loginState.value = LoginState.Error(it.toUiText("Ein Fehler ist aufgetreten. Versuche es später erneut."))
                 }
         }
     }
@@ -40,7 +41,7 @@ class OnboardingViewModel(
             authRepository.createAccount()
                 .onSuccess { completeSignIn() }
                 .onError {
-                    _loginState.value = LoginState.Error("Ein Fehler ist aufgetreten. $it")
+                    _loginState.value = LoginState.Error(it.toUiText("Ein Fehler ist aufgetreten. Versuche es später erneut."))
                 }
         }
     }

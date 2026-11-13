@@ -9,6 +9,11 @@ struct Page: Identifiable {
 }
 
 struct OnboardingView: View {
+    private var onboardingViewModel = KoinHelper.shared.onboardingViewModel
+    @State private var state = KoinHelper.shared.onboardingViewModel.loginState.value
+
+    @State private var currentPage = 0
+
     let pages = [
         Page(
             title: "HvK Client",
@@ -31,12 +36,7 @@ struct OnboardingView: View {
             image: Image(systemName: "megaphone")
         )
     ]
-    
-    @State private var currentPage = 0
-    
-    private let settingsRepo = KoinHelper.shared.settingsRepository
-    private let onboardingViewModel = KoinHelper.shared.onboardingViewModel
-    
+
     var body: some View {
         
         ZStack {
@@ -49,24 +49,40 @@ struct OnboardingView: View {
                 }
                 .tabViewStyle(.page)
                 .indexViewStyle(.page(backgroundDisplayMode: .always))
-                
+
+                if let error = state as? LoginState.Error {
+                    Text(error.message)
+                }
+
+
+                let isLastPage = currentPage == pages.count - 1
                 Button {
                     withAnimation {
-                        if currentPage == pages.count - 1 {
+                        if isLastPage {
                             onboardingViewModel.createAccount()
                         } else {
                             currentPage += 1
                         }
                     }
                 } label: {
-                    Text(currentPage == pages.count - 1 ? "Fertig" : "Weiter")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
+                    Text(
+                        isLastPage
+                            ? (state is LoginState.Error ? "Erneut versuchen" : "Fertig")
+                            : "Weiter"
+                    )
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .padding(.horizontal)
-
+                .disabled(state is LoginState.Loading)
+            }
+            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: state is LoginState.Error)
+        }
+        .task {
+            for await newState in onboardingViewModel.loginState {
+                state = newState
             }
         }
     }

@@ -162,12 +162,13 @@ fun OnboardingScreen(
                         Text("Ich habe einen Account")
                     }
                     */
+
+                    val isLastPage = pagerState.currentPage == pagerState.pageCount - 1
                     Button(
                         onClick = {
                             // coroutine to call the suspend function
                             coroutineScope.launch {
-                                val lastPageIndex = pagerState.pageCount - 1
-                                if (pagerState.currentPage == lastPageIndex) {
+                                if (isLastPage) {
                                     // Start creation; navigation happens on Success via LaunchedEffect.
                                     viewModel.createAccount()
                                 } else {
@@ -178,7 +179,7 @@ fun OnboardingScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                     ) {
-                        Text(text = "Weiter")
+                        Text(text = if (isLastPage) "Fertig" else "Weiter")
                     }
                 }
                 is LoginState.Loading -> {
