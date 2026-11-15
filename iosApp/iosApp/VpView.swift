@@ -2,111 +2,120 @@ import SwiftUI
 import sharedKit
 
 struct VpView: View {
-    private let viewModel = KoinHelper.shared.vpViewModel
-    private let settingsViewModel = KoinHelper.shared.settingsViewModel
+    @StateObject private var storeOwner = IosViewModelStoreOwner()
+    private var viewModel: VpViewModel {
+        storeOwner.viewModel()
+    }
 
-    @State private var state = KoinHelper.shared.vpViewModel.vpScreenState.value
-    
     @State private var showManageCoursesSheet = false
     @State private var selectedCourseId: String?
-    
+
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                if let error = state.error {
-                    HStack {
-                        Label(error, systemImage: "exclamationmark.triangle")
-                        Spacer()
-                        Button("Erneut versuchen") {
-                            viewModel.refreshAsync()
+            Observing(viewModel.vpScreenState) { state in
+                VStack(spacing: 0) {
+                    if let error = state.error {
+                        HStack {
+                            Label(error, systemImage: "exclamationmark.triangle")
+                            Spacer()
+                            Button("Erneut versuchen") {
+                                viewModel.refreshAsync()
+                            }
                         }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color.red.opacity(0.15))
                     }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.red.opacity(0.15))
-                }
 
-                Group {
-                    if state.isLoading && state.substitutions == nil && state.selectedCourses.isEmpty {
-                        ProgressView()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else if state.selectedCourses.isEmpty {
-                        VStack(spacing: 12) {
-                            Text("Keine Klassen ausgewählt")
-                            Button("Klasse hinzufügen") {
-                                showManageCoursesSheet = true
+                    Group {
+                        if state.isLoading && state.substitutions == nil && state.selectedCourses.isEmpty {
+                            ProgressView()
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else if state.selectedCourses.isEmpty {
+                            VStack(spacing: 12) {
+                                Text("Keine Klassen ausgewählt")
+                                Button("Klasse hinzufügen") {
+                                    showManageCoursesSheet = true
+                                }
+                                .buttonStyle(.borderedProminent)
                             }
-                            .buttonStyle(.borderedProminent)
+                        } else {
+                            pagingView(state: state)
                         }
-                    } else {
-                        pagingView
                     }
                 }
-            }
-            .sheet(isPresented: $showManageCoursesSheet) {
-                SettingsView()
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showManageCoursesSheet = true
-                    } label: {
-                        Image(systemName: "gearshape")
-                    }
+                .sheet(isPresented: $showManageCoursesSheet) {
+                    SettingsView()
                 }
-                /*ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink {
-                        VpWebView()
-                    } label: {
-                        Image(systemName: "safari")
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showManageCoursesSheet = true
+                        } label: {
+                            Image(systemName: "gearshape")
+                        }
                     }
-                }*/
-                
-                ToolbarItem(placement: .principal) {
-                    if state.selectedCourses.count > 1 {
-                        Picker("Klasse", selection: $selectedCourseId.animation(.snappy(duration: 0.35))) {
-                            ForEach(state.selectedCourses, id: \.id) { course in
-                                Text(course.name)
-                                    .tag(course.id)
+                    /*ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink {
+                            VpWebView()
+                        } label: {
+                            Image(systemName: "safari")
+                        }
+                    }*/
+
+                    ToolbarItem(placement: .principal) {
+                        if state.selectedCourses.count > 1 {
+                            Picker("Klasse", selection: $selectedCourseId.animation(.snappy(duration: 0.35))) {
+                                ForEach(state.selectedCourses, id: \.id) { course in
+                                    Text(course.name)
+                                        .tag(course.id)
+                                }
                             }
+                            .pickerStyle(.segmented)
+                        } else {
+                            // custom navigation Title for animation TODO not useful anymore
+                            ZStack {
+                                Text(navigationTitle(state: state))
+                                    .font(.headline)
+                                    .id(selectedCourseId)
+                                    //.transition(.blurReplace)
+                            }
+                            .animation(.snappy(duration: 0.3), value: selectedCourseId)
                         }
-                        .pickerStyle(.segmented)
-                    } else {
-                        // custom navigation Title for animation TODO not useful anymore
-                        ZStack {
-                            Text(navigationTitle)
-                                .font(.headline)
-                                .id(selectedCourseId)
-                                //.transition(.blurReplace)
-                        }
-                        .animation(.snappy(duration: 0.3), value: selectedCourseId)
                     }
                 }
-            }
-            .navigationTitle(navigationTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .task {
-                for await newState in viewModel.vpScreenState {
-                    state = newState
-                    if selectedCourseId == nil {
-                        selectedCourseId = state.selectedCourses.first?.id
-                    }
+                .navigationTitle(navigationTitle(state: state))
+                .navigationBarTitleDisplayMode(.inline)
+                // TODO: replace with onChange(initial: true) when iOS 17 is min version
+                .onAppear {
+                    ensureValidSelection(in: state.selectedCourses.map(\.id))
+                }
+                .onChange(of: state.selectedCourses.map(\.id)) { courseIds in
+                    ensureValidSelection(in: courseIds)
                 }
             }
         }
     }
 
-    private var navigationTitle: String {
+    private func ensureValidSelection(in courseIds: [String]) {
+        if let selectedCourseId, courseIds.contains(selectedCourseId) {
+            return
+        }
+
+        selectedCourseId = courseIds.first
+    }
+
+    private func navigationTitle(state: VpScreenState) -> String {
         state.selectedCourses.first(where: { $0.id == selectedCourseId })?.name ?? "Vertretungsplan"
     }
     
     @ViewBuilder
-    private var pagingView: some View {
+    private func pagingView(state: VpScreenState) -> some View {
         if #available(iOS 17.0, *) {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 0) {
                     ForEach(state.selectedCourses, id: \.id) { course in
-                        courseView(course: course)
+                        courseView(course: course, state: state)
                             .containerRelativeFrame(.horizontal)
                             .id(course.id)
                     }
@@ -118,7 +127,7 @@ struct VpView: View {
         } else {
             TabView(selection: $selectedCourseId) {
                 ForEach(state.selectedCourses, id: \.id) { course in
-                    courseView(course: course)
+                    courseView(course: course, state: state)
                         .tag(course.id)
                 }
             }
@@ -126,7 +135,7 @@ struct VpView: View {
         }
     }
     
-    private func courseView(course: SelectedCourse) -> some View {
+    private func courseView(course: SelectedCourse, state: VpScreenState) -> some View {
         List {
             DaySection(title: "Heute", day: state.substitutions?.today, courseName: course.name)
             DaySection(title: "Nächster Schultag", day: state.substitutions?.tomorrow, courseName: course.name)

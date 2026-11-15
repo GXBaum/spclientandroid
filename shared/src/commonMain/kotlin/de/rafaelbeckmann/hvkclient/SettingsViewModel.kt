@@ -33,8 +33,16 @@ data class SettingsScreenState(
     val userId: String? = null,
 
     val spAuthTest: List<NetworkCookie> = emptyList(),
-    val encryptedUserPreferences: UserPreferences? = null
+    val encryptedUserPreferences: UserPreferences? = null,
+
+    val courseSaveState: CourseSaveState = CourseSaveState.Idle
 )
+sealed class CourseSaveState {
+    object Idle : CourseSaveState()
+    object Loading : CourseSaveState()
+    object Success : CourseSaveState()
+    data class Error(val message: String) : CourseSaveState()
+}
 
 @KoinViewModel
 class SettingsViewModel(
@@ -123,15 +131,26 @@ class SettingsViewModel(
                 it.copy(
                     isLoading = true,
                     error = null,
+                    courseSaveState = CourseSaveState.Loading
                 )
             }
 
             vpRepository.addSelectedCourse(courseName)
                 .onError { error ->
-                    _settingsScreenState.update { it.copy(error = error.toUiText()) }
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = error.toUiText(),
+                            courseSaveState = CourseSaveState.Error(error.toUiText())
+                        )
+                    }
                 }
                 .onSuccess {
-                    _settingsScreenState.update { it.copy(error = null) }
+                    _settingsScreenState.update {
+                        it.copy(
+                            error = null,
+                            courseSaveState = CourseSaveState.Success
+                        )
+                    }
                 }
 
             _settingsScreenState.update { it.copy(isLoading = false) }

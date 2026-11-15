@@ -15,6 +15,12 @@ plugins {
     alias(libs.plugins.skie)
 }
 
+skie {
+    features {
+        enableSwiftUIObservingPreview = true
+    }
+}
+
 room {
     schemaDirectory("$projectDir/schemas")
 }
@@ -55,12 +61,14 @@ kotlin {
     iosArm64 {
         binaries.framework {
             baseName = xcfName
+            export(libs.androidx.lifecycle.viewmodel)
         }
     }
 
     iosSimulatorArm64 {
         binaries.framework {
             baseName = xcfName
+            export(libs.androidx.lifecycle.viewmodel)
         }
     }
 
@@ -86,7 +94,7 @@ kotlin {
                 implementation(libs.androidx.room)
 
                 // lifecycle / ViewModel
-                implementation(libs.androidx.lifecycle.viewmodel)
+                api(libs.androidx.lifecycle.viewmodel)
 
                 // data store
                 implementation(libs.androidx.datastore.preferences)

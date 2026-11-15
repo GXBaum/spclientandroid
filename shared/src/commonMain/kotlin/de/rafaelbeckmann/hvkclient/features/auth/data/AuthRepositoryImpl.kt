@@ -22,7 +22,6 @@ class AuthRepositoryImpl(
                 settingsRepository.setAccessToken(it.token)
                 settingsRepository.setRefreshToken(it.refreshToken)
                 settingsRepository.setUserId(it.id)
-                settingsRepository.setOnboardingCompleted(true)
             }
             .asEmptyDataResult()
     }
@@ -34,7 +33,6 @@ class AuthRepositoryImpl(
                 settingsRepository.setAccessToken(it.accessToken)
                 settingsRepository.setRefreshToken(it.refreshToken)
                 settingsRepository.setUserId(it.userId)
-                settingsRepository.setOnboardingCompleted(true)
             }
             .asEmptyDataResult()
     }

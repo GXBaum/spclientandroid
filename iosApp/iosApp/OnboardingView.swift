@@ -9,8 +9,10 @@ struct Page: Identifiable {
 }
 
 struct OnboardingView: View {
-    private var onboardingViewModel = KoinHelper.shared.onboardingViewModel
-    @State private var state = KoinHelper.shared.onboardingViewModel.loginState.value
+    @StateObject private var storeOwner = IosViewModelStoreOwner()
+    private var onboardingViewModel: OnboardingViewModel {
+        storeOwner.viewModel()
+    }
 
     @State private var currentPage = 0
 
@@ -38,51 +40,47 @@ struct OnboardingView: View {
     ]
 
     var body: some View {
-        
         ZStack {
-            VStack {
-                TabView(selection: $currentPage) {
-                    ForEach(pages.indices, id: \.self) { index in
-                        OnboardingCardView(page: pages[index])
-                            .tag(index)
-                    }
-                }
-                .tabViewStyle(.page)
-                .indexViewStyle(.page(backgroundDisplayMode: .always))
-
-                if let error = state as? LoginState.Error {
-                    Text(error.message)
-                }
-
-
-                let isLastPage = currentPage == pages.count - 1
-                Button {
-                    withAnimation {
-                        if isLastPage {
-                            onboardingViewModel.createAccount()
-                        } else {
-                            currentPage += 1
+            Observing(onboardingViewModel.loginState) { state in
+                VStack {
+                    TabView(selection: $currentPage) {
+                        ForEach(pages.indices, id: \.self) { index in
+                            OnboardingCardView(page: pages[index])
+                                .tag(index)
                         }
                     }
-                } label: {
-                    Text(
-                        isLastPage
-                            ? (state is LoginState.Error ? "Erneut versuchen" : "Fertig")
-                            : "Weiter"
-                    )
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
+                    .tabViewStyle(.page)
+                    .indexViewStyle(.page(backgroundDisplayMode: .always))
+
+                    if let error = state as? LoginState.Error {
+                        Text(error.message)
+                    }
+
+
+                    let isLastPage = currentPage == pages.count - 1
+                    Button {
+                        withAnimation {
+                            if isLastPage {
+                                onboardingViewModel.createAccount()
+                            } else {
+                                currentPage += 1
+                            }
+                        }
+                    } label: {
+                        Text(
+                            isLastPage
+                                ? (state is LoginState.Error ? "Erneut versuchen" : "Fertig")
+                                : "Weiter"
+                        )
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+                    .padding(.horizontal)
+                    .disabled(state is LoginState.Loading)
                 }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .padding(.horizontal)
-                .disabled(state is LoginState.Loading)
-            }
-            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: state is LoginState.Error)
-        }
-        .task {
-            for await newState in onboardingViewModel.loginState {
-                state = newState
+                .animation(.spring(response: 0.5, dampingFraction: 0.6), value: state is LoginState.Error)
             }
         }
     }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import de.rafaelbeckmann.hvkclient.core.domain.onError
 import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
 import de.rafaelbeckmann.hvkclient.core.presentation.toUiText
+import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.features.auth.domain.AuthRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,8 @@ import org.koin.core.annotation.KoinViewModel
 @KoinViewModel
 class OnboardingViewModel(
     private val authRepository: AuthRepository,
-    private val notificationTokenProvider: NotificationTokenProvider
+    private val notificationTokenProvider: NotificationTokenProvider,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
@@ -58,6 +60,9 @@ class OnboardingViewModel(
             // Push registration is optional after successful authentication.
         }
 
+        // This flag removes the onboarding screen and can clear this ViewModel.
+        // Finish push registration before publishing it.
+        settingsRepository.setOnboardingCompleted(true)
         _loginState.value = LoginState.Success
     }
 }
