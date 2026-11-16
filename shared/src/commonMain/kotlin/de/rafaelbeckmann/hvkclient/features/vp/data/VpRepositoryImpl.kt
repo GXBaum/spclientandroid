@@ -1,5 +1,6 @@
 package de.rafaelbeckmann.hvkclient.features.vp.data
 
+import de.rafaelbeckmann.hvkclient.core.data.mapRemoteData
 import de.rafaelbeckmann.hvkclient.core.database.AppDatabase
 import de.rafaelbeckmann.hvkclient.core.domain.DataError
 import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
@@ -58,7 +59,7 @@ class VpRepositoryImpl(
 
     override suspend fun refreshSubstitutions(courseNames: List<String>): EmptyResult<DataError> {
         return remoteDataSource.getSubstitutions(courseNames)
-            .onSuccess {
+            .mapRemoteData {
                 val parsed = it.substitutions
 
                 val substitutions = listOfNotNull(parsed.today?.substitutions, parsed.tomorrow?.substitutions)
@@ -69,13 +70,21 @@ class VpRepositoryImpl(
                     .flatten()
                     .map { it.toEntity() }
 
-                // this is dumb, but nothing lasts longer than a temporary fix
-                dao.whateverTheFuckThisIs(
-                    deleteForCourseNames = courseNames,
+                // ugh no idea if this is horrible or not
+                VpCacheData(
                     days = listOfNotNull(parsed.today, parsed.tomorrow)
                         .map { it.toEntity() },
                     substitutions = substitutions,
                     infos = infos
+                )
+            }
+            .onSuccess {
+                // this is dumb, but nothing lasts longer than a temporary fix
+                dao.whateverTheFuckThisIs(
+                    deleteForCourseNames = courseNames,
+                    days = it.days,
+                    substitutions = it.substitutions,
+                    infos = it.infos
                 )
             }
             .asEmptyDataResult()
@@ -86,3 +95,9 @@ class VpRepositoryImpl(
             .map { response -> response.courses.map { it.name } }
     }
 }
+
+private data class VpCacheData(
+    val days: List<VpDayEntity>,
+    val substitutions: List<VpSubstitutionEntity>,
+    val infos: List<VpDayInfoItem>
+)
