@@ -58,6 +58,8 @@ class VpRepositoryImpl(
     }
 
     override suspend fun refreshSubstitutions(courseNames: List<String>): EmptyResult<DataError> {
+        if (courseNames.isEmpty()) return Result.Success(Unit)
+
         return remoteDataSource.getSubstitutions(courseNames)
             .mapRemoteData {
                 val parsed = it.substitutions

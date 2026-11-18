@@ -39,8 +39,8 @@ data class NetworkVpResponse(
 
 @Serializable
 data class NetworkVpDays(
-    val today: NetworkVpDay?,
-    val tomorrow: NetworkVpDay?
+    val today: NetworkVpDay? = null,
+    val tomorrow: NetworkVpDay? = null
 )
 
 @Serializable

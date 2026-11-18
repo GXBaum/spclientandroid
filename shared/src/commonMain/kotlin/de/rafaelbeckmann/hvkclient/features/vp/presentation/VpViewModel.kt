@@ -46,7 +46,7 @@ class VpViewModel(
             // Observe the selected course and fetch substitutions when it's available
             vpScreenState.map { it.selectedCourses }
                 .distinctUntilChanged()
-                .onEach { refreshAsync() }
+                .onEach { viewModelScope.launch { fetchSubstitutions(it) } }
                 .flatMapLatest { courses ->
                     vpRepository.observeSubstitutions(courses.map { it.name })
                         .onEach { substitutions ->
