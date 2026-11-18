@@ -1,6 +1,5 @@
 package de.rafaelbeckmann.hvkclient.ui.common
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -34,6 +33,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.rafaelbeckmann.hvkclient.CourseSaveState
 import de.rafaelbeckmann.hvkclient.SettingsViewModel
 import kotlinx.coroutines.android.awaitFrame
 import org.koin.compose.viewmodel.koinViewModel
@@ -46,19 +46,23 @@ fun AddCourseScreen(
     onContinue: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel()
 ) {
+    val state by viewModel.settingsScreenState.collectAsStateWithLifecycle()
     val suggestions by viewModel.courseSearch.collectAsStateWithLifecycle()
+    val saveState = state.courseSaveState
+    val isSaving = saveState is CourseSaveState.Loading
     var courseName by rememberSaveable { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
-    fun onConfirm(courseName: String){
+    fun onConfirm(courseName: String) {
         if (courseName.isNotBlank()) {
             viewModel.postSelectedCourse(courseName)
-            Log.d("SettingsScreen", "Neuer Kurs: $courseName")
-
-            // TODO: does not fix the issue where the list sometimes doesn't get updated after adding a course
-            viewModel.fetchSelectedCourse()
         }
-        onContinue()
+    }
+
+    LaunchedEffect(saveState) {
+        if (saveState is CourseSaveState.Success) {
+            onContinue()
+        }
     }
 
     // TODO is LifecycleResumeEffect better?
@@ -71,7 +75,7 @@ fun AddCourseScreen(
     }
 
     Scaffold(
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = modifier.padding(horizontal = 16.dp),
         contentWindowInsets = WindowInsets(0.dp),
 
         topBar = {
@@ -98,56 +102,63 @@ fun AddCourseScreen(
             )
         }
     ) { innerPadding ->
-
-        LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding),
+        HapticPullToRefreshBox(
+            isRefreshing = isSaving,
+            onRefresh = { },
+            modifier = Modifier.padding(innerPadding)
         ) {
-            item {
-                OutlinedTextField(
-                    value = courseName,
-                    onValueChange = {
-                        courseName = it
-                        viewModel.searchCourses(it)
-                    },
-                    label = { Text("Kursname, z.B. \"G10b\" oder \"E1/E2\"") },
-                    singleLine = true,
-                    modifier = Modifier
-                        .focusRequester(focusRequester)
-                        .fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = { onConfirm(courseName) }
-                    )
-                )
-            }
-            item {
-                Spacer(Modifier.height(16.dp))
-            }
-
-            if (suggestions.isNotEmpty()) {
+            LazyColumn {
                 item {
-                    Text(
-                        "Vorschläge",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary
+                    OutlinedTextField(
+                        value = courseName,
+                        onValueChange = {
+                            courseName = it
+                            viewModel.searchCourses(it)
+                        },
+                        label = { Text("Kursname, z.B. \"G10b\" oder \"E1/E2\"") },
+                        singleLine = true,
+                        modifier = Modifier
+                            .focusRequester(focusRequester)
+                            .fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = { onConfirm(courseName) }
+                        )
                     )
                 }
+                if (saveState is CourseSaveState.Error) {
+                    item {
+                        ErrorCard(saveState.message)
+                    }
+                }
                 item {
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(16.dp))
                 }
 
-                roundedListItems(
-                    items = suggestions,
-                    key = { suggestion -> suggestion }
-                ) { suggestion ->
-                    RoundedListItem(
-                        text = suggestion,
-                        modifier = Modifier.clickable {
-                            courseName = suggestion
-                            onConfirm(courseName)
-                        }
-                    )
+                if (suggestions.isNotEmpty()) {
+                    item {
+                        Text(
+                            "Vorschläge",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    item {
+                        Spacer(Modifier.height(4.dp))
+                    }
+
+                    roundedListItems(
+                        items = suggestions,
+                        key = { suggestion -> suggestion }
+                    ) { suggestion ->
+                        RoundedListItem(
+                            text = suggestion,
+                            modifier = Modifier.clickable {
+                                courseName = suggestion
+                                onConfirm(courseName)
+                            }
+                        )
+                    }
                 }
             }
         }
