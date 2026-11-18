@@ -71,5 +71,5 @@ data class NetworkVpDay(
     val substitutions: List<NetworkVpSubstitution> = emptyList(),
     val targetDate: String, // TODO: not a string
     val dayString: String,
-    val info: List<NetworkVpInfoNeu>?
+    val info: List<NetworkVpInfoNeu>? = null
 )

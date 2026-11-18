@@ -2,8 +2,9 @@ package de.rafaelbeckmann.hvkclient.features.vp.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import de.rafaelbeckmann.hvkclient.core.domain.onError
-import de.rafaelbeckmann.hvkclient.core.domain.onSuccess
+import de.rafaelbeckmann.hvkclient.core.domain.DataError
+import de.rafaelbeckmann.hvkclient.core.domain.EmptyResult
+import de.rafaelbeckmann.hvkclient.core.domain.Result
 import de.rafaelbeckmann.hvkclient.core.presentation.toUiText
 import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpDays
@@ -46,7 +47,11 @@ class VpViewModel(
             // Observe the selected course and fetch substitutions when it's available
             vpScreenState.map { it.selectedCourses }
                 .distinctUntilChanged()
-                .onEach { viewModelScope.launch { fetchSubstitutions(it) } }
+                .onEach {
+                    viewModelScope.launch {
+                        updateRefreshError(fetchSubstitutions(it))
+                    }
+                }
                 .flatMapLatest { courses ->
                     vpRepository.observeSubstitutions(courses.map { it.name })
                         .onEach { substitutions ->
@@ -65,36 +70,28 @@ class VpViewModel(
             .launchIn(viewModelScope)
     }
 
-    private suspend fun fetchSelectedCourse() {
-        vpRepository.refreshSelectedCourses()
-            .onError { error ->
-                _vpScreenState.update {
-                    it.copy(error = error.toUiText())
-                }
-            }
-            .onSuccess {
-                _vpScreenState.update { it.copy(error = null) }
-            }
+    private suspend fun fetchSubstitutions(courseNames: List<SelectedCourse>): EmptyResult<DataError> {
+        return vpRepository.refreshSubstitutions(courseNames.map { it.name })
     }
 
-    private suspend fun fetchSubstitutions(courseNames: List<SelectedCourse>) {
-        vpRepository.refreshSubstitutions(courseNames.map { it.name })
-            .onError { error ->
-                _vpScreenState.update {
-                    it.copy(error = error.toUiText())
-                }
-            }
-            .onSuccess {
-                _vpScreenState.update { it.copy(error = null) }
-            }
+    private fun updateRefreshError(
+        substitutionResult: EmptyResult<DataError>,
+        enrollmentResult: EmptyResult<DataError>? = null
+    ) {
+        val enrollmentError = (enrollmentResult as? Result.Error)?.error
+        val substitutionError = (substitutionResult as? Result.Error)?.error
+
+        val error = enrollmentError ?: substitutionError
+        _vpScreenState.update { it.copy(error = error?.toUiText()) }
     }
 
     suspend fun refresh() {
         _vpScreenState.update { it.copy(isLoading = true, error = null) }
 
         try {
-            fetchSelectedCourse()
-            fetchSubstitutions(vpScreenState.value.selectedCourses)
+            val enrollmentResult = vpRepository.refreshSelectedCourses()
+            val substitutionResult = fetchSubstitutions(vpScreenState.value.selectedCourses)
+            updateRefreshError(substitutionResult, enrollmentResult)
         } finally {
             _vpScreenState.update { it.copy(isLoading = false) }
         }
