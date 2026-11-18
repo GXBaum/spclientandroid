@@ -3,6 +3,7 @@ package de.rafaelbeckmann.hvkclient.core.data
 import de.rafaelbeckmann.hvkclient.domain.repository.SettingsRepository
 import de.rafaelbeckmann.hvkclient.features.auth.data.NetworkRefreshTokenRequest
 import de.rafaelbeckmann.hvkclient.features.auth.data.NetworkRefreshTokenResponse
+import de.rafaelbeckmann.hvkclient.platform
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
@@ -34,11 +35,15 @@ object HttpClientFactory {
             defaultRequest {
                 url(BASE_URL)
                 contentType(ContentType.Application.Json)
+
+                headers {
+                    append("Client-Platform", platform())
+                }
             }
 
             install(Logging) {
                 level = LogLevel.ALL
-                logger = Logger.DEFAULT // TODO: Android specific
+                logger = Logger.DEFAULT // TODO: Android specific (not anymore but no logging for android now)
             }
             install(ContentNegotiation) {
                 json(
