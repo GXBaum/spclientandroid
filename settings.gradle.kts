@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "HvK Client mit Benachrichtigungen"
+rootProject.name = "hvk-client"
 include(":androidApp")
 include(":shared")
