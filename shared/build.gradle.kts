@@ -13,6 +13,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 
     alias(libs.plugins.skie)
+
+    alias(libs.plugins.moko.resources)
 }
 
 skie {
@@ -23,6 +25,11 @@ skie {
 
 room {
     schemaDirectory("$projectDir/schemas")
+}
+
+multiplatformResources {
+    resourcesPackage.set("de.rafaelbeckmann.hvkclient.shared.resources")
+    iosBaseLocalizationRegion.set("de")
 }
 
 kotlin {
@@ -62,6 +69,7 @@ kotlin {
         binaries.framework {
             baseName = xcfName
             export(libs.androidx.lifecycle.viewmodel)
+            export(libs.moko.resources)
         }
     }
 
@@ -69,6 +77,7 @@ kotlin {
         binaries.framework {
             baseName = xcfName
             export(libs.androidx.lifecycle.viewmodel)
+            export(libs.moko.resources)
         }
     }
 
@@ -100,6 +109,8 @@ kotlin {
                 implementation(libs.androidx.datastore.preferences)
 
                 implementation(libs.androidx.sqlite.bundled)
+
+                api(libs.moko.resources)
             }
         }
 

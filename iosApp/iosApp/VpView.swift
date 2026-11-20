@@ -217,7 +217,7 @@ struct VpView: View {
         @ViewBuilder
         private func substitutionRows(for content: CourseDayContent) -> some View {
             if content.hasNoEntries {
-                Text("Keine Einträge")
+                Text(MR.strings().vp_no_entries)
             } else if content.substitutions.isEmpty {
                 // There are room changes below, so "Keine Einträge" would be misleading.
                 Text("Keine Vertretungen")

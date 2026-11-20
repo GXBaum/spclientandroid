@@ -64,10 +64,13 @@ import de.rafaelbeckmann.hvkclient.features.vp.domain.VpType
 import de.rafaelbeckmann.hvkclient.features.vp.presentation.VpViewModel
 import de.rafaelbeckmann.hvkclient.relativeDateFormatter
 import de.rafaelbeckmann.hvkclient.relativeDateTimeFormatter
+import de.rafaelbeckmann.hvkclient.shared.resources.MR
+import de.rafaelbeckmann.hvkclient.shared.resources.vp_no_entries
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
 import de.rafaelbeckmann.hvkclient.ui.common.roundedListItems
+import de.rafaelbeckmann.hvkclient.ui.common.stringResource
 import de.rafaelbeckmann.hvkclient.ui.main.LocalSnackbarHostState
 import de.rafaelbeckmann.hvkclient.ui.navigation.VP_FAB_EXPLODE_BOUND
 import kotlinx.coroutines.delay
@@ -470,7 +473,7 @@ fun LazyListScope.vpTableItems(
                 color = MaterialTheme.colorScheme.surfaceContainer,
             ) {
                 Text(
-                    text = "Keine Einträge",
+                    text = stringResource(MR.strings.vp_no_entries),
                     fontStyle = FontStyle.Italic,
                     modifier = Modifier
                         .padding(16.dp)
