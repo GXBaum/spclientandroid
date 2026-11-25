@@ -1,6 +1,5 @@
 package de.rafaelbeckmann.hvkclient.ui.vp
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -25,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,13 +59,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
+import de.rafaelbeckmann.hvkclient.features.vp.domain.VpDay
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpSubstitution
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpType
 import de.rafaelbeckmann.hvkclient.features.vp.presentation.VpViewModel
 import de.rafaelbeckmann.hvkclient.relativeDateFormatter
 import de.rafaelbeckmann.hvkclient.relativeDateTimeFormatter
 import de.rafaelbeckmann.hvkclient.shared.resources.MR
+import de.rafaelbeckmann.hvkclient.shared.resources.vp_add_course
+import de.rafaelbeckmann.hvkclient.shared.resources.vp_deleted_entries_section_title
+import de.rafaelbeckmann.hvkclient.shared.resources.vp_no_courses_selected
 import de.rafaelbeckmann.hvkclient.shared.resources.vp_no_entries
+import de.rafaelbeckmann.hvkclient.shared.resources.vp_open_webview
+import de.rafaelbeckmann.hvkclient.shared.resources.vp_room_changes_section_title
+import de.rafaelbeckmann.hvkclient.shared.resources.vp_schedule_in_progress
+import de.rafaelbeckmann.hvkclient.shared.resources.vp_schedule_title
+import de.rafaelbeckmann.hvkclient.shared.resources.vp_unverified_course_warning
 import de.rafaelbeckmann.hvkclient.ui.common.ErrorCard
 import de.rafaelbeckmann.hvkclient.ui.common.HapticPullToRefreshBox
 import de.rafaelbeckmann.hvkclient.ui.common.RoundedListItem
@@ -139,10 +149,10 @@ fun SharedTransitionScope.VpScreen(
                 icon = {
                     Icon(
                         imageVector = Icons.Rounded.SwapHoriz,
-                        contentDescription = "Vertretungsplan öffnen"
+                        contentDescription = stringResource(MR.strings.vp_open_webview)
                     )
                 },
-                text = { Text("Vertretungsplan") },
+                text = { Text(stringResource(MR.strings.vp_schedule_title)) },
                 modifier = Modifier
                     .onGloballyPositioned { // calculate FAB height
                         fabHeight = it.size.height
@@ -162,11 +172,11 @@ fun SharedTransitionScope.VpScreen(
             onRefresh = {
                 viewModel.refreshAsync()
             },
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Column(modifier = modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
                 if (state.selectedCourses.isNotEmpty()) {
 
                     @Composable
@@ -199,13 +209,6 @@ fun SharedTransitionScope.VpScreen(
                         beyondViewportPageCount = 1,
                         modifier = Modifier.fillMaxSize()
                     ) { page ->
-                        val courseName = state.selectedCourses.getOrNull(page)
-
-                        val sections = listOf(
-                            "Heute" to (state.substitutions?.today),
-                            "Nächster Schultag" to (state.substitutions?.tomorrow)
-                        )
-
                         LazyColumn(
                             contentPadding = PaddingValues(bottom = fabHeightDp + 16.dp), // FAB height + Android hard-coded FAB offset
                             modifier = Modifier
@@ -216,198 +219,15 @@ fun SharedTransitionScope.VpScreen(
                             state.selectedCourses.getOrNull(page)?.verified?.let {
                                 if (!it) {
                                     item {
-                                        ErrorCard("Klasse existiert wahrscheinlich nicht")
+                                        ErrorCard(stringResource(MR.strings.vp_unverified_course_warning))
                                     }
                                 }
                             }
 
-                            sections.forEach { (title, list) ->
-                                item(key = "header_${courseName}_$title") {
-                                    Text(
-                                        //text = text,
-                                        text = title,
-                                        style = MaterialTheme.typography.titleLarge,
-                                        modifier = Modifier.padding(top = 16.dp)
-                                    )
-                                }
+                            val courseName = state.selectedCourses.getOrNull(page)
 
-                                // TODO: remove this, redundant
-                                list?.targetDate?.let {
-                                    item {
-                                        Text(
-                                            relativeDateFormatter(it)
-                                        )
-                                    }
-                                }
-
-                                if (list?.dayString != null) {
-                                    item(key = "header_day_${courseName}_$title") {
-                                        Text(
-                                            text = list.dayString,
-                                            style = MaterialTheme.typography.bodyMediumEmphasized
-                                        )
-                                    }
-                                }
-
-
-                                // TODO: horrible code, i think
-                                val dayKey = when (title) {
-                                    "Heute" -> "today"
-                                    "Nächster Schultag" -> "tomorrow"
-                                    else -> null
-                                }
-
-
-                                Log.d("TEST", state.substitutions?.today?.info.toString())
-                                Log.d("TEST", state.substitutions?.tomorrow?.info.toString())
-
-
-                                val info = if (dayKey == "today") {
-                                    state.substitutions?.today?.info?.lastOrNull()?.text
-                                } else {
-                                    state.substitutions?.tomorrow?.info?.lastOrNull()?.text
-                                }
-
-                                if (info?.isNotBlank() == true) {
-                                    roundedListItems(
-                                        items = listOf(info),
-                                        animatePlacement = false
-                                    ) {
-                                        RoundedListItem(
-                                            text = it
-                                        )
-                                    }
-                                }
-
-                                /*
-                                val filteredInfo = if (dayKey == "today") {
-                                    state.substitutions?.today?.info?.map {
-                                        VpInfoItem(
-                                            data = it.text,
-                                            summary = it.text,
-                                            fetched_at = "FIXME_PLACEHOLDER", // FIXME THIS ABOMINATION
-                                            id = 1,
-                                            day = it.targetDate
-                                        )
-                                    }
-                                } else {
-                                    state.substitutions?.tomorrow?.info?.map {
-                                        VpInfoItem(
-                                            data = it.text,
-                                            summary = it.text,
-                                            fetched_at = "FIXME_PLACEHOLDER",
-                                            id = 1,
-                                            day = it.targetDate
-                                        )
-                                    }
-                                }.orEmpty()
-
-                                if (filteredInfo.isNotEmpty()){
-                                    roundedListItems(
-                                        items = filteredInfo,
-                                        animatePlacement = false
-                                    ) { info ->
-                                        var isSummaryExpanded by rememberSaveable { mutableStateOf(false)}
-
-
-                                        val infoText = if (isSummaryExpanded) {
-                                            info.data.orEmpty()
-                                        } else {
-                                            info.summary.orEmpty()
-                                        }
-
-                                        RoundedListItem(
-                                            text = infoText,
-                                            trailingIcon = {
-                                                if(info.summary != info.data){
-                                                    val rotation by animateFloatAsState(
-                                                        targetValue = if (isSummaryExpanded) 180f else 0f,
-                                                        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
-                                                    )
-                                                    IconButton(
-                                                        onClick = { isSummaryExpanded = !isSummaryExpanded }
-                                                    ) {
-                                                        Icon(
-                                                            imageVector = Icons.Rounded.KeyboardArrowDown,
-                                                            contentDescription = null,
-                                                            modifier = Modifier.rotate(rotation)
-                                                        )
-                                                    }
-                                                }
-                                            },
-                                            modifier = Modifier
-                                                .clickable(
-                                                    onClick = { isSummaryExpanded = !isSummaryExpanded }
-                                                )
-                                                .animateContentSize(
-                                                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
-                                                )
-                                                .background( color = MaterialTheme.colorScheme.surfaceVariant )
-                                        )
-                                    }
-                                }
-                                */
-
-                                val substitutionsForCourse = list?.substitutions?.filter {
-                                    it.courseName == courseName?.name &&
-                                            it.VpType == VpType.substitution
-                                }
-                                val differentRoomsForCourse = list?.substitutions?.filter {
-                                    it.courseName == courseName?.name &&
-                                            it.VpType == VpType.differentRoom
-                                }
-
-                                if (list === null) {
-                                    item { // duplicated from vpTableItems
-                                        Surface(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(vertical = 1.dp),
-                                            shape = RoundedCornerShape(16.dp),
-                                            color = MaterialTheme.colorScheme.surfaceContainer,
-                                        ) {
-                                            Text(
-                                                text = "In Arbeit",
-                                                fontStyle = FontStyle.Italic,
-                                                modifier = Modifier
-                                                    .padding(16.dp)
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    vpTableItems(substitutionsForCourse.orEmpty())
-                                }
-
-
-                                if (!differentRoomsForCourse.isNullOrEmpty()) {
-                                    item(key = "rooms_header_${courseName}_$title") {
-                                        Text(
-                                            text = "Ersatzräume",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            modifier = Modifier.padding(top = 12.dp)
-                                        )
-                                    }
-                                    vpTableItems(differentRoomsForCourse)
-                                }
-
-                                /*
-                                val roomsList = when (title) {
-                                    "Heute" -> substitutionsForCourse?.roomsToday.orEmpty()
-                                    "Nächster Schultag" -> substitutionsForCourse?.roomsTomorrow.orEmpty()
-                                    else -> emptyList()
-                                }
-                                if (roomsList.isNotEmpty()){
-                                    item(key = "rooms_header_${courseName}_$title") {
-                                        Text(
-                                            text = "Ersatzräume",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            modifier = Modifier.padding(top = 12.dp)
-                                        )
-                                    }
-                                    vpTableItems(roomsList)
-                                }
-                                */
-                            }
+                            daySection("Heute", courseName, state.substitutions?.today)
+                            daySection("Nächster Schultag", courseName, state.substitutions?.tomorrow)
                         }
                     }
                 } else if (!state.isLoading) {
@@ -424,11 +244,11 @@ fun SharedTransitionScope.VpScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Text("Keine Kurse ausgewählt.")
+                            Text(stringResource(MR.strings.vp_no_courses_selected))
                             Button(
                                 onClick = onAddCourseClick
                             ) {
-                                Text("Kurs hinzufügen")
+                                Text(stringResource(MR.strings.vp_add_course))
                             }
                         }
                     }
@@ -486,7 +306,7 @@ fun LazyListScope.vpTableItems(
 
     if (deleted.isNotEmpty()){
         item {
-            Text("gelöscht")
+            Text(stringResource(MR.strings.vp_deleted_entries_section_title))
         }
         vpTableItemsNotSureHowToNameThis(deleted, isDeleted = true, isDefaultExtended = true)
     }
@@ -549,5 +369,156 @@ fun LazyListScope.vpTableItemsNotSureHowToNameThis(
                 }
             }
         }
+    }
+}
+
+fun LazyListScope.daySection(title: String, courseName: SelectedCourse?, list: VpDay?) {
+    item(key = "header_${courseName}_$title") {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 16.dp)
+        )
+    }
+
+    // TODO: remove this, redundant
+    list?.targetDate?.let {
+        item {
+            Text(
+                relativeDateFormatter(it)
+            )
+        }
+    }
+
+    if (list?.dayString != null) {
+        item(key = "header_day_${courseName}_$title") {
+            Text(
+                text = list.dayString,
+                style = MaterialTheme.typography.bodyMediumEmphasized
+            )
+        }
+    }
+
+    val info = list?.info?.lastOrNull()?.text
+
+    if (info?.isNotBlank() == true) {
+        roundedListItems(
+            items = listOf(info),
+            animatePlacement = false
+        ) {
+            RoundedListItem(
+                text = it
+            )
+        }
+    }
+
+    /*
+    val filteredInfo = if (dayKey == "today") {
+        state.substitutions?.today?.info?.map {
+            VpInfoItem(
+                data = it.text,
+                summary = it.text,
+                fetched_at = "FIXME_PLACEHOLDER", // FIXME THIS ABOMINATION
+                id = 1,
+                day = it.targetDate
+            )
+        }
+    } else {
+        state.substitutions?.tomorrow?.info?.map {
+            VpInfoItem(
+                data = it.text,
+                summary = it.text,
+                fetched_at = "FIXME_PLACEHOLDER",
+                id = 1,
+                day = it.targetDate
+            )
+        }
+    }.orEmpty()
+
+    if (filteredInfo.isNotEmpty()){
+        roundedListItems(
+            items = filteredInfo,
+            animatePlacement = false
+        ) { info ->
+            var isSummaryExpanded by rememberSaveable { mutableStateOf(false)}
+
+
+            val infoText = if (isSummaryExpanded) {
+                info.data.orEmpty()
+            } else {
+                info.summary.orEmpty()
+            }
+
+            RoundedListItem(
+                text = infoText,
+                trailingIcon = {
+                    if(info.summary != info.data){
+                        val rotation by animateFloatAsState(
+                            targetValue = if (isSummaryExpanded) 180f else 0f,
+                            animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                        )
+                        IconButton(
+                            onClick = { isSummaryExpanded = !isSummaryExpanded }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.KeyboardArrowDown,
+                                contentDescription = null,
+                                modifier = Modifier.rotate(rotation)
+                            )
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .clickable(
+                        onClick = { isSummaryExpanded = !isSummaryExpanded }
+                    )
+                    .animateContentSize(
+                        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                    )
+                    .background( color = MaterialTheme.colorScheme.surfaceVariant )
+            )
+        }
+    }
+    */
+
+    val substitutionsForCourse = list?.substitutions?.filter {
+        it.courseName == courseName?.name &&
+                it.VpType == VpType.substitution
+    }
+    val differentRoomsForCourse = list?.substitutions?.filter {
+        it.courseName == courseName?.name &&
+                it.VpType == VpType.differentRoom
+    }
+
+    if (list === null) {
+        item { // duplicated from vpTableItems
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 1.dp),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer,
+            ) {
+                Text(
+                    text = stringResource(MR.strings.vp_schedule_in_progress),
+                    fontStyle = FontStyle.Italic,
+                    modifier = Modifier
+                        .padding(16.dp)
+                )
+            }
+        }
+    } else {
+        vpTableItems(substitutionsForCourse.orEmpty())
+    }
+
+    if (!differentRoomsForCourse.isNullOrEmpty()) {
+        item(key = "rooms_header_${courseName}_$title") {
+            Text(
+                text = stringResource(MR.strings.vp_room_changes_section_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 12.dp)
+            )
+        }
+        vpTableItems(differentRoomsForCourse)
     }
 }

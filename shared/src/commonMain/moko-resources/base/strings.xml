@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
+    <string name="vp_schedule_title">Vertretungsplan</string>
+    <string name="vp_open_webview">Vertretungsplan öffnen</string>
+    <string name="vp_unverified_course_warning">Klasse existiert wahrscheinlich nicht</string>
+    <string name="vp_room_changes_section_title">Ersatzräume</string>
+    <string name="vp_schedule_in_progress">In Arbeit</string>
     <string name="vp_no_entries">Keine Einträge</string>
+    <string name="vp_no_courses_selected">Keine Klassen ausgewählt</string>
+    <string name="vp_add_course">Klasse hinzufügen</string>
+    <string name="vp_deleted_entries_section_title">gelöscht</string>
 </resources>
