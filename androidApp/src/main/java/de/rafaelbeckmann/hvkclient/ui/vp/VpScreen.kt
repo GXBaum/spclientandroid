@@ -1,7 +1,6 @@
 package de.rafaelbeckmann.hvkclient.ui.vp
 
 import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -24,7 +23,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +34,7 @@ import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -57,12 +56,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpDay
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpSubstitution
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpType
+import de.rafaelbeckmann.hvkclient.features.vp.presentation.VpScreenState
 import de.rafaelbeckmann.hvkclient.features.vp.presentation.VpViewModel
 import de.rafaelbeckmann.hvkclient.relativeDateFormatter
 import de.rafaelbeckmann.hvkclient.relativeDateTimeFormatter
@@ -88,17 +89,48 @@ import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.VpScreen(
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onVpOpenClick: (String?) -> Unit,
+    onAddCourseClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: VpViewModel = koinViewModel(),
+    course: String? = null,
+    viewModel: VpViewModel = koinViewModel()
+) {
+    val state by viewModel.vpScreenState.collectAsStateWithLifecycle()
+    val snackbarHostState = LocalSnackbarHostState.current
+
+    VpContent(
+        modifier = modifier,
+        state = state,
+        course = course,
+        onVpOpenClick = onVpOpenClick,
+        onAddCourseClick = onAddCourseClick,
+        onRefresh = { viewModel.refreshAsync() },
+        fabModifier = Modifier
+            .sharedBounds(
+                sharedContentState = rememberSharedContentState(
+                    key = VP_FAB_EXPLODE_BOUND
+                ),
+                animatedVisibilityScope = animatedVisibilityScope
+            ),
+        snackbarHostState = snackbarHostState
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun VpContent(
+    modifier: Modifier = Modifier,
+    fabModifier: Modifier = Modifier,
+    state: VpScreenState,
     course: String? = null,
     onVpOpenClick: (String?) -> Unit = {},
     onAddCourseClick: () -> Unit,
-    animatedVisibilityScope: AnimatedVisibilityScope
+    onRefresh: () -> Unit,
+    snackbarHostState: SnackbarHostState
 ) {
-    val state by viewModel.vpScreenState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { state.selectedCourses.size })
 
@@ -136,12 +168,11 @@ fun SharedTransitionScope.VpScreen(
 
     Scaffold(
         snackbarHost = {
-            val snackbarHostState = LocalSnackbarHostState.current
             SnackbarHost(
                 hostState = snackbarHostState,
             )
         },
-        modifier = Modifier.safeDrawingPadding(),
+        modifier = modifier.safeDrawingPadding(),
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 expanded = fabExpanded,
@@ -153,26 +184,18 @@ fun SharedTransitionScope.VpScreen(
                     )
                 },
                 text = { Text(stringResource(MR.strings.vp_schedule_title)) },
-                modifier = Modifier
+                modifier = fabModifier
                     .onGloballyPositioned { // calculate FAB height
                         fabHeight = it.size.height
                     }
-                    .sharedBounds(
-                        sharedContentState = rememberSharedContentState(
-                            key = VP_FAB_EXPLODE_BOUND
-                        ),
-                        animatedVisibilityScope = animatedVisibilityScope
-                    )
                 ,
             )
         }
     ) { innerPadding ->
         HapticPullToRefreshBox(
             isRefreshing = state.isLoading,
-            onRefresh = {
-                viewModel.refreshAsync()
-            },
-            modifier = modifier
+            onRefresh = onRefresh,
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
@@ -521,4 +544,16 @@ fun LazyListScope.daySection(title: String, courseName: SelectedCourse?, list: V
         }
         vpTableItems(differentRoomsForCourse)
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun VpEmptyPreview() {
+    VpContent(
+        state = VpScreenState(),
+        onVpOpenClick = {},
+        onAddCourseClick = {},
+        onRefresh = {},
+        snackbarHostState = SnackbarHostState()
+    )
 }

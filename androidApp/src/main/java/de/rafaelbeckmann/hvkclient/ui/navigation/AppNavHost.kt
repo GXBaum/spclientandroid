@@ -123,15 +123,15 @@ fun AppNavHost(
                 startDestination = VpGraph.startDestination(),
                 deepLinks = listOf()
             ) {
-                composable<VpScreen> (
+                composable<VpRoute> (
                     deepLinks = listOf(
                         // TODO: remove old
-                        navDeepLink<VpScreen>(basePath = "hvkclient://vpScreen"),
-                        navDeepLink<VpScreen>(basePath = "hvkclient://vp"),
-                        navDeepLink<VpScreen>(basePath = "$HTTPS_DEEPLINK_BASE_DOMAIN/vp")
+                        navDeepLink<VpRoute>(basePath = "hvkclient://vpScreen"),
+                        navDeepLink<VpRoute>(basePath = "hvkclient://vp"),
+                        navDeepLink<VpRoute>(basePath = "$HTTPS_DEEPLINK_BASE_DOMAIN/vp")
                     )
                 ) {
-                    val args = it.toRoute<VpScreen>()
+                    val args = it.toRoute<VpRoute>()
 
                     VpScreen(
                         modifier = Modifier

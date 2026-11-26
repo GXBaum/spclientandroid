@@ -11,7 +11,7 @@ interface NavGraphSpec {
 
 @Serializable
 object VpGraph : NavGraphSpec {
-    override fun startDestination() = VpScreen()
+    override fun startDestination() = VpRoute()
 }
 
 @Serializable
@@ -47,7 +47,7 @@ data class RevealMarkScreen(
 object SettingsScreen
 
 @Serializable
-data class VpScreen(
+data class VpRoute(
     val course: String? = null
 )
 
