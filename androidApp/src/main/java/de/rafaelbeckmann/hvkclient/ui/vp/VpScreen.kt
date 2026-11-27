@@ -25,8 +25,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -119,17 +117,16 @@ fun SharedTransitionScope.VpScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun VpContent(
-    modifier: Modifier = Modifier,
-    fabModifier: Modifier = Modifier,
     state: VpScreenState,
-    course: String? = null,
-    onVpOpenClick: (String?) -> Unit = {},
+    snackbarHostState: SnackbarHostState,
+    onVpOpenClick: (String?) -> Unit,
     onAddCourseClick: () -> Unit,
     onRefresh: () -> Unit,
-    snackbarHostState: SnackbarHostState
+    modifier: Modifier = Modifier,
+    fabModifier: Modifier = Modifier,
+    course: String? = null
 ) {
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(pageCount = { state.selectedCourses.size })

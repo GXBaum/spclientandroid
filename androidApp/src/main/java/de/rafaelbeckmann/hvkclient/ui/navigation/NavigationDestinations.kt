@@ -21,7 +21,7 @@ object CoursesGraph : NavGraphSpec {
 
 @Serializable
 object SettingsGraph : NavGraphSpec {
-    override fun startDestination() = SettingsScreen
+    override fun startDestination() = SettingsRoute
 }
 
 @Serializable
@@ -44,7 +44,7 @@ data class RevealMarkScreen(
 )
 
 @Serializable
-object SettingsScreen
+object SettingsRoute
 
 @Serializable
 data class VpRoute(

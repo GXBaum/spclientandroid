@@ -28,12 +28,12 @@ import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.Feedback
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -57,6 +58,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.rafaelbeckmann.hvkclient.SettingsScreenState
 import de.rafaelbeckmann.hvkclient.SettingsViewModel
 import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
 import de.rafaelbeckmann.hvkclient.ui.common.DebugMenu
@@ -88,22 +90,41 @@ sealed class SettingsItem {
     ) : SettingsItem()
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    onAddCourseClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = koinViewModel(),
-    onAddCourseClick: () -> Unit = {},
     onLibrariesClick: () -> Unit = {}
 ) {
     val state by viewModel.settingsScreenState.collectAsStateWithLifecycle()
+    val snackbarHostState = LocalSnackbarHostState.current
 
-    val useDynamicColor by viewModel.useDynamicColor.collectAsStateWithLifecycle()
+    SettingsContent(
+        modifier = modifier,
+        state = state,
+        onRefresh = { viewModel.reload() },
+        onDeleteCourse = { viewModel.deleteVpSelectedCourse(it) },
+        onDynamicColorChange = { viewModel.toggleDynamicColor(it) },
+        onAddCourseClick = onAddCourseClick,
+        snackbarHostState = snackbarHostState
+    )
+}
 
+@Composable
+private fun SettingsContent(
+    state: SettingsScreenState,
+    snackbarHostState: SnackbarHostState,
+    onAddCourseClick: () -> Unit,
+    onDeleteCourse: (String) -> Unit,
+    onRefresh: () -> Unit,
+    onDynamicColorChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    onLibrariesClick: () -> Unit = {}
+) {
     var showWarning by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-
 
 
     // Get the PackageInfo object for the current application package
@@ -182,7 +203,6 @@ fun SettingsScreen(
 
     Scaffold(
         snackbarHost = {
-            val snackbarHostState = LocalSnackbarHostState.current
             SnackbarHost(
                 hostState = snackbarHostState,
             )
@@ -205,14 +225,14 @@ fun SettingsScreen(
 
         HapticPullToRefreshBox(
             isRefreshing = state.isLoading,
-            onRefresh = { viewModel.reload() },
+            onRefresh = onRefresh,
             state = rememberPullToRefreshState(),
             modifier = Modifier
                 .padding(innerPadding)
         ) {
             LazyColumn(
                 state = lazyColumnState,
-                modifier = modifier
+                modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .fillMaxSize()
                 //contentPadding = innerPadding
@@ -275,9 +295,9 @@ fun SettingsScreen(
                                         }
                                     }
 
-                                    IconButton(onClick = {
-                                        viewModel.deleteVpSelectedCourse(item.course.id)
-                                    }) {
+                                    IconButton(
+                                        onClick = { onDeleteCourse(item.course.id) }
+                                    ) {
                                         Icon(
                                             imageVector = Icons.Rounded.Delete,
                                             contentDescription = "Kurs löschen",
@@ -344,8 +364,8 @@ fun SettingsScreen(
                             SettingsItem.Switch(
                                 text = "Systemfarben verwenden",
                                 icon = Icons.Rounded.ColorLens,
-                                checked = useDynamicColor
-                            ) { viewModel.toggleDynamicColor(it) }
+                                checked = state.useDynamicColor
+                            ) { onDynamicColorChange(it) }
                         )
                     ) {
                         SettingsSwitch(
@@ -498,5 +518,18 @@ private fun SettingsMenuItem(
                 )
             }
         }
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingsPreview() {
+    SettingsContent(
+        state = SettingsScreenState(),
+        onDeleteCourse = {},
+        onAddCourseClick = {},
+        onDynamicColorChange = {},
+        onRefresh = {},
+        snackbarHostState = SnackbarHostState()
     )
 }

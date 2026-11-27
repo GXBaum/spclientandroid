@@ -1,7 +1,6 @@
 package de.rafaelbeckmann.hvkclient.ui.navigation
 
 import android.os.Build
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -43,7 +42,6 @@ const val VP_FAB_EXPLODE_BOUND = "VP_FAB_EXPLODE_BOUND"
 const val HTTPS_DEEPLINK_BASE_DOMAIN = "https://hvk.rafaelbeckmann.de"
 
 // TODO: inject via Hilt
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -229,7 +227,7 @@ fun AppNavHost(
                     navDeepLink<SettingsGraph>(basePath = "$HTTPS_DEEPLINK_BASE_DOMAIN/settings")
                 )
             ) {
-                composable<SettingsScreen> {
+                composable<SettingsRoute> {
                     SettingsScreen(
                         modifier = Modifier.fillMaxSize(),
                         onAddCourseClick = { navController.navigate(AddCourseScreen) },

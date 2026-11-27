@@ -13,12 +13,10 @@ import de.rafaelbeckmann.hvkclient.features.other.domain.OtherStuffRepository
 import de.rafaelbeckmann.hvkclient.features.vp.domain.SelectedCourse
 import de.rafaelbeckmann.hvkclient.features.vp.domain.VpRepository
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.annotation.KoinViewModel
@@ -59,11 +57,6 @@ class SettingsViewModel(
     private val _courseSearch = MutableStateFlow<List<String>>(emptyList())
     val courseSearch: StateFlow<List<String>> = _courseSearch
 
-    // TODO ich verstehe .stateIn nicht
-    val useDynamicColor: StateFlow<Boolean?> = settingsRepository
-        .useDynamicColorFlow()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
-
     init {
         viewModelScope.launch {
             val isDev = settingsRepository.isDeveloper()
@@ -75,6 +68,17 @@ class SettingsViewModel(
                     userId = userId
                 )
             }
+
+            settingsRepository
+                .useDynamicColorFlow()
+                .onEach { enabled ->
+                    _settingsScreenState.update {
+                        it.copy(
+                            useDynamicColor = enabled
+                        )
+                    }
+                }
+                .launchIn(viewModelScope)
 
             fetchSelectedCourse()
             observeSelectedCourses()
